@@ -1,135 +1,152 @@
-# Turborepo starter
+# Nuur Fashion
 
-This Turborepo starter is maintained by the Turborepo core team.
+Elevate your style. Shop effortlessly, anywhere.
 
-## Using this example
+## Overview
 
-Run the following command:
+Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, mobile, and admin. The project emphasizes code reuse, performance, accessibility, and a great developer experience, built with modern technologies across the stack.
 
-```sh
-npx create-turbo@latest
-```
+## Technology Stack
 
-## What's inside?
+| Layer | Technology |
+| --- | --- |
+| Frontend (Web/Admin) | Vite, React, TanStack Router/Query/Table, Zustand, Framer Motion, shadcn/ui, Clerk |
+| Mobile | React Native with TanStack Query and Zustand for state management |
+| Backend | Hono (Bun runtime), Drizzle ORM, Zod validation |
+| Database | PostgreSQL via Drizzle ORM |
+| Authentication | Clerk |
+| CDN & Hosting | Cloudflare Workers, Pages, Images |
+| Payments | Stripe, PayPal |
+| Media | Cloudinary, Cloudflare Images |
+| Email | Resend, Postmark, SendGrid |
+| API Documentation | OpenAPI auto-generated from TypeScript types (backend) |
 
-This Turborepo includes the following packages/apps:
+## Features
 
-### Apps and Packages
+### Customer portal
+- Social and email login (Clerk)
+- Full product catalog with filters: gender, category, brand, price
+- Product detail pages with image galleries, size charts, and reviews
+- Smart search with autocomplete; wishlist & favorites
+- Shopping cart with multi-step checkout (Stripe / PayPal)
+- Order management and tracking; returns and refunds
+- Responsive design optimized for mobile and desktop, with PWA support
+- Notifications and promotions
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Admin dashboard
+- Role-protected access (Clerk)
+- Analytics for sales, traffic, and user behavior
+- Full product CRUD and inventory management
+- Order processing and fulfillment tools
+- User account and role management
+- Promotions, discounts, and CMS features
+- Review moderation and reporting
+- Exportable reports and data analysis
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Mobile app
+- React Native app sharing business logic with web via TanStack Query & Zustand
+- Push notifications for orders and promotions
+- Offline caching support and deep links
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
+## Project Structure
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+/
+├── apps
+│   ├── web            # Vite + React + TanStack (shop UI)
+│   ├── admin          # Vite + React + TanStack (dashboard UI)
+│   └── mobile         # React Native (mobile client)
+├── shared             # Shared components, hooks, types, utilities, API
+├── backend
+│   ├── controllers     # Hono handlers
+│   ├── middleware      # Validation (Zod), auth, logging
+│   ├── models          # Drizzle ORM schema and migrations
+│   ├── routes          # API routes
+│   ├── services        # Payments, emails, business logic
+│   ├── utils           # Helpers
+│   └── server.ts       # Hono Bun server entrypoint
+├── public              # Static assets
+├── config              # Env and deployment configs
+├── docs                # Setup guides, API docs, design links
+├── README.md
+├── package.json
+├── turbo.json          # Monorepo config
+└── tsconfig.json
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Getting Started
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Clone the repo and install dependencies:
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+bun install
 ```
 
-### Remote Caching
+**Set up environment**  
+Add Clerk, Stripe, Cloudflare, and database credentials to a .env file.
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+**Database setup:**
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```bash
+cd backend
+bun drizzle generate
+bun drizzle migrate dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+**Run backend server:**
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+bun run server.ts
 ```
 
-## Useful Links
+**Run frontend:**
 
-Learn more about the power of Turborepo:
+```bash
+cd apps/web && bun run dev
+cd apps/admin && bun run dev
+```
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+**Run mobile app:**
+
+```bash
+cd apps/mobile && expo start
+```
+
+View API docs: Access /openapi in the backend for auto-generated documentation.
+
+## Design System
+
+- UI powered by shadcn/ui for consistent, accessible components
+- Animations and transitions with Framer Motion for a polished UX
+- Brand colors: deep blue/green primary, coral/magenta accents, light backgrounds
+- Figma design and style guide linked in /docs/design.md
+
+## Integrations
+
+| Integration | Purpose |
+| --- | --- |
+| Clerk | Authentication & user sessions |
+| Stripe / PayPal | Payments & checkout |
+| Cloudflare | Hosting, CDN, image delivery |
+| Drizzle ORM | Database access & migrations |
+| Zod | Validation and API schema |
+| Cloudinary | Media management |
+| Resend / Postmark / SendGrid | Transactional emails |
+| Google / Cloudflare | Analytics |
+| OpenAI / OpenRouter | AI-driven product recommendations (future) |
+
+## Contributing
+
+- Code is TypeScript-first, with linting (ESLint + Prettier)
+- API requests and validation use Zod schemas
+- Shared UI and business logic live in /shared for cross-platform reuse
+- Work on feature branches with PRs; maintain test coverage
+- CI/CD setup with Cloudflare Pages and GitHub Actions
+
+## License
+
+This project is licensed under the MIT License.
+
+Nuur Fashion — Elevate your style. Shop effortlessly, anywhere.
+
+This README provides a clear, practical base for development and collaboration, aligned with a modern, high-performance stack.
