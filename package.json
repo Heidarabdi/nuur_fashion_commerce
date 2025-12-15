@@ -1,21 +1,43 @@
 {
-  "name": "nuur_fashion_commerce",
+  "name": "nuur-fashio-commerce",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
+    "build:shared": "cd packages/shared && bun run build",
+    "build": "bun run build:shared && turbo run build",
     "dev": "turbo run dev --parallel",
+    "dev:web": "turbo run dev --filter=@nuur-fashion-commerce/web",
+    "dev:backend": "turbo run dev --filter=@nuur-fashion-commerce/backend",
+    "dev:mobile": "turbo run dev --filter=@nuur-fashion-commerce/mobile",
+    "build:web": "bun run build:shared && turbo run build --filter=@nuur-fashion-commerce/web",
+    "build:backend": "bun run build:shared && turbo run build --filter=@nuur-fashion-commerce/backend",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "lint:fix": "turbo run lint -- --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "check-types": "turbo run check-types",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "clean:turbo": "rm -rf .turbo",
+    "check-deps": "manypkg check",
+    "fix-deps": "manypkg fix",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "audit": "bun audit"
+  },
+  "dependencies": {
+    "@changesets/cli": "^2.27.10",
+    "@manypkg/cli": "^0.21.4",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.6.2",
+    "turbo": "^2.6.1"
   },
   "devDependencies": {
-    "prettier": "^3.6.2",
-    "turbo": "^2.6.1",
     "typescript": "^5.9.3"
   },
-  "packageManager": "bun@1.3.2",
+  "packageManager": "bun@1.3.4",
   "workspaces": [
     "apps/*",
     "packages/*"

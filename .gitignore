@@ -36,10 +36,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 # Expo/mobile ignores
-.expo/
-apps/**/.expo/
-apps/mobile/ios/
-apps/mobile/android/
 
 # Bun binary lockfile (optional, faster resolves)
 bun.lockb

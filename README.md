@@ -33,8 +33,9 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 - Responsive design optimized for mobile and desktop, with PWA support
 - Notifications and promotions
 
-### Admin dashboard
-- Role-protected access (Clerk)
+### Admin dashboard (Integrated in web app)
+- Role-based access control with TanStack Router
+- Unified authentication with customer portal
 - Analytics for sales, traffic, and user behavior
 - Full product CRUD and inventory management
 - Order processing and fulfillment tools
@@ -42,6 +43,7 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 - Promotions, discounts, and CMS features
 - Review moderation and reporting
 - Exportable reports and data analysis
+- Seamless switching between admin and shop views
 
 ### Mobile app
 - React Native app sharing business logic with web via TanStack Query & Zustand
@@ -53,10 +55,14 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 ```
 /
 ├── apps
-│   ├── web            # Vite + React + TanStack (shop UI)
-│   ├── admin          # Vite + React + TanStack (dashboard UI)
-│   └── mobile         # React Native (mobile client)
-├── shared             # Shared components, hooks, types, utilities, API
+│   ├── web            # Vite + React + TanStack (unified shop + admin UI)
+│   │   ├── routes/
+│   │   │   ├── _shop/      # Customer-facing routes
+│   │   │   ├── _admin/     # Admin dashboard routes (role-protected)
+│   │   │   └── _auth/      # Authentication routes
+│   ├── mobile         # React Native (mobile client)
+├── packages           # Shared packages across apps
+│   ├── shared         # Shared components, hooks, types, utilities, API
 ├── backend
 │   ├── controllers     # Hono handlers
 │   ├── middleware      # Validation (Zod), auth, logging
@@ -82,6 +88,18 @@ Clone the repo and install dependencies:
 bun install
 ```
 
+Note about the shared package
+Before running builds or starting apps that depend on the workspace `shared` package, produce the compiled output and type declarations for it. This ensures non-TypeScript-aware runtimes and build steps (for example Bun build or other CI steps) will resolve the package correctly.
+
+Build the shared package:
+
+```bash
+cd packages/shared
+bun run build
+```
+
+(There is also a root-level `prepare`/`build:shared` helper that runs the shared build automatically when running the main `build` script.)
+
 **Set up environment**  
 Add Clerk, Stripe, Cloudflare, and database credentials to a .env file.
 
@@ -103,7 +121,6 @@ bun run server.ts
 
 ```bash
 cd apps/web && bun run dev
-cd apps/admin && bun run dev
 ```
 
 **Run mobile app:**

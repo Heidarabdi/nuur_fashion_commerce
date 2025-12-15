@@ -1,12 +1,28 @@
 {
   "name": "@nuur-fashion-commerce/backend",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "start": "bun run dist/index.js",
+    "test": "bun test",
+    "lint": "eslint src/"
   },
   "dependencies": {
-    "hono": "^4.10.6"
+    "@hono/zod-validator": "^0.4.1",
+    "@nuur-fashion-commerce/shared": "workspace:*",
+    "drizzle-orm": "^0.38.3",
+    "hono": "^4.10.6",
+    "postgres": "^3.4.5",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.1.15",
+    "@types/node": "^22.10.5",
+    "drizzle-kit": "^0.30.1",
+    "typescript": "^5.9.3"
   }
 }
