@@ -1,28 +1,204 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
+import { ChevronRight } from 'lucide-react'
 
-export const Route = createFileRoute('/')({ component: HomePage })
+export const Route = createFileRoute('/')({
+  component: HomePage,
+})
 
 function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-white mb-8">Nuur Fashion Commerce</h1>
-        <div className="space-y-4">
+    <div className="min-h-screen bg-background text-foreground">
+      <section className="relative min-h-[90vh] flex items-center justify-center px-4 md:px-6 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/luxury-fashion-hero-background-with-models.jpg')] bg-cover bg-center opacity-30 -z-10" />
+        <div className="absolute inset-0 bg-linear-to-r from-background via-background/70 to-background/40 -z-10" />
+
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-accent font-medium tracking-widest uppercase mb-4 text-sm">New Collection 2025</p>
+              <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-8 tracking-tight text-balance leading-snug sm:leading-tight">
+                Timeless Elegance Meets Contemporary Style
+              </h1>
+              <p className="text-lg text-foreground/70 mb-6 max-w-xl leading-relaxed">
+                Explore our carefully curated selection of premium fashion pieces from emerging and established designers. Each item is chosen for its craftsmanship and enduring appeal.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all duration-300 group"
+                >
+                  Explore Collection
+                  <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <a
+                  href="#featured"
+                  className="inline-flex items-center justify-center px-8 py-4 border border-primary text-primary font-medium hover:bg-primary/5 transition-colors"
+                >
+                  View Highlights
+                </a>
+              </div>
+            </div>
+            <div className="hidden lg:block">
+              <div className="relative h-96 rounded-lg overflow-hidden">
+                <img
+                  src="/luxury-fashion-model-wearing-elegant-designer-outf.jpg"
+                  alt="Hero Fashion"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-4 md:px-6 lg:px-8 bg-primary/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+            <div>
+              <div className="text-4xl font-bold text-accent mb-3">500+</div>
+              <p className="text-foreground/70">Premium designers curated</p>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-accent mb-3">10K+</div>
+              <p className="text-foreground/70">Satisfied customers worldwide</p>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-accent mb-3">100%</div>
+              <p className="text-foreground/70">Authentic quality guaranteed</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-4 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-16">
+            <h2 className="font-serif text-4xl md:text-5xl font-bold">Featured Collections</h2>
+            <Link
+              to="/shop"
+              className="text-accent font-medium flex items-center hover:translate-x-1 transition-transform"
+            >
+              View All <ChevronRight className="ml-2 w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[{ name: 'Evening Wear', image: '/elegant-evening-dresses-luxury-fashion.jpg' }, { name: 'Casual Chic', image: '/stylish-casual-outfits-contemporary-fashion.jpg' }, { name: 'Premium Accessories', image: '/luxury-fashion-accessories-bags-jewelry.jpg' }].map((category) => (
+              <Link key={category.name} to="/shop" search={{ category: category.name.toLowerCase() }} className="group cursor-pointer">
+                <div className="bg-secondary rounded-lg overflow-hidden h-80 mb-6 relative">
+                  <img
+                    src={category.image || '/placeholder.svg'}
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
+                </div>
+                <h3 className="font-serif text-2xl font-bold group-hover:text-accent transition-colors">{category.name}</h3>
+                <p className="text-foreground/60 mt-2">Discover our selection</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="featured" className="py-20 px-4 md:px-6 lg:px-8 bg-primary/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-16">
+            <div>
+              <p className="text-accent font-medium tracking-widest uppercase mb-2 text-sm">Highlighted Pieces</p>
+              <h2 className="font-serif text-4xl md:text-5xl font-bold">Bestsellers</h2>
+            </div>
+            <Link
+              to="/shop"
+              className="text-accent font-medium flex items-center hover:translate-x-1 transition-transform"
+            >
+              Shop All <ChevronRight className="ml-2 w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                name: 'Silk Evening Gown',
+                designer: 'Aria Studios',
+                price: 599,
+                image: '/elegant-silk-evening-gown-luxury-fashion.jpg',
+              },
+              {
+                name: 'Tailored Blazer',
+                designer: 'Modern Classics',
+                price: 399,
+                image: '/luxury-tailored-blazer-structured-jacket.jpg',
+              },
+              {
+                name: 'Cashmere Sweater',
+                designer: 'Minimalist Label',
+                price: 299,
+                image: '/luxury-cashmere-sweater-knit.jpg',
+              },
+              {
+                name: 'Designer Handbag',
+                designer: 'Craft & Co',
+                price: 449,
+                image: '/luxury-designer-leather-handbag.jpg',
+              },
+            ].map((product, i) => (
+              <Link key={i} to="/product/$id" params={{ id: `${i + 1}` }} className="group">
+                <div className="relative bg-background rounded-lg overflow-hidden h-80 mb-6">
+                  <img
+                    src={product.image || '/placeholder.svg'}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute top-4 right-4 bg-accent text-background px-3 py-1 rounded text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    New
+                  </div>
+                </div>
+                <h3 className="font-medium text-lg mb-2 group-hover:text-accent transition-colors">{product.name}</h3>
+                <p className="text-sm text-foreground/60 mb-3">{product.designer}</p>
+                <p className="font-serif text-xl font-bold text-accent">${product.price}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-4 md:px-6 lg:px-8 bg-primary text-primary-foreground">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6">Exclusive Member Benefits</h2>
+          <p className="text-lg mb-8 text-primary-foreground/90">
+            Join our community and receive early access to new collections, exclusive discounts, and personalized style recommendations.
+          </p>
           <Link
-            to="/web"
-            className="block px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
+            to="/auth/signup"
+            className="inline-flex items-center px-8 py-4 bg-primary-foreground text-primary font-medium hover:bg-primary-foreground/90 transition-colors"
           >
-            Web Application
-          </Link>
-          <Link
-            to="/admin"
-            className="block px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-purple-500/50"
-          >
-            Admin Panel
+            Sign Up Now
+            <ChevronRight className="ml-2 w-5 h-5" />
           </Link>
         </div>
-      </div>
+      </section>
+
+      <section className="py-20 px-4 md:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="font-serif text-3xl font-bold mb-4">Stay Updated</h2>
+          <p className="text-foreground/70 mb-8">
+            Subscribe to our newsletter for style tips, new arrivals, and exclusive offers.
+          </p>
+          <form className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 border border-foreground/20 rounded bg-background focus:outline-none focus:border-accent"
+            />
+            <button
+              type="submit"
+              className="px-8 py-3 bg-accent text-background font-medium hover:bg-accent/90 transition-colors"
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </section>
     </div>
   )
 }

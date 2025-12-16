@@ -1,91 +1,83 @@
 import { Link } from '@tanstack/react-router'
-
+import { Heart, ShoppingBag, Search, Menu, X } from 'lucide-react'
 import { useState } from 'react'
-import {
-  Home,
-  Menu,
-  X,
-} from 'lucide-react'
 
 export default function Header() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
+    <header className="fixed top-0 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 z-50 border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <Link to="/" className="flex items-center">
+            <span className="font-serif text-2xl font-bold tracking-tight">Nuur</span>
           </Link>
-        </h1>
-      </header>
 
-      <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Close menu"
-          >
-            <X size={24} />
-          </button>
+          <nav className="hidden md:flex items-center gap-8">
+            <Link to="/shop" className="text-sm font-medium hover:text-accent transition-colors">
+              Shop
+            </Link>
+            <Link to="/collections" className="text-sm font-medium hover:text-accent transition-colors">
+              Collections
+            </Link>
+            <Link to="/about" className="text-sm font-medium hover:text-accent transition-colors">
+              About
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <button aria-label="Search" className="p-2 hover:bg-secondary rounded-md transition-colors">
+              <Search size={20} />
+            </button>
+            <button aria-label="Wishlist" className="p-2 hover:bg-secondary rounded-md transition-colors">
+              <Heart size={20} />
+            </button>
+            <Link to="/cart" className="p-2 hover:bg-secondary rounded-md transition-colors relative">
+              <ShoppingBag size={20} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
+            </Link>
+            <Link
+              to="/profile"
+              className="hidden md:block text-sm font-medium px-4 py-2 hover:bg-secondary rounded-md transition-colors"
+            >
+              Account
+            </Link>
+
+            <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
+              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Home size={20} />
-            <span className="font-medium">Home</span>
-          </Link>
-
-          <Link
-            to="/web"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <span className="font-medium">Web Application</span>
-          </Link>
-
-          <Link
-            to="/admin"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <span className="font-medium">Admin Panel</span>
-          </Link>
-        </nav>
-      </aside>
-    </>
+        {isMenuOpen && (
+          <nav className="md:hidden pb-4 pt-2 space-y-2">
+            <Link to="/shop" className="block px-4 py-2 hover:bg-secondary rounded-md" onClick={() => setIsMenuOpen(false)}>
+              Shop
+            </Link>
+            <Link
+              to="/collections"
+              className="block px-4 py-2 hover:bg-secondary rounded-md"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Collections
+            </Link>
+            <Link
+              to="/about"
+              className="block px-4 py-2 hover:bg-secondary rounded-md"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              About
+            </Link>
+            <Link
+              to="/profile"
+              className="block px-4 py-2 hover:bg-secondary rounded-md"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Account
+            </Link>
+          </nav>
+        )}
+      </div>
+    </header>
   )
 }

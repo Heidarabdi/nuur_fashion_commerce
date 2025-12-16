@@ -4,6 +4,10 @@ node_modules
 # output
 out
 dist
+.output
+build
+.next
+.tanstack
 *.tgz
 
 # code coverage
@@ -39,3 +43,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Bun binary lockfile (optional, faster resolves)
 bun.lockb
+
+/clothing-e-commerce-pages
