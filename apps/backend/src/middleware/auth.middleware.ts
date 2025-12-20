@@ -1,4 +1,5 @@
 import { Context, Next } from "hono";
+import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { response } from "../utils";
 import { clerkService } from "../services/external/clerk.service";
 import { db } from "../db";
@@ -10,70 +11,89 @@ import { logger } from "../utils/logger";
 declare module "hono" {
     interface ContextVariableMap {
         user: typeof users.$inferSelect;
-        clerkUserId: string;
     }
 }
 
-export const authMiddleware = async (c: Context, next: Next) => {
-    try {
-        const authHeader = c.req.header("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return response.error(c, "Unauthorized: No token provided", 401);
-        }
+/**
+ * Helper to sync user from Clerk to our DB
+ */
+const syncUser = async (clerkUserId: string) => {
+    let user = await db.query.users.findFirst({
+        where: eq(users.clerkId, clerkUserId)
+    });
 
-        const token = authHeader.split(" ")[1];
-        const payload = await clerkService.verifyToken(token);
+    if (!user) {
+        try {
+            const clerkUser = await clerkService.getUser(clerkUserId);
+            const email = clerkUser.emailAddresses[0]?.emailAddress;
 
-        if (!payload) {
-            return response.error(c, "Unauthorized: Invalid token", 401);
-        }
+            if (email) {
+                [user] = await db.insert(users).values({
+                    clerkId: clerkUserId,
+                    email: email,
+                    firstName: clerkUser.firstName,
+                    lastName: clerkUser.lastName,
+                    avatarUrl: clerkUser.imageUrl,
+                    role: "customer",
+                }).onConflictDoUpdate({
+                    target: users.clerkId,
+                    set: { email: email }
+                }).returning();
 
-        const clerkUserId = payload.sub;
-
-        // Check if user exists in our DB, if not sync (Lazy Sync)
-        // Or normally we rely on Webhooks to create users, but for robustness:
-        let user = await db.query.users.findFirst({
-            where: eq(users.clerkId, clerkUserId)
-        });
-
-        if (!user) {
-            // Option A: Reject (Wait for webhook) -> stricter
-            // Option B: Lazy Create -> better UX if webhook delayed
-            // For now, let's reject to enforce proper Webhook flow, OR fetch from Clerk and create.
-            // Let's do a quick fetch sync for robustness since webhooks can fail locally.
-            try {
-                const clerkUser = await clerkService.getUser(clerkUserId);
-                const email = clerkUser.emailAddresses[0]?.emailAddress;
-
-                if (email) {
-                    [user] = await db.insert(users).values({
-                        clerkId: clerkUserId,
-                        email: email,
-                        firstName: clerkUser.firstName,
-                        lastName: clerkUser.lastName,
-                        avatarUrl: clerkUser.imageUrl,
-                        role: "customer",
-                    }).onConflictDoUpdate({
-                        target: users.clerkId,
-                        set: { email: email } // safe update
-                    }).returning();
-
-                    logger.info({ userId: user.id }, "User lazy-synced in middleware");
-                }
-            } catch (syncError) {
-                logger.error({ syncError }, "Failed to lazy sync user");
+                logger.info({ userId: user.id }, "User lazy-synced in middleware");
             }
+        } catch (syncError) {
+            logger.error({ syncError }, "Failed to lazy sync user");
         }
+    }
+    return user;
+};
+
+/**
+ * Strict Auth Middleware
+ * Blocks request if user is not authenticated
+ */
+export const authMiddleware = async (c: Context, next: Next) => {
+    const auth = getAuth(c);
+
+    if (!auth?.userId) {
+        return response.error(c, "Unauthorized", 401);
+    }
+
+    try {
+        const user = await syncUser(auth.userId);
 
         if (!user) {
-            return response.error(c, "Unauthorized: User not found", 401);
+            return response.error(c, "Unauthorized: User account not ready", 401);
         }
 
         c.set("user", user);
-        c.set("clerkUserId", clerkUserId);
-
         await next();
     } catch (error) {
-        return response.error(c, "Unauthorized", 401);
+        logger.error({ error }, "Auth Middleware Internal Error");
+        return response.error(c, "Internal Server Error", 500);
     }
 };
+
+/**
+ * Optional Auth Middleware
+ * Sets user in context if authenticated, but continues if guest
+ */
+export const optionalAuthMiddleware = async (c: Context, next: Next) => {
+    const auth = getAuth(c);
+
+    if (auth?.userId) {
+        try {
+            const user = await syncUser(auth.userId);
+            if (user) {
+                c.set("user", user);
+            }
+        } catch (error) {
+            logger.error({ error }, "Optional Auth Middleware Sync Error");
+        }
+    }
+
+    await next();
+};
+
+

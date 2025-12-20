@@ -15,6 +15,13 @@
       "when": 1766062545790,
       "tag": "0001_icy_lady_ursula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766216709621,
+      "tag": "0002_add_reviews_and_wishlists",
+      "breakpoints": true
     }
   ]
 }

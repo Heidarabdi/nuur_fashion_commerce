@@ -141,3 +141,20 @@ export const wishlistItemsRelations = relations(wishlistItems, ({ one }) => ({
         references: [products.id],
     }),
 }));
+
+// Product Variants Relations
+export const productVariantsRelations = relations(productVariants, ({ one }) => ({
+    product: one(products, {
+        fields: [productVariants.productId],
+        references: [products.id],
+    }),
+}));
+
+// Product Images Relations
+export const productImagesRelations = relations(productImages, ({ one }) => ({
+    product: one(products, {
+        fields: [productImages.productId],
+        references: [products.id],
+    }),
+}));
+

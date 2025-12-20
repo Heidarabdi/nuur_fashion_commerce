@@ -3,5 +3,16 @@ import postgres from "postgres";
 import { env } from "../config";
 import * as schema from "./schema";
 
-const client = postgres(env.DATABASE_URL);
-export const db = drizzle(client, { schema });
+const createDb = () => {
+    const client = postgres(env.DATABASE_URL);
+    return drizzle(client, { schema });
+};
+
+// We use a variable that can be overridden in tests
+export let db = process.env.NODE_ENV === "test"
+    ? (null as any) // Will be set by setTestDb in setup.ts
+    : createDb();
+
+export const setTestDb = (testDbInstance: any) => {
+    db = testDbInstance;
+};

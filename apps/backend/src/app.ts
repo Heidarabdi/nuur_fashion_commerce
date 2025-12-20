@@ -3,12 +3,14 @@ import { cors } from "hono/cors";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config";
+import { clerkMiddleware } from "@hono/clerk-auth";
 import routes from "./routes";
 import { loggerMiddleware, errorMiddleware } from "./middleware";
 
 const app = new Hono();
 
 // Global Middleware
+app.use("*", clerkMiddleware());
 app.use("*", loggerMiddleware); // Swapped Basic Logger for Pinot Logger
 app.use("*", prettyJSON());
 app.use("*", secureHeaders());
