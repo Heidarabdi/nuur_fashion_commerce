@@ -1,0 +1,14 @@
+$ bun --bun vite dev --port 3000
+Route file "D:/Languages/bun/nuur_fashion_commerce/apps/web/src/routes/admin/layout.tsx" does not contain any route piece. This is likely a mistake.
+46 |     }
+47 |   }
+48 |   let er;
+49 |   if (args.length > 0)
+50 |     er = args[0];
+51 |     throw er;
+                 ^
+error: Failed to start server. Is port 42069 in use?
+      at emitError (node:events:51:13)
+
+Bun v1.3.4 (Windows x64)
+error: script "dev" exited with code 1

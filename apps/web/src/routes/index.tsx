@@ -1,12 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
+import { useProducts } from '@nuur-fashion-commerce/api'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 })
 
 function HomePage() {
+  // Fetch featured products
+  const { data: productsData, isLoading } = useProducts({ isFeatured: true })
+  const products = productsData?.data || productsData || []
+  const featuredProducts = Array.isArray(products) ? products.slice(0, 4) : []
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <section className="relative min-h-[90vh] flex items-center justify-center px-4 md:px-6 lg:px-8 overflow-hidden">
@@ -116,48 +122,40 @@ function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                name: 'Silk Evening Gown',
-                designer: 'Aria Studios',
-                price: 599,
-                image: '/elegant-silk-evening-gown-luxury-fashion.jpg',
-              },
-              {
-                name: 'Tailored Blazer',
-                designer: 'Modern Classics',
-                price: 399,
-                image: '/luxury-tailored-blazer-structured-jacket.jpg',
-              },
-              {
-                name: 'Cashmere Sweater',
-                designer: 'Minimalist Label',
-                price: 299,
-                image: '/luxury-cashmere-sweater-knit.jpg',
-              },
-              {
-                name: 'Designer Handbag',
-                designer: 'Craft & Co',
-                price: 449,
-                image: '/luxury-designer-leather-handbag.jpg',
-              },
-            ].map((product, i) => (
-              <Link key={i} to="/product/$id" params={{ id: `${i + 1}` }} className="group">
-                <div className="relative bg-background rounded-lg overflow-hidden h-80 mb-6">
-                  <img
-                    src={product.image || '/placeholder.svg'}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4 bg-accent text-background px-3 py-1 rounded text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                    New
-                  </div>
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-secondary rounded-lg h-80 mb-6" />
+                  <div className="h-4 bg-secondary rounded w-3/4 mb-2" />
+                  <div className="h-4 bg-secondary rounded w-1/2 mb-3" />
+                  <div className="h-6 bg-secondary rounded w-1/3" />
                 </div>
-                <h3 className="font-medium text-lg mb-2 group-hover:text-accent transition-colors">{product.name}</h3>
-                <p className="text-sm text-foreground/60 mb-3">{product.designer}</p>
-                <p className="font-serif text-xl font-bold text-accent">${product.price}</p>
-              </Link>
-            ))}
+              ))
+            ) : featuredProducts.length > 0 ? (
+              featuredProducts.map((product: any) => (
+                <Link key={product.id} to="/product/$id" params={{ id: product.id }} className="group">
+                  <div className="relative bg-background rounded-lg overflow-hidden h-80 mb-6">
+                    <img
+                      src={product.images?.[0]?.url || '/placeholder.svg'}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    {product.isNew && (
+                      <div className="absolute top-4 right-4 bg-accent text-background px-3 py-1 rounded text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        New
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-medium text-lg mb-2 group-hover:text-accent transition-colors">{product.name}</h3>
+                  <p className="text-sm text-foreground/60 mb-3">{product.brand?.name || 'Designer Studio'}</p>
+                  <p className="font-serif text-xl font-bold text-accent">${product.price}</p>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-4 text-center py-12">
+                <p className="text-foreground/60">No featured products available</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { AdminShell } from './layout'
+import { AdminShell } from '../../components/AdminShell'
 
 export const Route = createFileRoute('/admin/analytics')({
   component: AnalyticsPage,

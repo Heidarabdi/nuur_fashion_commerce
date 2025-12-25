@@ -1,0 +1,47 @@
+{
+  "name": "@nuur-fashion-commerce/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client/index.js",
+      "types": "./dist/client/index.d.ts"
+    },
+    "./hooks": {
+      "import": "./dist/hooks/index.js",
+      "types": "./dist/hooks/index.d.ts"
+    },
+    "./queries": {
+      "import": "./dist/queries/index.js",
+      "types": "./dist/queries/index.d.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint -c ../../.eslintrc.cjs \"src/**/*.{ts,tsx,js,jsx}\"",
+    "check-types": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "hono": "^4.11.1",
+    "@tanstack/react-query": "^5.62.11",
+    "@tanstack/react-query-devtools": "^5.62.11",
+    "@tanstack/query-core": "^5.62.11",
+    "@nuur-fashion-commerce/shared": "workspace:*",
+    "@nuur-fashion-commerce/backend": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.9.3"
+  }
+}

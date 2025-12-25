@@ -17,7 +17,7 @@ export const ordersService = {
 
         // 1. Calculate Total (in real app, re-verify prices from DB, assume cart.items has fresh data)
         let totalAmount = 0;
-        cart.items.forEach(item => {
+        cart.items.forEach((item: any) => {
             // Price logic: usage of variant price vs product price
             // item.price is not stored in cartItems, we must take it from product relation
             // Basic logic:
@@ -26,7 +26,8 @@ export const ordersService = {
         });
 
         // 2. Create Order
-        return await db.transaction(async (tx) => {
+        // Using 'any' for tx to avoid complex Drizzle type inference issues during build
+        return await db.transaction(async (tx: any) => {
             const [newOrder] = await tx.insert(orders).values({
                 userId,
                 addressId: data.addressId,
@@ -35,7 +36,7 @@ export const ordersService = {
             }).returning();
 
             // 3. Create Order Items (Snapshot)
-            const itemsToInsert = cart.items.map(item => ({
+            const itemsToInsert = cart.items.map((item: any) => ({
                 orderId: newOrder.id,
                 productId: item.productId,
                 variantId: item.variantId,

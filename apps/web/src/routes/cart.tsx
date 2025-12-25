@@ -1,27 +1,76 @@
-import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { X } from 'lucide-react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useCart, useRemoveFromCart, useUpdateCartItem } from '@nuur-fashion-commerce/api'
 
 export const Route = createFileRoute('/cart')({
   component: CartPage,
 })
 
 function CartPage() {
-  const [items, setItems] = useState([
-    { id: 1, name: 'Premium Evening Dress', price: 599, quantity: 1, size: 'M', image: '/elegant-flowing-dress.png' },
-    { id: 2, name: 'Silk Blouse', price: 299, quantity: 2, size: 'S', image: '/elegant-silk-blouse.png' },
-  ])
+  const { data: cartData, isLoading, error } = useCart()
+  const removeFromCart = useRemoveFromCart()
+  const updateCartItem = useUpdateCartItem()
 
-  const removeItem = (id: number) => setItems(items.filter((item) => item.id !== id))
-  const updateQuantity = (id: number, quantity: number) => {
-    if (quantity > 0) setItems(items.map((item) => (item.id === id ? { ...item, quantity } : item)))
+  const cart = cartData?.data || cartData
+  const items = cart?.items || []
+
+  const handleRemoveItem = async (itemId: string) => {
+    try {
+      await removeFromCart.mutateAsync(itemId)
+    } catch (error) {
+      alert('Failed to remove item')
+    }
   }
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveItem(itemId)
+      return
+    }
+    try {
+      await updateCartItem.mutateAsync({ itemId, quantity })
+    } catch (error) {
+      alert('Failed to update quantity')
+    }
+  }
+
+  const subtotal = items.reduce((sum: number, item: any) => {
+    const price = item.product?.price || item.unitPrice || 0
+    const qty = item.quantity || 1
+    return sum + price * qty
+  }, 0)
   const shipping = subtotal > 200 ? 0 : 20
   const tax = Math.round(subtotal * 0.1)
   const total = subtotal + shipping + tax
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-10">
+        <div className="pt-14 pb-16 px-4 md:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-secondary rounded w-64 mb-12" />
+              <div className="h-64 bg-secondary rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen pt-10">
+        <div className="pt-14 pb-16 px-4 md:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
+              <p className="text-destructive">Failed to load cart. Please try again.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen pt-10">
@@ -33,30 +82,54 @@ function CartPage() {
             <div className="lg:col-span-2">
               {items.length > 0 ? (
                 <div className="space-y-4">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex gap-4 pb-4 border-b border-border">
-                      <img src={item.image || '/placeholder.svg'} alt={item.name} className="w-24 h-24 object-cover rounded-lg bg-secondary" />
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">{item.name}</h3>
-                        <p className="text-sm text-foreground/60 mb-3">Size: {item.size}</p>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center border border-border rounded-md">
-                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 flex items-center justify-center hover:bg-secondary">
-                              −
-                            </button>
-                            <span className="w-8 text-center text-sm">{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-secondary">
-                              +
-                            </button>
+                  {items.map((item: any) => {
+                    const product = item.product || {}
+                    const imageUrl = product.images?.[0]?.url || '/placeholder.svg'
+                    const price = product.price || item.unitPrice || 0
+                    const quantity = item.quantity || 1
+
+                    return (
+                      <div key={item.id} className="flex gap-4 pb-4 border-b border-border">
+                        <img src={imageUrl} alt={product.name || 'Product'} className="w-24 h-24 object-cover rounded-lg bg-secondary" />
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-1">{product.name || 'Product'}</h3>
+                          {item.variant && (
+                            <p className="text-sm text-foreground/60 mb-3">
+                              Size: {item.variant.size || 'N/A'}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center border border-border rounded-md">
+                              <button
+                                onClick={() => handleUpdateQuantity(item.id, quantity - 1)}
+                                disabled={updateCartItem.isPending}
+                                className="w-8 h-8 flex items-center justify-center hover:bg-secondary disabled:opacity-50"
+                              >
+                                −
+                              </button>
+                              <span className="w-8 text-center text-sm">{quantity}</span>
+                              <button
+                                onClick={() => handleUpdateQuantity(item.id, quantity + 1)}
+                                disabled={updateCartItem.isPending}
+                                className="w-8 h-8 flex items-center justify-center hover:bg-secondary disabled:opacity-50"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <p className="font-semibold">${(price * quantity).toLocaleString()}</p>
                           </div>
-                          <p className="font-semibold">${(item.price * item.quantity).toLocaleString()}</p>
                         </div>
+                        <button
+                          onClick={() => handleRemoveItem(item.id)}
+                          disabled={removeFromCart.isPending}
+                          className="p-2 hover:bg-secondary rounded-md transition-colors disabled:opacity-50"
+                          aria-label="Remove item"
+                        >
+                          <X size={20} />
+                        </button>
                       </div>
-                      <button onClick={() => removeItem(item.id)} className="p-2 hover:bg-secondary rounded-md transition-colors" aria-label="Remove item">
-                        <X size={20} />
-                      </button>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">

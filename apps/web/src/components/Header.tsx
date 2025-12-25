@@ -1,9 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { Heart, ShoppingBag, Search, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { UserButton, SignInButton } from '@clerk/tanstack-react-start'
+import { useAuth } from '@clerk/tanstack-react-start'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isSignedIn } = useAuth()
 
   return (
     <header className="fixed top-0 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 z-50 border-b border-border">
@@ -36,12 +39,22 @@ export default function Header() {
               <ShoppingBag size={20} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
             </Link>
-            <Link
-              to="/profile"
-              className="hidden md:block text-sm font-medium px-4 py-2 hover:bg-secondary rounded-md transition-colors"
-            >
-              Account
-            </Link>
+            {isSignedIn ? (
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
+                }}
+              />
+            ) : (
+              <SignInButton mode="modal">
+                <button className="hidden md:block text-sm font-medium px-4 py-2 hover:bg-secondary rounded-md transition-colors">
+                  Sign In
+                </button>
+              </SignInButton>
+            )}
 
             <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
               {isMenuOpen ? <X size={20} /> : <Menu size={20} />}

@@ -39,3 +39,6 @@ app.get("/", (c) => {
 app.route("/api", routes);
 
 export default app;
+
+// Export type for Hono RPC client
+export type AppType = typeof app;
