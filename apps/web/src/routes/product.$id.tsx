@@ -19,7 +19,8 @@ function ProductPage() {
 
   const product = productData?.data || productData
   const images = product?.images?.map((img: any) => img.url) || ['/placeholder.svg']
-  const sizes = product?.variants?.map((v: any) => v.size).filter(Boolean) || ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+  const variants = product?.variants || []
+  const sizes = variants.length > 0 ? variants.map((v: any) => v.size).filter(Boolean) : ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
   const handleAddToCart = async () => {
     if (!selectedSize) {

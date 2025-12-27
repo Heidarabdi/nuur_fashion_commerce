@@ -1,8 +1,19 @@
 import { z } from "zod";
 
 export const createOrderSchema = z.object({
-    addressId: z.string().uuid(),
-    // In a real app, we might accept cartId explicitly or infer active cart
+    addressId: z.string().uuid().optional(),
+
+    // Customer Info
+    email: z.string().email(),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+
+    // Shipping Address
+    street: z.string().min(1),
+    city: z.string().min(1),
+    state: z.string().min(1),
+    zip: z.string().min(1),
+    country: z.string().default("US"),
 });
 
 export const orderSchema = z.object({

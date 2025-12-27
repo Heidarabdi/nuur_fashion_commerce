@@ -11,9 +11,21 @@ export const orders = pgTable("orders", {
     status: orderStatusEnum("status").default("pending").notNull(),
     totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
 
-    // Linking to address ID is simpler, but a real snapshot is better. 
-    // For MVP, we'll link, but ideally we copy address fields here too.
+    // Customer Info (for Guest or Snapshot)
+    email: text("email"),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+
+    // Guest ID
+    guestId: text("guest_id"),
+
+    // Shipping Address Snapshot
     addressId: uuid("address_id").references(() => addresses.id),
+    street: text("street"),
+    city: text("city"),
+    state: text("state"),
+    zip: text("zip"),
+    country: text("country").default("US"),
 
     paymentIntentId: text("payment_intent_id"),
 });

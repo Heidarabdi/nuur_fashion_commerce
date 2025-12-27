@@ -49,10 +49,14 @@ export function useCreateOrder() {
 
     return useMutation({
         mutationFn: async (orderData: {
-            items: Array<{ productId: string; variantId?: string; quantity: number }>;
-            shippingAddressId?: string;
-            billingAddressId?: string;
-            notes?: string;
+            email: string;
+            firstName: string;
+            lastName: string;
+            street: string;
+            city: string;
+            state: string;
+            zip: string;
+            country: string;
         }) => {
             const res = await (apiClient as any).api.orders.$post({
                 json: orderData,

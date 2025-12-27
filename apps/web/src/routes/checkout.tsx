@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Loader2, CheckCircle } from 'lucide-react'
+import { useCart, useCreateOrder } from '@nuur-fashion-commerce/api'
 
 export const Route = createFileRoute('/checkout')({
   component: CheckoutPage,
@@ -8,6 +9,7 @@ export const Route = createFileRoute('/checkout')({
 
 function CheckoutPage() {
   const [step, setStep] = useState(1)
+  const [orderSuccess, setOrderSuccess] = useState<any>(null)
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
@@ -21,12 +23,69 @@ function CheckoutPage() {
     cardCVC: '',
   })
 
+  const { data: cart } = useCart()
+  const { mutate: createOrder, isPending } = useCreateOrder()
+
+  const cartTotal = cart?.items?.reduce((acc: number, item: any) => {
+    return acc + (Number(item.product.price) * item.quantity)
+  }, 0) || 0
+
+  // Mock tax and shipping
+  const shipping = 0
+  const tax = cartTotal * 0.1
+  const finalTotal = cartTotal + shipping + tax // tax is just estimate for display
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handlePlaceOrder = () => {
+    createOrder(
+      {
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        street: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip: formData.zip,
+        country: 'US',
+      },
+      {
+        onSuccess: (order) => {
+          setOrderSuccess(order)
+          setStep(4)
+        },
+        onError: (err) => {
+          alert('Failed to place order: ' + err.message)
+        }
+      }
+    )
+  }
+
   const steps = ['Shipping', 'Payment', 'Review']
+
+  if (step === 4 && orderSuccess) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 px-4 flex flex-col items-center justify-center text-center">
+        <div className="bg-primary/10 p-4 rounded-full mb-6">
+          <CheckCircle className="w-16 h-16 text-primary" />
+        </div>
+        <h1 className="font-serif text-4xl font-bold mb-4">Order Placed!</h1>
+        <p className="text-xl text-foreground/70 mb-8">
+          Thank you for your order, {orderSuccess.firstName}.<br />
+          Your order ID is <span className="font-mono">{orderSuccess.id}</span>
+        </p>
+        <Link
+          to="/shop"
+          className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+        >
+          Continue Shopping
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen">
@@ -38,13 +97,12 @@ function CheckoutPage() {
             {steps.map((stepName, index) => (
               <div key={index} className="flex items-center gap-4">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-                    step > index + 1
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${step > index + 1
                       ? 'bg-accent text-accent-foreground'
                       : step === index + 1
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary text-foreground/60'
-                  }`}
+                    }`}
                 >
                   {step > index + 1 ? '✓' : index + 1}
                 </div>
@@ -222,10 +280,20 @@ function CheckoutPage() {
               <div className="bg-secondary rounded-lg p-6">
                 <h3 className="font-semibold mb-4">Order Summary</h3>
                 <div className="space-y-2 text-sm">
-                  <p>2 items • $1,197</p>
-                  <p>Shipping: Free</p>
-                  <p>Tax: $120</p>
-                  <p className="font-semibold text-lg text-accent border-t border-border pt-2 mt-2">Total: $1,317</p>
+                  {cart?.items?.map((item: any) => (
+                    <p key={item.id} className="flex justify-between">
+                      <span>{item.quantity}x {item.product.name} ({item.variant?.size})</span>
+                      <span>${Number(item.product.price) * item.quantity}</span>
+                    </p>
+                  ))}
+                  <div className="border-t border-border my-2"></div>
+                  <p className="flex justify-between"><span>Subtotal:</span><span>${cartTotal.toFixed(2)}</span></p>
+                  <p className="flex justify-between"><span>Shipping:</span><span>Free</span></p>
+                  <p className="flex justify-between"><span>Tax (est):</span><span>${tax.toFixed(2)}</span></p>
+                  <p className="font-semibold text-lg text-accent border-t border-border pt-2 mt-2 flex justify-between">
+                    <span>Total:</span>
+                    <span>${finalTotal.toFixed(2)}</span>
+                  </p>
                 </div>
               </div>
 
@@ -244,11 +312,16 @@ function CheckoutPage() {
                 <button
                   onClick={() => setStep(2)}
                   className="flex-1 py-3 border border-border rounded-lg text-center font-semibold hover:bg-secondary transition-colors"
+                  disabled={isPending}
                 >
                   Edit Payment
                 </button>
-                <button className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors">
-                  Place Order
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={isPending}
+                  className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 flex justify-center items-center"
+                >
+                  {isPending ? <Loader2 className="animate-spin" /> : 'Place Order'}
                 </button>
               </div>
             </div>

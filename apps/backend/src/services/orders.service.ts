@@ -33,6 +33,15 @@ export const ordersService = {
                 addressId: data.addressId,
                 totalAmount: totalAmount.toString(),
                 status: "pending",
+                guestId,
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                street: data.street,
+                city: data.city,
+                state: data.state,
+                zip: data.zip,
+                country: data.country,
             }).returning();
 
             // 3. Create Order Items (Snapshot)

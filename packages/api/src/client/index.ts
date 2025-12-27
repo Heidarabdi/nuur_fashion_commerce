@@ -33,8 +33,22 @@ export const apiClient: HonoClientType = hc<AppType>(getApiUrl(), {
       'Content-Type': 'application/json',
     },
   },
+  fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+
+    // Inject Guest ID for browser environment
+    if (typeof window !== 'undefined') {
+      let guestId = localStorage.getItem('guest_id');
+      if (!guestId) {
+        guestId = crypto.randomUUID();
+        localStorage.setItem('guest_id', guestId);
+      }
+      headers.set('X-Guest-Id', guestId);
+    }
+
+    return fetch(input, { ...init, headers });
+  },
 });
 
 // Export typed client
 export type ApiClient = typeof apiClient;
-
