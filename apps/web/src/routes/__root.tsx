@@ -2,6 +2,7 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ApiProvider } from '@nuur-fashion-commerce/api'
+import { Toaster } from 'sonner'
 
 import Header from '../components/Header'
 import { Footer } from '../components/Footer'
@@ -46,6 +47,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            toastOptions={{
+              duration: 4000,
+              className: 'font-sans',
+            }}
+          />
           <TanStackDevtools
             config={{
               position: 'bottom-right',
@@ -63,3 +73,4 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     </ApiProvider>
   )
 }
+

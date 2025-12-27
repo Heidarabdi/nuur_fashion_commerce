@@ -17,7 +17,7 @@ app.use(
     "*",
     cors({
         origin: [env.FRONTEND_URL],
-        allowHeaders: ["Content-Type", "Authorization", "Upgrade-Insecure-Requests"],
+        allowHeaders: ["Content-Type", "Authorization", "Upgrade-Insecure-Requests", "X-Guest-Id", "X-Request-Id"],
         allowMethods: ["POST", "GET", "OPTIONS", "DELETE", "PUT", "PATCH"],
         exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
         maxAge: 600,

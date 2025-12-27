@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as WebRouteImport } from './routes/web'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ShopRouteImport } from './routes/shop'
@@ -18,6 +19,7 @@ import { Route as SaleRouteImport } from './routes/sale'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -26,6 +28,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
+import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -34,6 +37,11 @@ import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WebRoute = WebRouteImport.update({
   id: '/web',
   path: '/web',
@@ -79,6 +87,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -118,6 +131,11 @@ const ProductIdRoute = ProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersIdRoute = OrdersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => OrdersRoute,
 } as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
@@ -162,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
   '/contact': typeof ContactRoute
+  '/orders': typeof OrdersRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/returns': typeof ReturnsRoute
@@ -171,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
   '/web': typeof WebRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -178,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/orders/$id': typeof OrdersIdRoute
   '/product/$id': typeof ProductIdRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -188,6 +209,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
   '/contact': typeof ContactRoute
+  '/orders': typeof OrdersRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/returns': typeof ReturnsRoute
@@ -197,6 +219,7 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
   '/web': typeof WebRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -204,6 +227,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/orders/$id': typeof OrdersIdRoute
   '/product/$id': typeof ProductIdRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -215,6 +239,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
   '/contact': typeof ContactRoute
+  '/orders': typeof OrdersRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/returns': typeof ReturnsRoute
@@ -224,6 +249,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
   '/web': typeof WebRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -231,6 +257,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/orders/$id': typeof OrdersIdRoute
   '/product/$id': typeof ProductIdRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -243,6 +270,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/collections'
     | '/contact'
+    | '/orders'
     | '/privacy'
     | '/profile'
     | '/returns'
@@ -252,6 +280,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/terms'
     | '/web'
+    | '/wishlist'
     | '/admin/analytics'
     | '/admin/customers'
     | '/admin/orders'
@@ -259,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/login'
     | '/auth/signup'
+    | '/orders/$id'
     | '/product/$id'
     | '/admin'
   fileRoutesByTo: FileRoutesByTo
@@ -269,6 +299,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/collections'
     | '/contact'
+    | '/orders'
     | '/privacy'
     | '/profile'
     | '/returns'
@@ -278,6 +309,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/terms'
     | '/web'
+    | '/wishlist'
     | '/admin/analytics'
     | '/admin/customers'
     | '/admin/orders'
@@ -285,6 +317,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/login'
     | '/auth/signup'
+    | '/orders/$id'
     | '/product/$id'
     | '/admin'
   id:
@@ -295,6 +328,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/collections'
     | '/contact'
+    | '/orders'
     | '/privacy'
     | '/profile'
     | '/returns'
@@ -304,6 +338,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/terms'
     | '/web'
+    | '/wishlist'
     | '/admin/analytics'
     | '/admin/customers'
     | '/admin/orders'
@@ -311,6 +346,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/login'
     | '/auth/signup'
+    | '/orders/$id'
     | '/product/$id'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -322,6 +358,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   CollectionsRoute: typeof CollectionsRoute
   ContactRoute: typeof ContactRoute
+  OrdersRoute: typeof OrdersRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   ReturnsRoute: typeof ReturnsRoute
@@ -331,6 +368,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   TermsRoute: typeof TermsRoute
   WebRoute: typeof WebRoute
+  WishlistRoute: typeof WishlistRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -344,6 +382,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/web': {
       id: '/web'
       path: '/web'
@@ -407,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -463,6 +515,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/orders/$id': {
+      id: '/orders/$id'
+      path: '/$id'
+      fullPath: '/orders/$id'
+      preLoaderRoute: typeof OrdersIdRouteImport
+      parentRoute: typeof OrdersRoute
+    }
     '/auth/signup': {
       id: '/auth/signup'
       path: '/auth/signup'
@@ -515,6 +574,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface OrdersRouteChildren {
+  OrdersIdRoute: typeof OrdersIdRoute
+}
+
+const OrdersRouteChildren: OrdersRouteChildren = {
+  OrdersIdRoute: OrdersIdRoute,
+}
+
+const OrdersRouteWithChildren =
+  OrdersRoute._addFileChildren(OrdersRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -522,6 +592,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   CollectionsRoute: CollectionsRoute,
   ContactRoute: ContactRoute,
+  OrdersRoute: OrdersRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   ReturnsRoute: ReturnsRoute,
@@ -531,6 +602,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   TermsRoute: TermsRoute,
   WebRoute: WebRoute,
+  WishlistRoute: WishlistRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminOrdersRoute: AdminOrdersRoute,

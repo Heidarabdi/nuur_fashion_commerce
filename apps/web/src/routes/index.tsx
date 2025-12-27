@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
 import { useProducts } from '@nuur-fashion-commerce/api'
+import { useForm } from '@tanstack/react-form'
+import { z } from 'zod'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -12,6 +15,24 @@ function HomePage() {
   const { data: productsData, isLoading } = useProducts({ isFeatured: true })
   const products = productsData?.data || productsData || []
   const featuredProducts = Array.isArray(products) ? products.slice(0, 4) : []
+
+  // Newsletter form
+  const newsletterForm = useForm({
+    defaultValues: { email: '' },
+    validators: {
+      onChange: z.object({
+        email: z.email('Please enter a valid email'),
+      }),
+    },
+    onSubmit: async () => {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      toast.success('Subscribed!', {
+        description: 'Thank you for joining our newsletter.',
+      })
+      newsletterForm.reset()
+    },
+  })
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -182,21 +203,46 @@ function HomePage() {
           <p className="text-foreground/70 mb-8">
             Subscribe to our newsletter for style tips, new arrivals, and exclusive offers.
           </p>
-          <form className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 border border-foreground/20 rounded bg-background focus:outline-none focus:border-accent"
-            />
-            <button
-              type="submit"
-              className="px-8 py-3 bg-accent text-background font-medium hover:bg-accent/90 transition-colors"
-            >
-              Subscribe
-            </button>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              newsletterForm.handleSubmit()
+            }}
+            className="flex flex-col sm:flex-row gap-3"
+          >
+            <newsletterForm.Field name="email">
+              {(field) => (
+                <div className="flex-1">
+                  <input
+                    type="email"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder="Enter your email"
+                    className={`w-full px-4 py-3 border rounded bg-background focus:outline-none focus:border-accent ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-foreground/20'
+                      }`}
+                  />
+                  {field.state.meta.errorMap['onChange'] && (
+                    <p className="text-sm text-destructive mt-1 text-left">{String(field.state.meta.errorMap['onChange'])}</p>
+                  )}
+                </div>
+              )}
+            </newsletterForm.Field>
+            <newsletterForm.Subscribe selector={(state) => state.isSubmitting}>
+              {(isSubmitting) => (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-8 py-3 bg-accent text-background font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                </button>
+              )}
+            </newsletterForm.Subscribe>
           </form>
         </div>
       </section>
     </div>
   )
 }
+

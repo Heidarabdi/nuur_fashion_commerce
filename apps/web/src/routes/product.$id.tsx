@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Heart, Share2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useProduct, useAddToCart } from '@nuur-fashion-commerce/api'
+import { useProduct, useAddToCart, useProductReviews } from '@nuur-fashion-commerce/api'
+import { StarRating } from '../components/StarRating'
+import { ReviewsSection } from '../components/ReviewsSection'
 
 export const Route = createFileRoute('/product/$id')({
   component: ProductPage,
@@ -15,12 +17,18 @@ function ProductPage() {
   const [isWishlisted, setIsWishlisted] = useState(false)
 
   const { data: productData, isLoading, error } = useProduct(id)
+  const { data: reviewsData } = useProductReviews(id)
   const addToCart = useAddToCart()
 
   const product = productData?.data || productData
   const images = product?.images?.map((img: any) => img.url) || ['/placeholder.svg']
   const variants = product?.variants || []
   const sizes = variants.length > 0 ? variants.map((v: any) => v.size).filter(Boolean) : ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+
+  const reviews = reviewsData || []
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) / reviews.length
+    : 0
 
   const handleAddToCart = async () => {
     if (!selectedSize) {
@@ -121,14 +129,8 @@ function ProductPage() {
               <p className="text-foreground/60 mb-6">{product.brand?.name || 'Luxury Brand Studio'}</p>
 
               <div className="flex items-center gap-2 mb-6">
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-lg">
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <span className="text-sm text-foreground/60">(124 reviews)</span>
+                <StarRating rating={Math.round(averageRating)} />
+                <span className="text-sm text-foreground/60">({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
               </div>
 
               <div className="mb-8 pb-8 border-b border-border">
@@ -207,6 +209,9 @@ function ProductPage() {
               </div>
             </div>
           </div>
+
+          {/* Reviews Section */}
+          <ReviewsSection productId={id} />
         </div>
       </div>
     </div>

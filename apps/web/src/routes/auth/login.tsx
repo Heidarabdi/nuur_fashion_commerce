@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useForm } from '@tanstack/react-form'
+import { z } from 'zod'
+import { toast } from 'sonner'
 import { authClient } from '../../lib/auth-client'
-import { useMutation } from '@tanstack/react-query'
 import { FcGoogle } from 'react-icons/fc'
 import { FaGithub, FaFacebook } from 'react-icons/fa'
 
@@ -9,71 +10,106 @@ export const Route = createFileRoute('/auth/login')({
   component: LoginPage,
 })
 
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(1, 'Password is required'),
+})
+
 function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const navigate = useNavigate()
 
-  const loginMutation = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await authClient.signIn.email({
-        email,
-        password,
-      })
-      if (error) throw new Error(error.message || 'Failed to login')
-      return data
+  const form = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
     },
-    onSuccess: () => {
-      navigate({ to: '/' })
-    }
-  })
+    validators: {
+      onChange: loginSchema,
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        const { error } = await authClient.signIn.email({
+          email: value.email,
+          password: value.password,
+        })
+        if (error) throw new Error(error.message || 'Failed to login')
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    loginMutation.mutate()
-  }
+        toast.success('Welcome back!', {
+          description: 'You have been signed in successfully.',
+        })
+        navigate({ to: '/' })
+      } catch (err) {
+        toast.error('Sign in failed', {
+          description: (err as Error).message,
+        })
+      }
+    },
+  })
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
       <div className="w-full max-w-md p-8 bg-background border border-border rounded-xl shadow-sm">
         <h1 className="text-2xl font-serif font-bold text-center mb-6">Welcome Back</h1>
 
-        {loginMutation.isError && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-100 italic">
-            {(loginMutation.error as Error).message}
-          </div>
-        )}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            form.handleSubmit()
+          }}
+          className="space-y-4"
+        >
+          <form.Field name="email">
+            {(field) => (
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input
+                  type="email"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-border'
+                    }`}
+                  placeholder="you@example.com"
+                />
+                {field.state.meta.errorMap['onChange'] && (
+                  <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-secondary/50 border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-secondary/50 border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loginMutation.isPending}
-            className="w-full py-2 bg-black text-white rounded-md font-medium hover:bg-black/90 transition-colors disabled:opacity-50"
-          >
-            {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
-          </button>
+          <form.Field name="password">
+            {(field) => (
+              <div>
+                <label className="block text-sm font-medium mb-1">Password</label>
+                <input
+                  type="password"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-border'
+                    }`}
+                  placeholder="••••••••"
+                />
+                {field.state.meta.errorMap['onChange'] && (
+                  <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-2 bg-black text-white rounded-md font-medium hover:bg-black/90 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? 'Signing in...' : 'Sign In'}
+              </button>
+            )}
+          </form.Subscribe>
         </form>
 
         <div className="relative my-6">
