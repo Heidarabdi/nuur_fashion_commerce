@@ -9,13 +9,18 @@
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
     "test": "bun test --preload ./tests/setup.ts",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "typecheck": "bunx tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed-admin": "bun run scripts/seed-admin.ts"
   },
   "dependencies": {
-    "@clerk/backend": "^2.27.1",
-    "@hono/clerk-auth": "^3.0.3",
     "@hono/zod-validator": "^0.4.1",
     "@nuur-fashion-commerce/shared": "workspace:*",
+    "better-auth": "^1.4.9",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.38.3",
     "hono": "^4.10.6",

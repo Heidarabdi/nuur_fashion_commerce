@@ -22,7 +22,7 @@ describe("Reviews API Integration Tests", () => {
 
     it("should allow a logged-in user to create a review", async () => {
         // Arrange
-        const user = await factories.createUser({ clerkId: "clerk_123" });
+        const user = await factories.createUser();
         const product = await factories.createProduct();
 
         const payload = {
@@ -33,7 +33,7 @@ describe("Reviews API Integration Tests", () => {
         };
 
         // Act
-        const res = await request.post(app, "/api/reviews", payload, "clerk_123");
+        const res = await request.post(app, "/api/reviews", payload, user.id);
 
         // Assert
         expect(res.status).toBe(201);

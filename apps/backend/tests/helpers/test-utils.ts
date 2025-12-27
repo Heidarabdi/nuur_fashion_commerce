@@ -10,10 +10,11 @@ export const factories = {
     async createUser(overrides = {}) {
         const [user] = await db.insert(schema.users).values({
             id: randomUUID(),
-            clerkId: `clerk_${randomUUID()}`,
             email: `test_${randomUUID()}@example.com`,
-            firstName: "Test",
-            lastName: "User",
+            name: "Test User",
+            emailVerified: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
             ...overrides,
         }).returning();
         return user;

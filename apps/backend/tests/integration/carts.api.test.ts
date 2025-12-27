@@ -39,17 +39,17 @@ describe("Carts API Integration Tests", () => {
     });
 
     it("should manage cart for authenticated users", async () => {
-        const user = await factories.createUser({ clerkId: "clerk_999" });
+        const user = await factories.createUser();
         const product = await factories.createProduct();
 
         // Add Item
         await request.post(app, "/api/carts/items", {
             productId: product.id,
             quantity: 3
-        }, "clerk_999");
+        }, user.id);
 
         // Get Cart
-        const res = await request.get(app, "/api/carts", "clerk_999");
+        const res = await request.get(app, "/api/carts", user.id);
         expect(res.status).toBe(200);
         const data = await res.json();
         expect(data.data.userId).toBe(user.id);
@@ -57,15 +57,15 @@ describe("Carts API Integration Tests", () => {
     });
 
     it("should remove items from the cart", async () => {
-        const user = await factories.createUser({ clerkId: "clerk_abc" });
+        const user = await factories.createUser();
         const product = await factories.createProduct();
         const cart = await factories.createCart({ userId: user.id });
         const item = await factories.createCartItem(cart.id, product.id);
 
-        const res = await request.delete(app, `/api/carts/items/${item.id}`, "clerk_abc");
+        const res = await request.delete(app, `/api/carts/items/${item.id}`, user.id);
         expect(res.status).toBe(200);
 
-        const checkRes = await request.get(app, "/api/carts", "clerk_abc");
+        const checkRes = await request.get(app, "/api/carts", user.id);
         const data = await checkRes.json();
         expect(data.data.items).toHaveLength(0);
     });

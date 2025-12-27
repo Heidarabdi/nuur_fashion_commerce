@@ -38,7 +38,15 @@ describe("ordersService Unit Tests", () => {
 
         // Act
         const order = await ordersService.createFromCart(user.id, undefined, {
-            addressId: address.id
+            addressId: address.id,
+            email: user.email,
+            firstName: user.name?.split(' ')[0] || 'John',
+            lastName: user.name?.split(' ')[1] || 'Doe',
+            street: address.street,
+            city: address.city,
+            state: address.state,
+            zip: address.zip,
+            country: address.country,
         });
 
         // Assert
@@ -66,7 +74,17 @@ describe("ordersService Unit Tests", () => {
         const address = await factories.createAddress(user.id);
 
         expect(
-            ordersService.createFromCart(user.id, undefined, { addressId: address.id })
+            ordersService.createFromCart(user.id, undefined, {
+                addressId: address.id,
+                email: user.email,
+                firstName: 'Test',
+                lastName: 'User',
+                street: address.street,
+                city: address.city,
+                state: address.state,
+                zip: address.zip,
+                country: address.country,
+            })
         ).rejects.toThrow("Cart is empty");
     });
 

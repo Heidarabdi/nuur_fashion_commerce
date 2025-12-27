@@ -1,6 +1,6 @@
 import { pgTable, varchar, boolean, uuid } from "drizzle-orm/pg-core";
 import { commonColumns } from "./columns.helpers";
-import { users } from "./users";
+import { users } from "./auth";
 
 export const wishlists = pgTable("wishlists", {
     ...commonColumns,

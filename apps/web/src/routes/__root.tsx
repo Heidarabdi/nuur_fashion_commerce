@@ -1,7 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { ClerkProvider } from '@clerk/tanstack-react-start'
 import { ApiProvider } from '@nuur-fashion-commerce/api'
 
 import Header from '../components/Header'
@@ -35,36 +34,32 @@ export const Route = createRootRoute({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
-
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
-      <ApiProvider>
-        <html lang="en" suppressHydrationWarning>
-          <head>
-            <HeadContent />
-          </head>
-          <body className="font-sans bg-background text-foreground">
-            <Header />
-            <div className="pt-16 min-h-screen flex flex-col">
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <TanStackDevtools
-              config={{
-                position: 'bottom-right',
-              }}
-              plugins={[
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            />
-            <Scripts />
-          </body>
-        </html>
-      </ApiProvider>
-    </ClerkProvider>
+    <ApiProvider>
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <HeadContent />
+        </head>
+        <body className="font-sans bg-background text-foreground">
+          <Header />
+          <div className="pt-16 min-h-screen flex flex-col">
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+          <Scripts />
+        </body>
+      </html>
+    </ApiProvider>
   )
 }

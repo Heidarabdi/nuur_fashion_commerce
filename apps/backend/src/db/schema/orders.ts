@@ -1,6 +1,6 @@
 import { pgTable, text, decimal, uuid, pgEnum } from "drizzle-orm/pg-core";
 import { commonColumns } from "./columns.helpers";
-import { users } from "./users";
+import { users } from "./auth";
 import { addresses } from "./addresses";
 
 export const orderStatusEnum = pgEnum("order_status", ["pending", "processing", "shipped", "delivered", "cancelled"]);

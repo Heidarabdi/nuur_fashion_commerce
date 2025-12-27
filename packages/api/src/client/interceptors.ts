@@ -23,23 +23,17 @@ const originalFetch = (apiClient as any).fetch;
 
 (apiClient as any).fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   try {
-    // Get auth token
+    // Get auth token (if any)
     let token: string | null = null;
-    
+
     if (typeof window === 'undefined') {
-      // SSR context - get token from Clerk server API
+      // In SSR, we might need to forward cookies, but manual token injection is avoided by default
       token = await getAuthTokenSSR();
-    } else {
-      // Browser context - Clerk handles auth via cookies/headers automatically
-      // The backend middleware will extract the token from cookies
-      // No need to manually add Authorization header in browser
     }
 
     const headers = new Headers(init?.headers);
-    
-    // Only add Authorization header in SSR context
-    // In browser, Clerk cookies are sent automatically
-    if (token && typeof window === 'undefined') {
+
+    if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }
 
@@ -50,8 +44,8 @@ const originalFetch = (apiClient as any).fetch;
 
     // Handle error responses
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ 
-        message: `HTTP ${response.status}: ${response.statusText}` 
+      const errorData = await response.json().catch(() => ({
+        message: `HTTP ${response.status}: ${response.statusText}`
       }));
       throw new ApiError(
         errorData.message || 'Request failed',

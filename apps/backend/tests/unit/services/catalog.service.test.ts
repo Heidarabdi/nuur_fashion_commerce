@@ -40,7 +40,7 @@ describe("Catalog Services Unit Tests", () => {
 
             const productsResult = await brandsService.getProductsByBrand("nike");
             expect(productsResult).toHaveLength(2);
-            const names = productsResult?.map(p => p.name) || [];
+            const names = productsResult?.map((p: any) => p.name) || [];
             expect(names).toContain("Jordan");
             expect(names).toContain("Air Max");
         });
@@ -54,7 +54,7 @@ describe("Catalog Services Unit Tests", () => {
 
             const list = await categoriesService.getAll();
             expect(list).toHaveLength(2);
-            const child = list.find(c => c.name === "Child");
+            const child = list.find((c: any) => c.name === "Child");
             expect(child?.parent?.name).toBe("Parent");
         });
 
@@ -71,6 +71,14 @@ describe("Catalog Services Unit Tests", () => {
             const category = await factories.createCategory({ name: "Old Name" });
             const updated = await categoriesService.update(category.id, { name: "New Name" });
             expect(updated.name).toBe("New Name");
+        });
+
+        it("should find the child by name", async () => {
+            const parent = await factories.createCategory({ name: "Parent" });
+            await factories.createCategory({ name: "Child", parentId: parent.id });
+            const list = await categoriesService.getAll();
+            const child = list.find((c: any) => c.name === "Child");
+            expect(child?.name).toBe("Child");
         });
     });
 });

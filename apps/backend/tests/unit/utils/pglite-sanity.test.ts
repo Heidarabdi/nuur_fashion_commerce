@@ -16,6 +16,6 @@ describe("PGlite Sanity Check", () => {
         const res = await client.query("SELECT * FROM test_table;");
 
         expect(res.rows).toHaveLength(1);
-        expect(res.rows[0].name).toBe("Test User");
+        expect((res.rows[0] as any).name).toBe("Test User");
     });
 });

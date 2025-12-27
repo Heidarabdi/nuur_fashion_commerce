@@ -26,7 +26,7 @@ describe("Orders API Integration Tests", () => {
 
     it("should place an order from existing cart", async () => {
         // Arrange
-        const user = await factories.createUser({ clerkId: "order_tester" });
+        const user = await factories.createUser();
         const address = await factories.createAddress(user.id);
         const product = await factories.createProduct({ price: "50.00" });
 
@@ -34,12 +34,12 @@ describe("Orders API Integration Tests", () => {
         await request.post(app, "/api/carts/items", {
             productId: product.id,
             quantity: 2
-        }, "order_tester");
+        }, user.id);
 
         // Act - Place Order
         const res = await request.post(app, "/api/orders", {
             addressId: address.id
-        }, "order_tester");
+        }, user.id);
 
         // Assert
         expect(res.status).toBe(201);
@@ -49,7 +49,7 @@ describe("Orders API Integration Tests", () => {
     });
 
     it("should fetch my orders list", async () => {
-        const user = await factories.createUser({ clerkId: "clerk_list" });
+        const user = await factories.createUser();
         const product = await factories.createProduct();
         const order = await factories.createOrder(user.id);
 
@@ -62,12 +62,9 @@ describe("Orders API Integration Tests", () => {
             priceAtPurchase: "10.00"
         });
 
-        process.stdout.write(`USER ID: ${user.id}, CLERK ID: clerk_list, ORDER ID: ${order.id}\n`);
-
-        const res = await request.get(app, "/api/orders", "clerk_list");
+        const res = await request.get(app, "/api/orders", user.id);
         expect(res.status).toBe(200);
         const data = await res.json();
-        process.stdout.write(`RESULT DATA LENGTH: ${data.data.length}\n`);
         expect(data.data).toHaveLength(1);
     });
 

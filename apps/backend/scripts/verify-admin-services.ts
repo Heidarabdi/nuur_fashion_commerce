@@ -1,43 +1,8 @@
-
-import { describe, expect, test, beforeAll } from "bun:test";
-
 const BASE_URL = "http://localhost:3000/api";
-let token = ""; // We might need to mock auth header since we verify token with Clerk.
-// Since we can't easily generate a valid Clerk token, we might need to mock the authMiddleware 
-// OR simpler: use the 'seed-admin' user's ID if our authMiddleware allowed "Bypassing" for dev, 
-// BUT our authMiddleware strictly checks Clerk.
-// WORKAROUND: For this test, valid Clerk Token is hard.
-// Option A: Temporarily modify authMiddleware to accept a "TEST_SECRET" header.
-// Option B: Mock the verifying function.
 
-// Let's assume for this verify script, we will just call the controllers directly? 
-// No, we want to test routes.
-
-// Let's try to simulate a request with a key that we can enable in "development" mode.
-// Check auth.middleware.ts... it uses verifyToken from clerk.
-
-// ALTERNATIVE: Use a simple integration test file that bypasses the network layer 
-// and calls app.request with a mocked context variable? 
-// Hono allows app.request(url, init).
-// We can inject user into context if we mock the middleware.
-
-// Let's create a test that IMPORTS the app and MOCKS the middleware.
-// Or we can just run the seed and assume manual testing.
-// User asked to "Verify".
-// Let's try to write a script that fetches, assuming we can get a token?
-// Maybe I can generate a token if I control the Clerk instance? No.
-
-// Let's rely on simple console logs or unit tests for controllers if integration is hard.
-// Actually, I can use the `seed-admin.ts` to ensure data exists, then curl?
-// But I can't curl without a token.
-
-// Let's enable a "Dev Backdoor" in authMiddleware for localhost only?
-// This is risky but effective for "Agentic" verification without user interaction.
-// Let's view authMiddleware again.
-
-console.log("To verify, we need a valid token. Skipping automated route verification for now.");
-// I will instead create a script that calls SERVICES directly to verify logic.
-// This is safer and easier.
+// This script verifies the core services used by the Admin Dashboard.
+// It interacts with the services directly to ensure logic is correct
+// regardless of the authentication layer.
 
 import { ordersService } from "../src/services/orders.service";
 import { productsService } from "../src/services/products.service";

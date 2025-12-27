@@ -13,6 +13,7 @@ import { Route as WebRouteImport } from './routes/web'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShippingRouteImport } from './routes/shipping'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SaleRouteImport } from './routes/sale'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -51,6 +52,11 @@ const ShopRoute = ShopRouteImport.update({
 const ShippingRoute = ShippingRouteImport.update({
   id: '/shipping',
   path: '/shipping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SaleRoute = SaleRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
+  '/settings': typeof SettingsRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
+  '/settings': typeof SettingsRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
+  '/settings': typeof SettingsRoute
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/returns'
     | '/sale'
+    | '/settings'
     | '/shipping'
     | '/shop'
     | '/terms'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/returns'
     | '/sale'
+    | '/settings'
     | '/shipping'
     | '/shop'
     | '/terms'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/returns'
     | '/sale'
+    | '/settings'
     | '/shipping'
     | '/shop'
     | '/terms'
@@ -314,6 +326,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ReturnsRoute: typeof ReturnsRoute
   SaleRoute: typeof SaleRoute
+  SettingsRoute: typeof SettingsRoute
   ShippingRoute: typeof ShippingRoute
   ShopRoute: typeof ShopRoute
   TermsRoute: typeof TermsRoute
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/shipping'
       fullPath: '/shipping'
       preLoaderRoute: typeof ShippingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sale': {
@@ -506,6 +526,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ReturnsRoute: ReturnsRoute,
   SaleRoute: SaleRoute,
+  SettingsRoute: SettingsRoute,
   ShippingRoute: ShippingRoute,
   ShopRoute: ShopRoute,
   TermsRoute: TermsRoute,

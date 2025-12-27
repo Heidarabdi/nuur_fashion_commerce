@@ -1,5 +1,5 @@
 export * from "./columns.helpers";
-export * from "./users";
+export * from "./auth";
 export * from "./categories";
 export * from "./brands";
 export * from "./products";

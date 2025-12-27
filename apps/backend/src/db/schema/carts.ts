@@ -1,6 +1,6 @@
 import { pgTable, text, uuid, pgEnum } from "drizzle-orm/pg-core";
 import { commonColumns } from "./columns.helpers";
-import { users } from "./users";
+import { users } from "./auth";
 
 export const cartStatusEnum = pgEnum("cart_status", ["active", "abandoned", "converted"]);
 

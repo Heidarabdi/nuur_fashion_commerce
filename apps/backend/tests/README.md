@@ -38,7 +38,8 @@ export const factories = {
     async createUser(overrides = {}) {
         const [user] = await db.insert(schema.users).values({
             id: randomUUID(),
-            clerkId: `clerk_${randomUUID()}`,
+            email: `test_${randomUUID()}@example.com`,
+            name: "Test User",
             // ... defaults
             ...overrides,
         }).returning();
@@ -57,21 +58,21 @@ We test our API layer without spinning up a real server by using `app.request()`
 **Example Test Workflow (`tests/integration/reviews.api.test.ts`):**
 ```typescript
 it("should create a review via API", async () => {
-    const user = await factories.createUser({ clerkId: "clerk_123" });
+    const user = await factories.createUser();
     const product = await factories.createProduct();
 
     const res = await request.post(app, "/api/reviews", {
         productId: product.id,
         rating: 5,
         title: "Love it!"
-    }, "clerk_123"); // Mock user authentication
+    }, user.id); // Mock user authentication
 
     expect(res.status).toBe(201);
 });
 ```
 
 ### Mocking Auth
-We bypass Clerk's external calls by mocking `@hono/clerk-auth`. In integration tests, simply pass the `clerkId` as the third argument to `request.post`/`get`, and our middleware will automatically resolve the correct user in the database.
+We bypass external authentication by mocking our `Better Auth` instance. In integration tests, simply pass the database `userId` as the third argument to `request.post`/`get`, and our middleware will automatically resolve the correct user.
 
 ---
 

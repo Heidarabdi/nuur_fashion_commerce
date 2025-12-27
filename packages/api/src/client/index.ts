@@ -28,7 +28,7 @@ const getApiUrl = (): string => {
  */
 export const apiClient: HonoClientType = hc<AppType>(getApiUrl(), {
   init: {
-    credentials: 'include', // For Clerk cookies
+    credentials: 'include', // For Better Auth session cookies
     headers: {
       'Content-Type': 'application/json',
     },

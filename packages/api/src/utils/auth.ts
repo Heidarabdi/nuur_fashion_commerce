@@ -1,45 +1,15 @@
 /**
- * Get Clerk auth token for API requests
+ * Auth utilities for Better Auth
  * 
- * In browser context: Use the useAuth hook from @clerk/tanstack-react-start directly in components.
- * The API client relies on cookies for authentication - Clerk handles this automatically.
- * 
- * In SSR context: Token injection is not needed as the backend uses @hono/clerk-auth
- * middleware which handles authentication via cookies/headers.
+ * The API client relies on session cookies for authentication.
+ * When used in a browser, Better Auth manages these automatically.
  */
 
 /**
- * Get auth token in SSR context (server-side)
- * Note: This function is a no-op in browser environments.
- * The backend handles auth via cookies set by Clerk.
+ * Get auth token (placeholder for legacy compatibility or custom logic)
  */
 export async function getAuthTokenSSR(): Promise<string | null> {
-  // In browser, we don't need to manually inject tokens
-  // Clerk handles auth via cookies which are sent automatically
-  if (typeof window !== 'undefined') {
-    return null;
-  }
-
-  // In SSR context, we also rely on cookie-based auth
-  // The backend's @hono/clerk-auth middleware handles this
-  // No manual token injection needed
+  // Better Auth uses session cookies. 
+  // Manual token injection is typically not needed if headers/cookies are forwarded.
   return null;
 }
-
-/**
- * Note: In browser components, use the useAuth hook directly:
- * 
- * ```typescript
- * import { useAuth } from '@clerk/tanstack-react-start';
- * 
- * function MyComponent() {
- *   const { getToken } = useAuth();
- *   const token = await getToken();
- *   // Use token in API calls
- * }
- * ```
- * 
- * However, since we're using credentials: 'include' in the API client,
- * Clerk cookies are automatically sent with each request, so manual
- * token injection is typically not necessary.
- */

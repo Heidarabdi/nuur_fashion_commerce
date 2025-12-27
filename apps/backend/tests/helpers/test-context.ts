@@ -48,29 +48,28 @@ export async function setupTestContext() {
 }
 
 function applyGlobalMocks() {
-    mock.module("@clerk/backend", () => ({
-        createClerkClient: () => ({
-            users: {
-                getUser: async (id: string) => ({
-                    id: id || "user_test_123",
-                    emailAddresses: [{ emailAddress: "test@example.com" }],
-                    firstName: "Test",
-                    lastName: "User",
-                })
+    const authPath = resolve(process.cwd(), "src/lib/auth.ts");
+    mock.module(authPath, () => ({
+        auth: {
+            api: {
+                getSession: async ({ headers }: { headers: Headers }) => {
+                    const userId = headers.get("X-Test-User-Id");
+                    if (!userId) return null;
+                    return {
+                        user: {
+                            id: userId,
+                            email: "test@example.com",
+                            name: "Test User",
+                            role: "user",
+                        },
+                        session: {
+                            id: "test_session_id",
+                            userId,
+                            expiresAt: new Date(Date.now() + 1000 * 60 * 60),
+                        }
+                    };
+                }
             }
-        }),
-        verifyToken: async () => ({ sub: "user_test_123", email: "test@example.com" }),
-    }));
-
-    mock.module("@hono/clerk-auth", () => ({
-        clerkMiddleware: () => async (c: any, next: any) => {
-            // No-op for testing, real auth logic is in our authMiddleware
-            await next();
-        },
-        getAuth: (c: any) => {
-            // Check if test provided a userId in context or header
-            const userId = c.get("testUserId") || c.req.header("X-Test-User-Id");
-            return { userId };
         }
     }));
 

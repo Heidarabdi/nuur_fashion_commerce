@@ -59,7 +59,7 @@ async function verifyShoppingFlow() {
     console.log("\n--- CART SNAPSHOT ---");
     console.log(`ID: ${fetchedCart.id}`);
     console.log(`Items: ${fetchedCart.items.length}`);
-    fetchedCart.items.forEach(item => {
+    fetchedCart.items.forEach((item: any) => {
         console.log(` - ${item.quantity}x ${item.product.name}`);
     });
     console.log("---------------------\n");

@@ -1,6 +1,6 @@
 import { pgTable, text, integer, boolean, uuid, pgEnum, varchar } from "drizzle-orm/pg-core";
 import { commonColumns } from "./columns.helpers";
-import { users } from "./users";
+import { users } from "./auth";
 import { products } from "./products";
 
 export const reviewStatusEnum = pgEnum("review_status", ["pending", "approved", "rejected"]);

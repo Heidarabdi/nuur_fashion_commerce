@@ -38,10 +38,6 @@ export async function setupTestContext() {
 
     // 4. Other Mocks (only once per process)
     if (!isGlobalMocked) {
-        mock.module("@clerk/backend", () => ({
-            createClerkClient: () => ({ users: { getUser: async () => ({}) } }),
-            verifyToken: async () => ({ sub: "user_test_123" }),
-        }));
 
         const loggerPath = resolve(process.cwd(), "src/utils/logger/index.ts");
         mock.module(loggerPath, () => ({

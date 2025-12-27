@@ -10,11 +10,11 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 
 | Layer | Technology |
 | --- | --- |
-| Frontend (Web/Admin) | Vite, React, TanStack Router/Query/Table, Zustand, Framer Motion, shadcn/ui, Clerk |
+| Frontend (Web/Admin) | Vite, React, TanStack Router/Query/Table, Zustand, Framer Motion, shadcn/ui, Better Auth |
 | Mobile | React Native with TanStack Query and Zustand for state management |
 | Backend | Hono (Bun runtime), Drizzle ORM, Zod validation |
 | Database | PostgreSQL via Drizzle ORM |
-| Authentication | Clerk |
+| Authentication | Better Auth |
 | CDN & Hosting | Cloudflare Workers, Pages, Images |
 | Payments | Stripe, PayPal |
 | Media | Cloudinary, Cloudflare Images |
@@ -24,7 +24,7 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 ## Features
 
 ### Customer portal
-- Social and email login (Clerk)
+- Social and email login (Better Auth)
 - Full product catalog with filters: gender, category, brand, price
 - Product detail pages with image galleries, size charts, and reviews
 - Smart search with autocomplete; wishlist & favorites
@@ -101,7 +101,7 @@ bun run build
 (There is also a root-level `prepare`/`build:shared` helper that runs the shared build automatically when running the main `build` script.)
 
 **Set up environment**  
-Add Clerk, Stripe, Cloudflare, and database credentials to a .env file.
+Add Better Auth, Stripe, Cloudflare, and database credentials to a .env file.
 
 **Database setup:**
 
@@ -142,7 +142,7 @@ View API docs: Access /openapi in the backend for auto-generated documentation.
 
 | Integration | Purpose |
 | --- | --- |
-| Clerk | Authentication & user sessions |
+| Better Auth | Authentication & user sessions |
 | Stripe / PayPal | Payments & checkout |
 | Cloudflare | Hosting, CDN, image delivery |
 | Drizzle ORM | Database access & migrations |
