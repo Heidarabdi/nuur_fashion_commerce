@@ -25,7 +25,7 @@ export function useCart() {
  */
 export function useAddToCart() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (item: { productId: string; variantId?: string; quantity: number; guestId?: string }) => {
       const res = await (apiClient as any).api.carts.items.$post({
@@ -42,40 +42,55 @@ export function useAddToCart() {
     onMutate: async (newItem: { productId: string; variantId?: string; quantity: number; guestId?: string }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.cart.current() });
-      
+
       // Snapshot previous value
       const previousCart = queryClient.getQueryData(queryKeys.cart.current());
-      
+
       // Optimistically update
       queryClient.setQueryData(queryKeys.cart.current(), (old: unknown) => {
-        const oldCart = old as { data?: { items?: unknown[] } } | null | undefined;
-        if (!oldCart || !oldCart.data) {
+        const oldCart = old as { data?: { items?: any[] } } | { items?: any[] } | null | undefined;
+        const items = (oldCart as any)?.data?.items || (oldCart as any)?.items || [];
+
+        // Check if item already exists - handle both variantId (optimistic) and variant.id (from server)
+        const existingIndex = items.findIndex((item: any) => {
+          const itemVariantId = item.variantId || item.variant?.id;
+          const newVariantId = newItem.variantId;
+          return item.productId === newItem.productId && itemVariantId === newVariantId;
+        });
+
+        let newItems;
+        if (existingIndex >= 0) {
+          // Update quantity of existing item
+          newItems = items.map((item: any, index: number) =>
+            index === existingIndex
+              ? { ...item, quantity: item.quantity + newItem.quantity }
+              : item
+          );
+        } else {
+          // Add new item
+          newItems = [
+            ...items,
+            {
+              id: `temp-${Date.now()}`,
+              productId: newItem.productId,
+              variantId: newItem.variantId,
+              quantity: newItem.quantity,
+            },
+          ];
+        }
+
+        if ((oldCart as any)?.data) {
           return {
+            ...(oldCart as any),
             data: {
-              items: [{
-                productId: newItem.productId,
-                variantId: newItem.variantId,
-                quantity: newItem.quantity,
-              }],
+              ...(oldCart as any).data,
+              items: newItems,
             },
           };
         }
-        return {
-          ...oldCart,
-          data: {
-            ...oldCart.data,
-            items: [
-              ...(oldCart.data.items || []),
-              {
-                productId: newItem.productId,
-                variantId: newItem.variantId,
-                quantity: newItem.quantity,
-              },
-            ],
-          },
-        };
+        return { items: newItems };
       });
-      
+
       return { previousCart };
     },
     // Rollback on error
@@ -96,7 +111,7 @@ export function useAddToCart() {
  */
 export function useRemoveFromCart() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (itemId: string) => {
       const res = await (apiClient as any).api.carts.items[':itemId'].$delete({
@@ -120,7 +135,7 @@ export function useRemoveFromCart() {
  */
 export function useUpdateCartItem() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
       const res = await (apiClient as any).api.carts.items[':itemId'].$patch({

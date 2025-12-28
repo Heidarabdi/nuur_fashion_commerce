@@ -4,6 +4,7 @@ import { eq, desc } from "drizzle-orm";
 import { createOrderSchema } from "@nuur-fashion-commerce/shared";
 import { z } from "zod";
 import { cartsService } from "./carts.service";
+import { emailService } from "./external/email.service";
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
@@ -27,8 +28,8 @@ export const ordersService = {
 
         // 2. Create Order
         // Using 'any' for tx to avoid complex Drizzle type inference issues during build
-        return await db.transaction(async (tx: any) => {
-            const [newOrder] = await tx.insert(orders).values({
+        const newOrder = await db.transaction(async (tx: any) => {
+            const [createdOrder] = await tx.insert(orders).values({
                 userId,
                 addressId: data.addressId,
                 totalAmount: totalAmount.toString(),
@@ -46,7 +47,7 @@ export const ordersService = {
 
             // 3. Create Order Items (Snapshot)
             const itemsToInsert = cart.items.map((item: any) => ({
-                orderId: newOrder.id,
+                orderId: createdOrder.id,
                 productId: item.productId,
                 variantId: item.variantId,
                 quantity: item.quantity,
@@ -60,8 +61,25 @@ export const ordersService = {
             // Optional: clear items to keep cart clean
             await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));
 
-            return newOrder;
+            return createdOrder;
         });
+
+        // 5. Send order confirmation email (async, don't block order creation)
+        emailService.sendOrderConfirmation({
+            orderId: newOrder.id,
+            customerName: data.firstName,
+            customerEmail: data.email,
+            totalAmount,
+            items: cart.items.map((item: any) => ({
+                name: item.product.name,
+                quantity: item.quantity,
+                price: Number(item.product.price),
+            })),
+        }).catch((err) => {
+            console.error("Order email failed (non-blocking):", err);
+        });
+
+        return newOrder;
     },
 
     async getMyOrders(userId: string) {

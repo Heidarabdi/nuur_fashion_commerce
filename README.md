@@ -80,6 +80,39 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 └── tsconfig.json
 ```
 
+## TODO - Development Roadmap
+
+### 🐛 Bugs to Fix
+- [ ] **Cart duplicate handling** - Same product with different variants should create separate items (backend fix applied, needs testing)
+- [ ] **Cart optimistic update** - UI should reflect accurate state during add/update operations
+
+### 🧪 Testing Required
+- [ ] **Admin Pages** - Test all admin dashboard functionality (stats, products, orders, customers)
+- [ ] **Shop Page Filtering** - Verify category, brand, price, and gender filters work correctly
+- [ ] **Profile Page** - Test user profile display and update functionality
+- [ ] **Settings Page** - Test address management (add, edit, delete)
+- [ ] **Order Flow** - Test complete checkout flow with Stripe/PayPal
+- [ ] **Wishlist** - Verify add, remove, and add-to-cart-from-wishlist
+
+### 🗄️ Database & Schema Review
+- [ ] **Auth Schema** - Better Auth uses `text` IDs, ensure all foreign keys match
+- [ ] **Users Table** - Review columns: `id`, `name`, `email`, `image` (not firstName/lastName)
+- [ ] **Cart Items** - Verify `variantId` nullable handling for products without variants
+- [ ] **Orders** - Ensure proper cascade on user/address deletion
+- [ ] **Reviews** - Consider moderation workflow (`pending` vs `approved` status)
+
+### ✨ Feature Improvements
+- [ ] **Loading States** - All action buttons must show loading + disabled state
+- [ ] **Toast Notifications** - Replace any remaining `alert()` calls with sonner toasts
+- [ ] **Wishlist State** - Product page should show if item is already wishlisted
+- [ ] **Error Boundaries** - Add error boundaries for graceful error handling
+- [ ] **Image Optimization** - Implement lazy loading and proper sizing
+
+### 📱 Mobile App
+- [ ] Setup React Native project structure
+- [ ] Connect to shared API hooks
+- [ ] Implement navigation and core screens
+
 ## Getting Started
 
 Clone the repo and install dependencies:

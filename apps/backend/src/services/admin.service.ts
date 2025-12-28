@@ -1,6 +1,9 @@
 import { db } from "../db";
 import { orders, users, products } from "../db/schema";
 import { count, sum, eq, desc, not } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
+
+type User = InferSelectModel<typeof users>;
 
 export const adminService = {
     async getDashboardStats() {
@@ -43,5 +46,50 @@ export const adminService = {
             totalProducts: Number(productsResult?.value || 0),
             recentOrders
         };
-    }
+    },
+
+    async getCustomers() {
+        // Get all customers with their order count and total spent
+        const customers = await db.query.users.findMany({
+            where: eq(users.role, "customer"),
+            orderBy: desc(users.createdAt),
+        });
+
+        // For each customer, get their order stats
+        const customersWithStats = await Promise.all(
+            customers.map(async (customer: User) => {
+                const [orderStats] = await db
+                    .select({
+                        orderCount: count(),
+                        totalSpent: sum(orders.totalAmount),
+                    })
+                    .from(orders)
+                    .where(eq(orders.userId, customer.id));
+
+                return {
+                    id: customer.id,
+                    name: customer.name,
+                    email: customer.email,
+                    image: customer.image,
+                    createdAt: customer.createdAt,
+                    orderCount: Number(orderStats?.orderCount || 0),
+                    totalSpent: Number(orderStats?.totalSpent || 0),
+                };
+            })
+        );
+
+        return customersWithStats;
+    },
+
+    async getAllProducts() {
+        // Get all products including drafts for admin
+        const allProducts = await db.query.products.findMany({
+            orderBy: desc(products.createdAt),
+            with: {
+                category: true,
+                brand: true,
+            },
+        });
+        return allProducts;
+    },
 };

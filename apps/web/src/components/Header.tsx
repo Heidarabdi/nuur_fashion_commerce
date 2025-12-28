@@ -32,9 +32,9 @@ export default function Header() {
             <button aria-label="Search" className="p-2 hover:bg-secondary rounded-md transition-colors">
               <Search size={20} />
             </button>
-            <button aria-label="Wishlist" className="p-2 hover:bg-secondary rounded-md transition-colors">
+            <Link to="/wishlist" aria-label="Wishlist" className="p-2 hover:bg-secondary rounded-md transition-colors">
               <Heart size={20} />
-            </button>
+            </Link>
             <Link to="/cart" className="p-2 hover:bg-secondary rounded-md transition-colors relative">
               <ShoppingBag size={20} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />

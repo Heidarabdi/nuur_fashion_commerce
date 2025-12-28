@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react'
 import { useWishlist, useRemoveFromWishlist, useAddToCart } from '@nuur-fashion-commerce/api'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/wishlist')({
     component: WishlistPage,
@@ -16,8 +17,9 @@ function WishlistPage() {
     const handleRemove = async (productId: string) => {
         try {
             await removeFromWishlist.mutateAsync(productId)
+            toast.success('Removed from wishlist')
         } catch (err) {
-            alert('Failed to remove item')
+            toast.error('Failed to remove item')
         }
     }
 
@@ -25,8 +27,9 @@ function WishlistPage() {
         try {
             await addToCart.mutateAsync({ productId, quantity: 1 })
             await removeFromWishlist.mutateAsync(productId)
+            toast.success('Added to cart!')
         } catch (err) {
-            alert('Failed to add to cart')
+            toast.error('Failed to add to cart')
         }
     }
 
@@ -119,10 +122,14 @@ function WishlistPage() {
                                         <button
                                             onClick={() => handleRemove(product.id)}
                                             disabled={removeFromWishlist.isPending}
-                                            className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                                            className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-50"
                                             title="Remove from wishlist"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            {removeFromWishlist.isPending ? (
+                                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Trash2 className="w-4 h-4" />
+                                            )}
                                         </button>
 
                                         {/* Product Info */}

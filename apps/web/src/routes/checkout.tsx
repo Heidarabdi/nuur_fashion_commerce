@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ChevronRight, Loader2, CheckCircle } from 'lucide-react'
 import { useCart, useCreateOrder } from '@nuur-fashion-commerce/api'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/checkout')({
   component: CheckoutPage,
@@ -56,9 +57,10 @@ function CheckoutPage() {
         onSuccess: (order) => {
           setOrderSuccess(order)
           setStep(4)
+          toast.success('Order placed successfully!')
         },
         onError: (err) => {
-          alert('Failed to place order: ' + err.message)
+          toast.error('Failed to place order: ' + err.message)
         }
       }
     )
@@ -98,10 +100,10 @@ function CheckoutPage() {
               <div key={index} className="flex items-center gap-4">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${step > index + 1
-                      ? 'bg-accent text-accent-foreground'
-                      : step === index + 1
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground/60'
+                    ? 'bg-accent text-accent-foreground'
+                    : step === index + 1
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-foreground/60'
                     }`}
                 >
                   {step > index + 1 ? '✓' : index + 1}

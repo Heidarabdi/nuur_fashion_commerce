@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { X } from 'lucide-react'
 import { useCart, useRemoveFromCart, useUpdateCartItem } from '@nuur-fashion-commerce/api'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/cart')({
   component: CartPage,
@@ -17,8 +18,9 @@ function CartPage() {
   const handleRemoveItem = async (itemId: string) => {
     try {
       await removeFromCart.mutateAsync(itemId)
+      toast.success('Item removed from cart')
     } catch (error) {
-      alert('Failed to remove item')
+      toast.error('Failed to remove item')
     }
   }
 
@@ -30,7 +32,7 @@ function CartPage() {
     try {
       await updateCartItem.mutateAsync({ itemId, quantity })
     } catch (error) {
-      alert('Failed to update quantity')
+      toast.error('Failed to update quantity')
     }
   }
 
@@ -125,7 +127,11 @@ function CartPage() {
                           className="p-2 hover:bg-secondary rounded-md transition-colors disabled:opacity-50"
                           aria-label="Remove item"
                         >
-                          <X size={20} />
+                          {removeFromCart.isPending ? (
+                            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <X size={20} />
+                          )}
                         </button>
                       </div>
                     )

@@ -13,7 +13,7 @@ export const reviewsService = {
             rating: data.rating,
             title: data.title,
             content: data.content,
-            status: "pending", // Default to pending moderation
+            status: "approved", // Auto-approve for now (change to "pending" for moderation)
         }).returning();
         return review;
     },
@@ -28,9 +28,8 @@ export const reviewsService = {
             with: {
                 user: {
                     columns: {
-                        firstName: true,
-                        lastName: true,
-                        avatarUrl: true
+                        name: true,
+                        image: true
                     }
                 }
             }

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Heart, Share2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useProduct, useAddToCart, useProductReviews } from '@nuur-fashion-commerce/api'
+import { useProduct, useAddToCart, useProductReviews, useAddToWishlist, useRemoveFromWishlist, useWishlist } from '@nuur-fashion-commerce/api'
 import { StarRating } from '../components/StarRating'
 import { ReviewsSection } from '../components/ReviewsSection'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/product/$id')({
   component: ProductPage,
@@ -18,7 +19,22 @@ function ProductPage() {
 
   const { data: productData, isLoading, error } = useProduct(id)
   const { data: reviewsData } = useProductReviews(id)
+  const { data: wishlistData } = useWishlist()
   const addToCart = useAddToCart()
+  const addToWishlist = useAddToWishlist()
+  const removeFromWishlist = useRemoveFromWishlist()
+
+  // Check if product is in wishlist on load
+  useEffect(() => {
+    if (wishlistData) {
+      const items = wishlistData.items || wishlistData || []
+      const isInWishlist = items.some((item: any) => {
+        const productId = item.product?.id || item.productId
+        return productId === id
+      })
+      setIsWishlisted(isInWishlist)
+    }
+  }, [wishlistData, id])
 
   const product = productData?.data || productData
   const images = product?.images?.map((img: any) => img.url) || ['/placeholder.svg']
@@ -32,7 +48,7 @@ function ProductPage() {
 
   const handleAddToCart = async () => {
     if (!selectedSize) {
-      alert('Please select a size')
+      toast.error('Please select a size')
       return
     }
     try {
@@ -41,9 +57,25 @@ function ProductPage() {
         quantity,
         variantId: product?.variants?.find((v: any) => v.size === selectedSize)?.id,
       })
-      alert('Added to cart!')
+      toast.success('Added to cart!')
     } catch (error) {
-      alert('Failed to add to cart')
+      toast.error('Failed to add to cart')
+    }
+  }
+
+  const handleWishlistToggle = async () => {
+    try {
+      if (isWishlisted) {
+        await removeFromWishlist.mutateAsync(id)
+        setIsWishlisted(false)
+        toast.success('Removed from wishlist')
+      } else {
+        await addToWishlist.mutateAsync(id)
+        setIsWishlisted(true)
+        toast.success('Added to wishlist')
+      }
+    } catch (error) {
+      toast.error('Failed to update wishlist')
     }
   }
 
@@ -180,11 +212,12 @@ function ProductPage() {
                 </button>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setIsWishlisted(!isWishlisted)}
-                    className={`flex-1 py-3 border-2 border-border rounded-md font-medium transition-colors flex items-center justify-center gap-2 ${isWishlisted ? 'bg-accent border-accent text-accent-foreground' : 'hover:bg-secondary'}`}
+                    onClick={handleWishlistToggle}
+                    disabled={addToWishlist.isPending || removeFromWishlist.isPending}
+                    className={`flex-1 py-3 border-2 border-border rounded-md font-medium transition-colors flex items-center justify-center gap-2 ${isWishlisted ? 'bg-accent border-accent text-accent-foreground' : 'hover:bg-secondary'} disabled:opacity-50`}
                   >
                     <Heart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
-                    Wishlist
+                    {addToWishlist.isPending || removeFromWishlist.isPending ? 'Updating...' : 'Wishlist'}
                   </button>
                   <button className="flex-1 py-3 border-2 border-border rounded-md font-medium hover:bg-secondary transition-colors flex items-center justify-center gap-2">
                     <Share2 size={20} />

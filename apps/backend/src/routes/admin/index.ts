@@ -7,6 +7,7 @@ import productsRoutes from "./products.routes";
 import categoriesRoutes from "./categories.routes";
 import brandsRoutes from "./brands.routes";
 import ordersRoutes from "./orders.routes";
+import customersRoutes from "./customers.routes";
 
 // We will mount this under /api/admin
 const adminRoutes = new Hono();
@@ -15,10 +16,12 @@ const adminRoutes = new Hono();
 adminRoutes.use("*", authMiddleware, adminMiddleware);
 
 adminRoutes.get("/stats", adminController.getStats);
+adminRoutes.get("/products", adminController.getAllProducts);
 
 adminRoutes.route("/products", productsRoutes);
 adminRoutes.route("/categories", categoriesRoutes);
 adminRoutes.route("/brands", brandsRoutes);
 adminRoutes.route("/orders", ordersRoutes);
+adminRoutes.route("/customers", customersRoutes);
 
 export default adminRoutes;

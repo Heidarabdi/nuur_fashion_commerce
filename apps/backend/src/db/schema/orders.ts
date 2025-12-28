@@ -7,7 +7,7 @@ export const orderStatusEnum = pgEnum("order_status", ["pending", "processing", 
 
 export const orders = pgTable("orders", {
     ...commonColumns,
-    userId: uuid("user_id").references(() => users.id),
+    userId: text("user_id").references(() => users.id),
     status: orderStatusEnum("status").default("pending").notNull(),
     totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
 

@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { carts, cartItems, products } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { addToCartSchema, updateCartItemSchema } from "@nuur-fashion-commerce/shared";
 import { z } from "zod";
 
@@ -57,13 +57,23 @@ export const cartsService = {
     async addItem(userId: string | undefined, guestId: string | undefined, data: AddToCartInput) {
         const cart = await this.getOrCreateCart(userId, guestId);
 
-        // Check if item exists
+        // Build conditions - variant must match exactly (null == null, 'abc' == 'abc')
+        const conditions = [
+            eq(cartItems.cartId, cart.id),
+            eq(cartItems.productId, data.productId),
+        ];
+
+        // Add variant condition - must match exactly
+        if (data.variantId) {
+            conditions.push(eq(cartItems.variantId, data.variantId));
+        } else {
+            // If no variantId provided, only match items without a variant
+            conditions.push(isNull(cartItems.variantId));
+        }
+
+        // Check if item exists with same product AND variant
         const existingItem = await db.query.cartItems.findFirst({
-            where: and(
-                eq(cartItems.cartId, cart.id),
-                eq(cartItems.productId, data.productId),
-                data.variantId ? eq(cartItems.variantId, data.variantId) : undefined
-            )
+            where: and(...conditions)
         });
 
         if (existingItem) {

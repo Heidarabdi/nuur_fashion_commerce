@@ -7,7 +7,7 @@ export const reviewStatusEnum = pgEnum("review_status", ["pending", "approved", 
 
 export const reviews = pgTable("reviews", {
     ...commonColumns,
-    userId: uuid("user_id").references(() => users.id).notNull(),
+    userId: text("user_id").references(() => users.id).notNull(),
     productId: uuid("product_id").references(() => products.id).notNull(),
     rating: integer("rating").notNull(), // 1-5 validation in app layer
     title: varchar("title", { length: 255 }),
