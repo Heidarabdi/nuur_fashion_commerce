@@ -1,4 +1,4 @@
-import { pgTable, varchar, text, boolean, decimal, integer, uuid, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, boolean, decimal, integer, uuid, jsonb, pgEnum, index } from "drizzle-orm/pg-core";
 import { commonColumns, slugColumn } from "./columns.helpers";
 import { categories } from "./categories";
 import { brands } from "./brands";
@@ -25,4 +25,9 @@ export const products = pgTable("products", {
     dimensions: jsonb("dimensions"),
     metaTitle: varchar("meta_title", { length: 255 }),
     metaDescription: text("meta_description"),
-});
+}, (table) => [
+    index("products_category_idx").on(table.categoryId),
+    index("products_brand_idx").on(table.brandId),
+    index("products_status_idx").on(table.status),
+    index("products_featured_idx").on(table.isFeatured),
+]);

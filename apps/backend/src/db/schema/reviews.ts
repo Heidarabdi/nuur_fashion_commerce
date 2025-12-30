@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, uuid, pgEnum, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, uuid, pgEnum, varchar, index } from "drizzle-orm/pg-core";
 import { commonColumns } from "./columns.helpers";
 import { users } from "./auth";
 import { products } from "./products";
@@ -15,4 +15,8 @@ export const reviews = pgTable("reviews", {
     isVerifiedPurchase: boolean("is_verified_purchase").default(false),
     status: reviewStatusEnum("status").default("pending").notNull(),
     helpfulCount: integer("helpful_count").default(0),
-});
+}, (table) => [
+    index("reviews_product_idx").on(table.productId),
+    index("reviews_user_idx").on(table.userId),
+    index("reviews_status_idx").on(table.status),
+]);

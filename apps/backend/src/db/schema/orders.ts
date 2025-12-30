@@ -1,4 +1,4 @@
-import { pgTable, text, decimal, uuid, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, decimal, uuid, pgEnum, index } from "drizzle-orm/pg-core";
 import { commonColumns } from "./columns.helpers";
 import { users } from "./auth";
 import { addresses } from "./addresses";
@@ -28,4 +28,7 @@ export const orders = pgTable("orders", {
     country: text("country").default("US"),
 
     paymentIntentId: text("payment_intent_id"),
-});
+}, (table) => [
+    index("orders_user_idx").on(table.userId),
+    index("orders_status_idx").on(table.status),
+]);

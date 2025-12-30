@@ -29,6 +29,13 @@
       "when": 1766829887259,
       "tag": "0003_awesome_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1767085371567,
+      "tag": "0004_volatile_blur",
+      "breakpoints": true
     }
   ]
 }
