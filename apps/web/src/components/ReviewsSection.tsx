@@ -4,6 +4,7 @@ import { User } from 'lucide-react'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { getFieldError } from '../lib/form-utils'
 import { useProductReviews, useCreateReview } from '@nuur-fashion-commerce/api'
 import { authClient } from '../lib/auth-client'
 import { StarRating } from './StarRating'
@@ -108,7 +109,7 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
                                 />
                                 {field.state.meta.errorMap['onChange'] && (
                                     <p className="text-sm text-destructive mt-1">
-                                        {String(field.state.meta.errorMap['onChange'])}
+                                        {getFieldError(field.state.meta.errorMap['onChange'])}
                                     </p>
                                 )}
                             </div>

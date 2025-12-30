@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { authClient } from '../lib/auth-client'
 import { useAddresses, useCreateAddress, useDeleteAddress } from '@nuur-fashion-commerce/api'
+import { getFieldError } from '../lib/form-utils'
 
 export const Route = createFileRoute('/settings')({
     component: SettingsPage,
@@ -237,7 +238,7 @@ function SettingsPage() {
                                             placeholder="Your name"
                                         />
                                         {field.state.meta.errorMap['onChange'] && (
-                                            <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                                            <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errorMap['onChange'])}</p>
                                         )}
                                     </div>
                                 )}
@@ -289,7 +290,7 @@ function SettingsPage() {
                                             placeholder="••••••••"
                                         />
                                         {field.state.meta.errorMap['onChange'] && (
-                                            <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                                            <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errorMap['onChange'])}</p>
                                         )}
                                     </div>
                                 )}
@@ -308,7 +309,7 @@ function SettingsPage() {
                                             placeholder="••••••••"
                                         />
                                         {field.state.meta.errorMap['onChange'] && (
-                                            <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                                            <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errorMap['onChange'])}</p>
                                         )}
                                     </div>
                                 )}
@@ -327,7 +328,7 @@ function SettingsPage() {
                                             placeholder="••••••••"
                                         />
                                         {field.state.meta.errorMap['onChange'] && (
-                                            <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                                            <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errorMap['onChange'])}</p>
                                         )}
                                     </div>
                                 )}

@@ -20,6 +20,10 @@ interface UserEmailData {
     email: string;
 }
 
+interface VerificationEmailData extends UserEmailData {
+    verificationUrl: string;
+}
+
 export const emailService = {
     /**
      * Send order confirmation email
@@ -101,6 +105,46 @@ export const emailService = {
 
         if (error) {
             console.error("Failed to send welcome email:", error);
+            throw new Error(`Failed to send email: ${error.message}`);
+        }
+
+        return result;
+    },
+
+    /**
+     * Send email verification email
+     */
+    async sendVerificationEmail(data: VerificationEmailData) {
+        const { data: result, error } = await resend.emails.send({
+            from: `Nuur Fashion <${env.RESEND_EMAIL}>`,
+            to: [data.email],
+            subject: "Verify Your Email Address",
+            html: `
+                <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h1 style="color: #1a1a1a; font-size: 24px;">Verify Your Email Address</h1>
+                    
+                    <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                        Hi ${data.name}, please verify your email address by clicking the button below.
+                    </p>
+                    
+                    <a href="${data.verificationUrl}" 
+                       style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+                        Verify Email
+                    </a>
+                    
+                    <p style="color: #666; font-size: 14px;">
+                        If you didn't create an account, you can safely ignore this email.
+                    </p>
+                    
+                    <p style="color: #999; font-size: 12px; margin-top: 40px;">
+                        Nuur Fashion - Elevate your style
+                    </p>
+                </div>
+            `,
+        });
+
+        if (error) {
+            console.error("Failed to send verification email:", error);
             throw new Error(`Failed to send email: ${error.message}`);
         }
 

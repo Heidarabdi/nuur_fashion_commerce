@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { getFieldError } from '../lib/form-utils'
 
 export const Route = createFileRoute('/contact')({
   component: ContactPage,
@@ -99,8 +100,8 @@ function ContactPage() {
                               }`}
                             placeholder="John"
                           />
-                          {field.state.meta.errorMap['onChange'] && (
-                            <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                          {field.state.meta.errors.length > 0 && (
+                            <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errors)}</p>
                           )}
                         </div>
                       )}
@@ -118,8 +119,8 @@ function ContactPage() {
                               }`}
                             placeholder="Doe"
                           />
-                          {field.state.meta.errorMap['onChange'] && (
-                            <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                          {field.state.meta.errors.length > 0 && (
+                            <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errors)}</p>
                           )}
                         </div>
                       )}
@@ -135,12 +136,12 @@ function ContactPage() {
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
-                          className={`w-full px-4 py-3 bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-border'
+                          className={`w-full px-4 py-3 bg-background border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errors.length ? 'border-destructive' : 'border-border'
                             }`}
                           placeholder="john@example.com"
                         />
                         {field.state.meta.errorMap['onChange'] && (
-                          <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                          <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errorMap['onChange'])}</p>
                         )}
                       </div>
                     )}
@@ -179,7 +180,7 @@ function ContactPage() {
                           placeholder="How can we help you?"
                         />
                         {field.state.meta.errorMap['onChange'] && (
-                          <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                          <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errorMap['onChange'])}</p>
                         )}
                       </div>
                     )}

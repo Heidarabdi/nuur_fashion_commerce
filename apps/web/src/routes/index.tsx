@@ -5,6 +5,7 @@ import { useProducts } from '@nuur-fashion-commerce/api'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { getFieldError } from '../lib/form-utils'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -223,7 +224,7 @@ function HomePage() {
                       }`}
                   />
                   {field.state.meta.errorMap['onChange'] && (
-                    <p className="text-sm text-destructive mt-1 text-left">{String(field.state.meta.errorMap['onChange'])}</p>
+                    <p className="text-sm text-destructive mt-1 text-left">{getFieldError(field.state.meta.errorMap['onChange'])}</p>
                   )}
                 </div>
               )}

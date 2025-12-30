@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { authClient } from '../../lib/auth-client'
 import { FcGoogle } from 'react-icons/fc'
 import { FaGithub, FaFacebook } from 'react-icons/fa'
+import { getFieldError } from '@/lib/form-utils'
 
 export const Route = createFileRoute('/auth/signup')({
   component: SignUpPage,
@@ -77,12 +78,12 @@ function SignUpPage() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-border'
+                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errors.length ? 'border-destructive' : 'border-border'
                     }`}
                   placeholder="Your Name"
                 />
-                {field.state.meta.errorMap['onChange'] && (
-                  <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errors)}</p>
                 )}
               </div>
             )}
@@ -97,12 +98,12 @@ function SignUpPage() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-border'
+                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errors.length ? 'border-destructive' : 'border-border'
                     }`}
                   placeholder="you@example.com"
                 />
-                {field.state.meta.errorMap['onChange'] && (
-                  <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errors)}</p>
                 )}
               </div>
             )}
@@ -117,12 +118,12 @@ function SignUpPage() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-border'
+                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errors.length ? 'border-destructive' : 'border-border'
                     }`}
                   placeholder="••••••••"
                 />
-                {field.state.meta.errorMap['onChange'] && (
-                  <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errors)}</p>
                 )}
               </div>
             )}
@@ -137,12 +138,12 @@ function SignUpPage() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errorMap['onChange'] ? 'border-destructive' : 'border-border'
+                  className={`w-full px-4 py-2 bg-secondary/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-accent ${field.state.meta.errors.length ? 'border-destructive' : 'border-border'
                     }`}
                   placeholder="••••••••"
                 />
-                {field.state.meta.errorMap['onChange'] && (
-                  <p className="text-sm text-destructive mt-1">{String(field.state.meta.errorMap['onChange'])}</p>
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-sm text-destructive mt-1">{getFieldError(field.state.meta.errors)}</p>
                 )}
               </div>
             )}
