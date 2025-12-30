@@ -15,7 +15,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed-admin": "bun run scripts/seed-admin.ts"
+    "db:seed": "bun run src/db/seed/seed.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.1",
