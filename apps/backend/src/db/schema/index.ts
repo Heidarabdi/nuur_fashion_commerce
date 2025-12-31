@@ -13,4 +13,5 @@ export * from "./order_items";
 export * from "./reviews";
 export * from "./wishlists";
 export * from "./wishlist_items";
+export * from "./product_categories";
 export * from "./relations";

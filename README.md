@@ -82,36 +82,55 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 
 ## TODO - Development Roadmap
 
+### ✅ Recently Completed
+- [x] **Forgot Password Flow** - Request reset via email, token-based password update
+- [x] **Reset Password Page** - `/auth/reset-password` with token validation
+- [x] **Email Verification** - Better Auth + Resend integration for transactional emails
+- [x] **Form Validation Display** - Fixed `[object Object]` error display across all forms
+- [x] **Cart Duplicate Handling** - Same product with different variants creates separate items
+- [x] **Wishlist & Cart UX** - Toast notifications and optimistic updates
+- [x] **Product Reviews** - Display and submission with star ratings
+
 ### 🐛 Bugs to Fix
-- [ ] **Cart duplicate handling** - Same product with different variants should create separate items (backend fix applied, needs testing)
 - [ ] **Cart optimistic update** - UI should reflect accurate state during add/update operations
+- [ ] **Session persistence** - Verify session stays active across page refreshes
 
 ### 🧪 Testing Required
+- [ ] **Auth Flow E2E** - Signup → Email verification → Login → Forgot password → Reset
 - [ ] **Admin Pages** - Test all admin dashboard functionality (stats, products, orders, customers)
 - [ ] **Shop Page Filtering** - Verify category, brand, price, and gender filters work correctly
-- [ ] **Profile Page** - Test user profile display and update functionality
-- [ ] **Settings Page** - Test address management (add, edit, delete)
+- [x] **Profile Page** - User profile display and update functionality
+- [x] **Settings Page** - Address management (add, edit, delete)
 - [ ] **Order Flow** - Test complete checkout flow with Stripe/PayPal
-- [ ] **Wishlist** - Verify add, remove, and add-to-cart-from-wishlist
+- [x] **Wishlist** - Add, remove, and add-to-cart-from-wishlist
 
 ### 🗄️ Database & Schema Review
-- [ ] **Auth Schema** - Better Auth uses `text` IDs, ensure all foreign keys match
-- [ ] **Users Table** - Review columns: `id`, `name`, `email`, `image` (not firstName/lastName)
-- [ ] **Cart Items** - Verify `variantId` nullable handling for products without variants
-- [ ] **Orders** - Ensure proper cascade on user/address deletion
-- [ ] **Reviews** - Consider moderation workflow (`pending` vs `approved` status)
+- [x] **Auth Schema** - Better Auth uses `text` IDs, foreign keys aligned
+- [x] **Users Table** - Columns: `id`, `name`, `email`, `image` configured correctly
+- [x] **Cart Items** - `variantId` nullable handling for products without variants
+- [x] **Modular Seed System** - Created separate seed files for users, products, categories, etc.
+- [x] **Orders** - Proper cascade on user/address deletion configured
+- [x] **Reviews** - Schema with rating, title, content, and user association
 
 ### ✨ Feature Improvements
 - [ ] **Loading States** - All action buttons must show loading + disabled state
-- [ ] **Toast Notifications** - Replace any remaining `alert()` calls with sonner toasts
-- [ ] **Wishlist State** - Product page should show if item is already wishlisted
+- [x] **Toast Notifications** - Using sonner toasts across the app
+- [x] **Wishlist State** - Product page shows if item is already wishlisted (heart icon)
 - [ ] **Error Boundaries** - Add error boundaries for graceful error handling
 - [ ] **Image Optimization** - Implement lazy loading and proper sizing
+- [ ] **Password Strength Indicator** - Visual feedback on password requirements
 
 ### 📱 Mobile App
 - [ ] Setup React Native project structure
 - [ ] Connect to shared API hooks
 - [ ] Implement navigation and core screens
+
+### 🚀 Production Readiness
+- [ ] **Environment Variables** - Document all required env vars
+- [ ] **Rate Limiting** - Add rate limiting to auth endpoints
+- [ ] **Domain Verification** - Verify custom domain on Resend for production emails
+- [ ] **Security Headers** - Configure CORS, CSP, and other security headers
+- [ ] **Error Logging** - Integrate error tracking (Sentry or similar)
 
 ## Getting Started
 

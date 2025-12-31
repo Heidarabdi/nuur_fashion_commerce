@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { products, productVariants, productImages } from "../db/schema";
-import { eq, desc, asc, and, gte, lte, like, or, sql } from "drizzle-orm";
+import { products, productVariants, productImages, productCategories } from "../db/schema";
+import { eq, desc, asc, and, gte, lte, like, or, sql, inArray } from "drizzle-orm";
 import { createProductSchema } from "@nuur-fashion-commerce/shared";
 import { z } from "zod";
 
@@ -22,9 +22,22 @@ export const productsService = {
     async getAll(filters?: ProductFilters) {
         const conditions = [];
 
-        // Category filter
+        // Category filter - now uses junction table
+        // First get product IDs that belong to this category
         if (filters?.categoryId) {
-            conditions.push(eq(products.categoryId, filters.categoryId));
+            const categoryProducts = await db
+                .select({ productId: productCategories.productId })
+                .from(productCategories)
+                .where(eq(productCategories.categoryId, filters.categoryId));
+
+            const productIdsInCategory = categoryProducts.map((p: { productId: string }) => p.productId);
+
+            // If no products in this category, return empty array early
+            if (productIdsInCategory.length === 0) {
+                return [];
+            }
+
+            conditions.push(inArray(products.id, productIdsInCategory));
         }
 
         // Brand filter
@@ -89,6 +102,11 @@ export const productsService = {
                 brand: true,
                 images: true,
                 variants: true,
+                productCategories: {
+                    with: {
+                        category: true,
+                    }
+                },
             },
             orderBy,
             limit: filters?.limit || 50,

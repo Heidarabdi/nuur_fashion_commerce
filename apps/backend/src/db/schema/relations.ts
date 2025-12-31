@@ -13,6 +13,7 @@ import { addresses } from "./addresses";
 import { reviews } from "./reviews";
 import { wishlists } from "./wishlists";
 import { wishlistItems } from "./wishlist_items";
+import { productCategories } from "./product_categories";
 
 // Users Relations
 export const usersRelations = relations(users, ({ many }: any) => ({
@@ -37,6 +38,8 @@ export const productsRelations = relations(products, ({ one, many }: any) => ({
     images: many(productImages),
     reviews: many(reviews),
     wishlistItems: many(wishlistItems),
+    // Many-to-many categories through junction table
+    productCategories: many(productCategories),
 }));
 
 // Carts Relations
@@ -102,6 +105,8 @@ export const categoriesRelations = relations(categories, ({ one, many }: any) =>
     }),
     children: many(categories, { relationName: "parent_child" }),
     products: many(products),
+    // Many-to-many products through junction table
+    productCategories: many(productCategories),
 }));
 
 // Brand Relations
@@ -158,3 +163,14 @@ export const productImagesRelations = relations(productImages, ({ one }: any) =>
     }),
 }));
 
+// Product Categories Junction Table Relations
+export const productCategoriesRelations = relations(productCategories, ({ one }: any) => ({
+    product: one(products, {
+        fields: [productCategories.productId],
+        references: [products.id],
+    }),
+    category: one(categories, {
+        fields: [productCategories.categoryId],
+        references: [categories.id],
+    }),
+}));
