@@ -1,22 +1,98 @@
 import { db } from "../db";
 import { products, productVariants, productImages } from "../db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc, and, gte, lte, like, or, sql } from "drizzle-orm";
 import { createProductSchema } from "@nuur-fashion-commerce/shared";
 import { z } from "zod";
 
 type CreateProductInput = z.infer<typeof createProductSchema>;
 
+// Filter options for products
+interface ProductFilters {
+    categoryId?: string;
+    brandId?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    search?: string;
+    sortBy?: 'price-asc' | 'price-desc' | 'newest' | 'oldest' | 'popular' | 'name-asc' | 'name-desc';
+    limit?: number;
+    offset?: number;
+}
+
 export const productsService = {
-    async getAll() {
+    async getAll(filters?: ProductFilters) {
+        const conditions = [];
+
+        // Category filter
+        if (filters?.categoryId) {
+            conditions.push(eq(products.categoryId, filters.categoryId));
+        }
+
+        // Brand filter
+        if (filters?.brandId) {
+            conditions.push(eq(products.brandId, filters.brandId));
+        }
+
+        // Price range filter
+        if (filters?.minPrice !== undefined) {
+            conditions.push(gte(products.price, filters.minPrice.toString()));
+        }
+        if (filters?.maxPrice !== undefined) {
+            conditions.push(lte(products.price, filters.maxPrice.toString()));
+        }
+
+        // Search filter (name or description)
+        if (filters?.search) {
+            const searchTerm = `%${filters.search}%`;
+            conditions.push(
+                or(
+                    like(products.name, searchTerm),
+                    like(products.description, searchTerm)
+                )
+            );
+        }
+
+        // Note: Status filter disabled for now since seed data uses 'draft'
+        // Re-enable when product publishing workflow is implemented
+        // conditions.push(eq(products.status, 'active'));
+
+        // Determine sort order
+        let orderBy;
+        switch (filters?.sortBy) {
+            case 'price-asc':
+                orderBy = asc(products.price);
+                break;
+            case 'price-desc':
+                orderBy = desc(products.price);
+                break;
+            case 'oldest':
+                orderBy = asc(products.createdAt);
+                break;
+            case 'name-asc':
+                orderBy = asc(products.name);
+                break;
+            case 'name-desc':
+                orderBy = desc(products.name);
+                break;
+            case 'popular':
+                // For now, sort by rating or default to newest
+                orderBy = desc(products.createdAt);
+                break;
+            case 'newest':
+            default:
+                orderBy = desc(products.createdAt);
+        }
+
         return await db.query.products.findMany({
+            where: conditions.length > 0 ? and(...conditions) : undefined,
             with: {
                 category: true,
                 brand: true,
                 images: true,
                 variants: true,
             },
-            orderBy: desc(products.createdAt),
-            limit: 20,
+            orderBy,
+            limit: filters?.limit || 50,
+            offset: filters?.offset || 0,
         });
     },
 
@@ -68,14 +144,6 @@ export const productsService = {
     },
 
     async delete(id: string) {
-        // Soft delete implementation? Or hard delete?
-        // Plan says: "Soft delete or Archive".
-        // Let's do hard delete for now as per simple CRUD, or check if 'archived' status is enough.
-        // User asked for "Delete product".
-        // Let's just update status to 'archived' if we want to be safe, but typically DELETE endpoint implies removal.
-        // However, with FKeys, hard delete might fail if in orders.
-        // Safer to soft delete or archive.
-        // Let's try hard delete and let DB enforce constraints, or just return deleted.
         const [deletedProduct] = await db.delete(products)
             .where(eq(products.id, id))
             .returning();

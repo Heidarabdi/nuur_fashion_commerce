@@ -20,7 +20,7 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true, // Users must verify email before login
-        sendResetPassword: async ({ user, url }) => {
+        sendResetPassword: async ({ user, url }: { user: { name: string; email: string }; url: string }) => {
             await emailService.sendPasswordResetEmail({
                 name: user.name,
                 email: user.email,
@@ -29,7 +29,7 @@ export const auth = betterAuth({
         },
     },
     emailVerification: {
-        sendVerificationEmail: async ({ user, url, token }, request) => {
+        sendVerificationEmail: async ({ user, url }: { user: { name: string; email: string }; url: string; token: string }, request: any) => {
             // Use void to avoid timing attacks (per Better Auth docs)
             void emailService.sendVerificationEmail({
                 name: user.name,

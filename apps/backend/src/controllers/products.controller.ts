@@ -7,7 +7,20 @@ import { createProductSchema } from "@nuur-fashion-commerce/shared";
 export const productsController = {
     async getAll(c: Context) {
         try {
-            const data = await productsService.getAll();
+            // Parse query parameters for filtering
+            const query = c.req.query();
+            const filters = {
+                categoryId: query.categoryId || query.category || undefined,
+                brandId: query.brandId || query.brand || undefined,
+                minPrice: query.minPrice ? parseFloat(query.minPrice) : undefined,
+                maxPrice: query.maxPrice ? parseFloat(query.maxPrice) : undefined,
+                search: query.search || query.q || undefined,
+                sortBy: query.sortBy as any || undefined,
+                limit: query.limit ? parseInt(query.limit) : undefined,
+                offset: query.offset ? parseInt(query.offset) : undefined,
+            };
+
+            const data = await productsService.getAll(filters);
             return response.success(c, data);
         } catch (error) {
             return response.error(c, "Failed to fetch products", 500, error);

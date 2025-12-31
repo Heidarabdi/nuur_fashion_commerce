@@ -67,3 +67,29 @@ export function useRemoveFromWishlist() {
         },
     });
 }
+
+/**
+ * Toggle wishlist - adds if not in wishlist, removes if already in
+ * Includes toast notifications for feedback
+ */
+export function useToggleWishlist() {
+    const queryClient = useQueryClient();
+    const addMutation = useAddToWishlist();
+    const removeMutation = useRemoveFromWishlist();
+
+    return useMutation({
+        mutationFn: async ({ productId, isCurrentlyWishlisted }: { productId: string; isCurrentlyWishlisted: boolean }) => {
+            if (isCurrentlyWishlisted) {
+                return removeMutation.mutateAsync(productId);
+            } else {
+                return addMutation.mutateAsync(productId);
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.wishlists.all });
+        },
+    });
+}
+
+// Alias for compatibility
+export const useWishlistItems = useWishlist;
