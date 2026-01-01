@@ -50,6 +50,13 @@
       "when": 1767192695114,
       "tag": "0006_many_rocket_raccoon",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767293359207,
+      "tag": "0007_safe_spot",
+      "breakpoints": true
     }
   ]
 }

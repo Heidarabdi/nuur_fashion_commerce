@@ -1,7 +1,10 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, pgEnum } from "drizzle-orm/pg-core";
 
 // Table names follow Better Auth defaults (singular)
 // Variable names follow project convention (plural) to minimize refactoring
+
+// User role enum
+export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
 
 export const users = pgTable("user", {
     id: text("id").primaryKey(),
@@ -11,12 +14,7 @@ export const users = pgTable("user", {
     image: text("image"),
     createdAt: timestamp("createdAt").notNull(),
     updatedAt: timestamp("updatedAt").notNull(),
-    role: text("role"),
-    // Legacy fields if needed? (firstName, lastName can be mapped to name or kept as extras)
-    // Better Auth 'name' is usually full name.
-    // I will add firstName/lastName as nullable for compatibility if needed, 
-    // but better to migrate to 'name'. 
-    // For now, I'll stick to strict Better Auth + role.
+    role: userRoleEnum("role").default("user").notNull(),
 });
 
 export const sessions = pgTable("session", {

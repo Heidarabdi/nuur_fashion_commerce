@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Settings, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Settings, Menu, X, FolderTree, Tag } from 'lucide-react'
 import { useState } from 'react'
 import { AdminGuard } from './AdminGuard'
 
@@ -24,6 +24,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <nav className="space-y-2">
             <NavItem to="/admin" icon={<LayoutDashboard size={18} />} label="Dashboard" setIsMobileMenuOpen={setIsMobileMenuOpen} primary />
             <NavItem to="/admin/products" icon={<Package size={18} />} label="Products" setIsMobileMenuOpen={setIsMobileMenuOpen} />
+            <NavItem to="/admin/categories" icon={<FolderTree size={18} />} label="Categories" setIsMobileMenuOpen={setIsMobileMenuOpen} />
+            <NavItem to="/admin/brands" icon={<Tag size={18} />} label="Brands" setIsMobileMenuOpen={setIsMobileMenuOpen} />
             <NavItem to="/admin/orders" icon={<ShoppingCart size={18} />} label="Orders" setIsMobileMenuOpen={setIsMobileMenuOpen} />
             <NavItem to="/admin/customers" icon={<Users size={18} />} label="Customers" setIsMobileMenuOpen={setIsMobileMenuOpen} />
             <NavItem to="/admin/analytics" icon={<BarChart3 size={18} />} label="Analytics" setIsMobileMenuOpen={setIsMobileMenuOpen} />

@@ -39,7 +39,12 @@ import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
+import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminBrandsRouteImport } from './routes/admin/brands'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
+import { Route as AdminProductsNewRouteImport } from './routes/admin/products/new'
+import { Route as AdminProductsIdRouteImport } from './routes/admin/products/$id'
+import { Route as AdminOrdersIdRouteImport } from './routes/admin/orders/$id'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -191,10 +196,35 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/admin/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/admin/categories',
+  path: '/admin/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBrandsRoute = AdminBrandsRouteImport.update({
+  id: '/admin/brands',
+  path: '/admin/brands',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/admin/analytics',
   path: '/admin/analytics',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProductsNewRoute = AdminProductsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminProductsRoute,
+} as any)
+const AdminProductsIdRoute = AdminProductsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminProductsRoute,
+} as any)
+const AdminOrdersIdRoute = AdminOrdersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminOrdersRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -217,9 +247,11 @@ export interface FileRoutesByFullPath {
   '/web': typeof WebRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/brands': typeof AdminBrandsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
-  '/admin/orders': typeof AdminOrdersRoute
-  '/admin/products': typeof AdminProductsRoute
+  '/admin/orders': typeof AdminOrdersRouteWithChildren
+  '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
@@ -229,6 +261,9 @@ export interface FileRoutesByFullPath {
   '/orders/$id': typeof OrdersIdRoute
   '/product/$id': typeof ProductIdRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -250,9 +285,11 @@ export interface FileRoutesByTo {
   '/web': typeof WebRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/brands': typeof AdminBrandsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
-  '/admin/orders': typeof AdminOrdersRoute
-  '/admin/products': typeof AdminProductsRoute
+  '/admin/orders': typeof AdminOrdersRouteWithChildren
+  '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
@@ -262,6 +299,9 @@ export interface FileRoutesByTo {
   '/orders/$id': typeof OrdersIdRoute
   '/product/$id': typeof ProductIdRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -284,9 +324,11 @@ export interface FileRoutesById {
   '/web': typeof WebRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/brands': typeof AdminBrandsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
-  '/admin/orders': typeof AdminOrdersRoute
-  '/admin/products': typeof AdminProductsRoute
+  '/admin/orders': typeof AdminOrdersRouteWithChildren
+  '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
@@ -296,6 +338,9 @@ export interface FileRoutesById {
   '/orders/$id': typeof OrdersIdRoute
   '/product/$id': typeof ProductIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -319,6 +364,8 @@ export interface FileRouteTypes {
     | '/web'
     | '/wishlist'
     | '/admin/analytics'
+    | '/admin/brands'
+    | '/admin/categories'
     | '/admin/customers'
     | '/admin/orders'
     | '/admin/products'
@@ -331,6 +378,9 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/product/$id'
     | '/admin'
+    | '/admin/orders/$id'
+    | '/admin/products/$id'
+    | '/admin/products/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -352,6 +402,8 @@ export interface FileRouteTypes {
     | '/web'
     | '/wishlist'
     | '/admin/analytics'
+    | '/admin/brands'
+    | '/admin/categories'
     | '/admin/customers'
     | '/admin/orders'
     | '/admin/products'
@@ -364,6 +416,9 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/product/$id'
     | '/admin'
+    | '/admin/orders/$id'
+    | '/admin/products/$id'
+    | '/admin/products/new'
   id:
     | '__root__'
     | '/'
@@ -385,6 +440,8 @@ export interface FileRouteTypes {
     | '/web'
     | '/wishlist'
     | '/admin/analytics'
+    | '/admin/brands'
+    | '/admin/categories'
     | '/admin/customers'
     | '/admin/orders'
     | '/admin/products'
@@ -397,6 +454,9 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/product/$id'
     | '/admin/'
+    | '/admin/orders/$id'
+    | '/admin/products/$id'
+    | '/admin/products/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -419,9 +479,11 @@ export interface RootRouteChildren {
   WebRoute: typeof WebRoute
   WishlistRoute: typeof WishlistRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminBrandsRoute: typeof AdminBrandsRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
-  AdminOrdersRoute: typeof AdminOrdersRoute
-  AdminProductsRoute: typeof AdminProductsRoute
+  AdminOrdersRoute: typeof AdminOrdersRouteWithChildren
+  AdminProductsRoute: typeof AdminProductsRouteWithChildren
   AdminSettingsRoute: typeof AdminSettingsRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
@@ -644,12 +706,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/admin/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/brands': {
+      id: '/admin/brands'
+      path: '/admin/brands'
+      fullPath: '/admin/brands'
+      preLoaderRoute: typeof AdminBrandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/admin/analytics'
       fullPath: '/admin/analytics'
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/products/new': {
+      id: '/admin/products/new'
+      path: '/new'
+      fullPath: '/admin/products/new'
+      preLoaderRoute: typeof AdminProductsNewRouteImport
+      parentRoute: typeof AdminProductsRoute
+    }
+    '/admin/products/$id': {
+      id: '/admin/products/$id'
+      path: '/$id'
+      fullPath: '/admin/products/$id'
+      preLoaderRoute: typeof AdminProductsIdRouteImport
+      parentRoute: typeof AdminProductsRoute
+    }
+    '/admin/orders/$id': {
+      id: '/admin/orders/$id'
+      path: '/$id'
+      fullPath: '/admin/orders/$id'
+      preLoaderRoute: typeof AdminOrdersIdRouteImport
+      parentRoute: typeof AdminOrdersRoute
     }
   }
 }
@@ -664,6 +761,32 @@ const OrdersRouteChildren: OrdersRouteChildren = {
 
 const OrdersRouteWithChildren =
   OrdersRoute._addFileChildren(OrdersRouteChildren)
+
+interface AdminOrdersRouteChildren {
+  AdminOrdersIdRoute: typeof AdminOrdersIdRoute
+}
+
+const AdminOrdersRouteChildren: AdminOrdersRouteChildren = {
+  AdminOrdersIdRoute: AdminOrdersIdRoute,
+}
+
+const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
+  AdminOrdersRouteChildren,
+)
+
+interface AdminProductsRouteChildren {
+  AdminProductsIdRoute: typeof AdminProductsIdRoute
+  AdminProductsNewRoute: typeof AdminProductsNewRoute
+}
+
+const AdminProductsRouteChildren: AdminProductsRouteChildren = {
+  AdminProductsIdRoute: AdminProductsIdRoute,
+  AdminProductsNewRoute: AdminProductsNewRoute,
+}
+
+const AdminProductsRouteWithChildren = AdminProductsRoute._addFileChildren(
+  AdminProductsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -685,9 +808,11 @@ const rootRouteChildren: RootRouteChildren = {
   WebRoute: WebRoute,
   WishlistRoute: WishlistRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminBrandsRoute: AdminBrandsRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
-  AdminOrdersRoute: AdminOrdersRoute,
-  AdminProductsRoute: AdminProductsRoute,
+  AdminOrdersRoute: AdminOrdersRouteWithChildren,
+  AdminProductsRoute: AdminProductsRouteWithChildren,
   AdminSettingsRoute: AdminSettingsRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,

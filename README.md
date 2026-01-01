@@ -80,57 +80,35 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 └── tsconfig.json
 ```
 
-## TODO - Development Roadmap
+## Known Issues & Fixes Needed
 
-### ✅ Recently Completed
-- [x] **Forgot Password Flow** - Request reset via email, token-based password update
-- [x] **Reset Password Page** - `/auth/reset-password` with token validation
-- [x] **Email Verification** - Better Auth + Resend integration for transactional emails
-- [x] **Form Validation Display** - Fixed `[object Object]` error display across all forms
-- [x] **Cart Duplicate Handling** - Same product with different variants creates separate items
-- [x] **Wishlist & Cart UX** - Toast notifications and optimistic updates
-- [x] **Product Reviews** - Display and submission with star ratings
+### 🔧 Database & Auth
+- [ ] **User role enum migration** - Role column needs proper enum migration (user_role: 'user' | 'admin')
+- [ ] **Admin seed data** - Need to create admin user for testing
+- [ ] **Session refresh** - Verify sessions persist across page refreshes
 
-### 🐛 Bugs to Fix
-- [ ] **Cart optimistic update** - UI should reflect accurate state during add/update operations
-- [ ] **Session persistence** - Verify session stays active across page refreshes
+### 🎨 UI/UX Fixes
+- [ ] **Cart optimistic updates** - UI should reflect accurate state during add/update
+- [ ] **Loading states** - Add loading spinners to all action buttons
+- [ ] **Error boundaries** - Add React error boundaries for graceful error handling
+- [ ] **Dark mode consistency** - Review all pages for proper dark mode styling
 
-### 🧪 Testing Required
-- [ ] **Auth Flow E2E** - Signup → Email verification → Login → Forgot password → Reset
-- [ ] **Admin Pages** - Test all admin dashboard functionality (stats, products, orders, customers)
-- [ ] **Shop Page Filtering** - Verify category, brand, price, and gender filters work correctly
-- [x] **Profile Page** - User profile display and update functionality
-- [x] **Settings Page** - Address management (add, edit, delete)
-- [ ] **Order Flow** - Test complete checkout flow with Stripe/PayPal
-- [x] **Wishlist** - Add, remove, and add-to-cart-from-wishlist
+### � Missing/Incomplete Pages
+- [ ] **Admin Dashboard** - Fix API errors preventing stats from loading
+- [ ] **Order Checkout** - Complete Stripe/PayPal integration testing
+- [ ] **Product variants** - Size/color selection not fully implemented
+- [ ] **Search results page** - Needs styling improvements
 
-### 🗄️ Database & Schema Review
-- [x] **Auth Schema** - Better Auth uses `text` IDs, foreign keys aligned
-- [x] **Users Table** - Columns: `id`, `name`, `email`, `image` configured correctly
-- [x] **Cart Items** - `variantId` nullable handling for products without variants
-- [x] **Modular Seed System** - Created separate seed files for users, products, categories, etc.
-- [x] **Orders** - Proper cascade on user/address deletion configured
-- [x] **Reviews** - Schema with rating, title, content, and user association
-
-### ✨ Feature Improvements
-- [ ] **Loading States** - All action buttons must show loading + disabled state
-- [x] **Toast Notifications** - Using sonner toasts across the app
-- [x] **Wishlist State** - Product page shows if item is already wishlisted (heart icon)
-- [ ] **Error Boundaries** - Add error boundaries for graceful error handling
-- [ ] **Image Optimization** - Implement lazy loading and proper sizing
-- [ ] **Password Strength Indicator** - Visual feedback on password requirements
+### 🚀 Production Readiness
+- [ ] **Environment variables** - Document all required env vars in `.env.example`
+- [ ] **Rate limiting** - Add rate limiting to auth endpoints
+- [ ] **Domain verification** - Verify Resend domain for production emails
+- [ ] **Security headers** - Configure CORS, CSP headers
+- [ ] **Error logging** - Integrate Sentry or similar
 
 ### 📱 Mobile App
 - [ ] Setup React Native project structure
 - [ ] Connect to shared API hooks
-- [ ] Implement navigation and core screens
-
-### 🚀 Production Readiness
-- [ ] **Environment Variables** - Document all required env vars
-- [ ] **Rate Limiting** - Add rate limiting to auth endpoints
-- [ ] **Domain Verification** - Verify custom domain on Resend for production emails
-- [ ] **Security Headers** - Configure CORS, CSP, and other security headers
-- [ ] **Error Logging** - Integrate error tracking (Sentry or similar)
 
 ## Getting Started
 

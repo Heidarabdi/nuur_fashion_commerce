@@ -18,11 +18,11 @@ export const adminService = {
             .select({ value: count() })
             .from(orders);
 
-        // 3. Total Customers
+        // 3. Total Customers (users with role = 'user', not 'admin')
         const [customersResult] = await db
             .select({ value: count() })
             .from(users)
-            .where(eq(users.role, "customer"));
+            .where(eq(users.role, "user"));
 
         // 4. Recent Orders
         const recentOrders = await db.query.orders.findMany({
@@ -49,15 +49,15 @@ export const adminService = {
     },
 
     async getCustomers() {
-        // Get all customers with their order count and total spent
-        const customers = await db.query.users.findMany({
-            where: eq(users.role, "customer"),
+        // Get all regular users (not admins) with their order count and total spent
+        const customersList = await db.query.users.findMany({
+            where: eq(users.role, "user"),
             orderBy: desc(users.createdAt),
         });
 
         // For each customer, get their order stats
         const customersWithStats = await Promise.all(
-            customers.map(async (customer: User) => {
+            customersList.map(async (customer: User) => {
                 const [orderStats] = await db
                     .select({
                         orderCount: count(),

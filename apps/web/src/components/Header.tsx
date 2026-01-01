@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Heart, ShoppingBag, Search, Menu, X, User, LogOut, Settings, ChevronDown } from 'lucide-react'
+import { Heart, ShoppingBag, Search, Menu, X, User, LogOut, Settings, ChevronDown, Shield } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { authClient } from '../lib/auth-client'
 import ThemeToggle from './ThemeToggle'
@@ -114,6 +114,11 @@ export default function Header() {
                       <Link to="/settings" className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary rounded-md">
                         <Settings size={16} /> Settings
                       </Link>
+                      {(session.user as any).role === 'admin' && (
+                        <Link to="/admin" className="flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/10 rounded-md">
+                          <Shield size={16} /> Admin Dashboard
+                        </Link>
+                      )}
                       <button
                         onClick={() => authClient.signOut()}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md"

@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { AdminShell } from '../../components/AdminShell'
+import { DataTable } from '../../components/admin/DataTable'
 import { useAdminOrders, useUpdateOrderStatus } from '@nuur-fashion-commerce/api'
 import { toast } from 'sonner'
 
@@ -12,6 +13,7 @@ export const Route = createFileRoute('/admin/orders')({
 const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
 
 function OrdersPage() {
+  const navigate = useNavigate()
   const { data: orders, isLoading, error } = useAdminOrders()
   const updateStatus = useUpdateOrderStatus()
   const [filter, setFilter] = useState<string>('all')
@@ -36,21 +38,23 @@ function OrdersPage() {
   const getStatusClass = (status: string) => {
     switch (status.toLowerCase()) {
       case 'delivered':
-        return 'bg-emerald-100 text-emerald-700'
+        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
       case 'processing':
-        return 'bg-amber-100 text-amber-700'
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
       case 'shipped':
-        return 'bg-blue-100 text-blue-700'
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
       case 'pending':
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-secondary text-muted-foreground'
       case 'cancelled':
-        return 'bg-red-100 text-red-700'
+        return 'bg-destructive/10 text-destructive'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-secondary text-muted-foreground'
     }
   }
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
+  const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>, orderId: string) => {
+    e.stopPropagation()
+    const newStatus = e.target.value
     try {
       await updateStatus.mutateAsync({ id: orderId, status: newStatus })
       toast.success('Order updated', { description: `Status changed to ${newStatus}` })
@@ -84,6 +88,61 @@ function OrdersPage() {
     )
   }
 
+  const columns = [
+    {
+      key: 'id',
+      label: 'Order ID',
+      sortable: true,
+      render: (order: any) => (
+        <span className="font-medium text-foreground">#{order.id.slice(0, 8).toUpperCase()}</span>
+      ),
+    },
+    {
+      key: 'user.name',
+      label: 'Customer',
+      sortable: true,
+      render: (order: any) => (
+        <span className="text-foreground">{order.user?.name || order.email || 'Guest'}</span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: 'Date',
+      sortable: true,
+      render: (order: any) => (
+        <span className="text-muted-foreground">{formatDate(order.createdAt)}</span>
+      ),
+    },
+    {
+      key: 'totalAmount',
+      label: 'Total',
+      sortable: true,
+      render: (order: any) => (
+        <span className="font-serif font-semibold text-foreground">{formatCurrency(order.totalAmount)}</span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      render: (order: any) => (
+        <select
+          value={order.status}
+          onChange={(e) => handleStatusChange(e, order.id)}
+          onClick={(e) => e.stopPropagation()}
+          disabled={updateStatus.isPending}
+          className={`${getStatusClass(order.status)} px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm font-medium capitalize border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring`}
+        >
+          {ORDER_STATUSES.map((status) => (
+            <option key={status} value={status} className="bg-background text-foreground">
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+  ]
+
   return (
     <AdminShell>
       <div className="space-y-6">
@@ -103,63 +162,15 @@ function OrdersPage() {
           </select>
         </div>
 
-        <div className="bg-card p-4 lg:p-6 rounded-lg border border-border shadow-sm">
-          <div className="overflow-x-auto -mx-4 lg:mx-0">
-            <div className="inline-block min-w-full align-middle">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-xs lg:text-sm font-medium text-muted-foreground whitespace-nowrap">Order ID</th>
-                    <th className="text-left py-3 px-4 text-xs lg:text-sm font-medium text-muted-foreground whitespace-nowrap">Customer</th>
-                    <th className="text-left py-3 px-4 text-xs lg:text-sm font-medium text-muted-foreground whitespace-nowrap">Date</th>
-                    <th className="text-left py-3 px-4 text-xs lg:text-sm font-medium text-muted-foreground whitespace-nowrap">Total</th>
-                    <th className="text-left py-3 px-4 text-xs lg:text-sm font-medium text-muted-foreground whitespace-nowrap">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders?.length ? (
-                    filteredOrders.map((order: any) => (
-                      <tr key={order.id} className="border-b border-border/50">
-                        <td className="py-3 px-4 text-sm lg:text-base text-foreground whitespace-nowrap">
-                          #{order.id.slice(0, 8).toUpperCase()}
-                        </td>
-                        <td className="py-3 px-4 text-sm lg:text-base text-foreground whitespace-nowrap">
-                          {order.user?.name || order.email || 'Guest'}
-                        </td>
-                        <td className="py-3 px-4 text-sm lg:text-base text-muted-foreground whitespace-nowrap">
-                          {formatDate(order.createdAt)}
-                        </td>
-                        <td className="py-3 px-4 text-sm lg:text-base font-serif font-semibold text-foreground whitespace-nowrap">
-                          {formatCurrency(order.totalAmount)}
-                        </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                            disabled={updateStatus.isPending}
-                            className={`${getStatusClass(order.status)} dark:bg-opacity-30 px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm font-medium capitalize border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring`}
-                          >
-                            {ORDER_STATUSES.map((status) => (
-                              <option key={status} value={status} className="bg-background text-foreground">
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                        No orders found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <DataTable
+          data={filteredOrders || []}
+          columns={columns}
+          searchKeys={['id', 'user.name', 'user.email']}
+          searchPlaceholder="Search orders..."
+          pageSize={10}
+          emptyMessage="No orders found"
+          onRowClick={(order: any) => navigate({ to: '/admin/orders/$id', params: { id: order.id } })}
+        />
       </div>
     </AdminShell>
   )
