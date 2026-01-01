@@ -61,4 +61,11 @@ export const auth = betterAuth({
             },
         },
     },
+    // Advanced options for production
+    advanced: {
+        // Capture IP address from proxy headers (Nginx, Cloudflare, etc.)
+        ipAddress: {
+            ipAddressHeaders: ["x-forwarded-for", "x-real-ip", "cf-connecting-ip"],
+        },
+    },
 });

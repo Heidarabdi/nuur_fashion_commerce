@@ -6,7 +6,7 @@ export const Route = createFileRoute('/web')({
 
 function WebPage() {
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-background p-6">
       <h1>Web Application</h1>
     </div>
   )

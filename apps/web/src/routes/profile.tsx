@@ -125,8 +125,8 @@ function ProfilePage() {
               to="/wishlist"
               className="flex items-center gap-4 p-6 bg-card rounded-xl border border-border hover:border-primary/50 transition-colors"
             >
-              <div className="w-12 h-12 bg-rose-500/10 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
               </div>
@@ -140,8 +140,8 @@ function ProfilePage() {
               to="/settings"
               className="flex items-center gap-4 p-6 bg-card rounded-xl border border-border hover:border-primary/50 transition-colors"
             >
-              <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
-                <Settings className="w-6 h-6 text-blue-500" />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <Settings className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold">Settings</h3>

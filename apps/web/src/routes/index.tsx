@@ -37,38 +37,39 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <section className="relative min-h-[90vh] flex items-center justify-center px-4 md:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/luxury-fashion-hero-background-with-models.jpg')] bg-cover bg-center opacity-30 -z-10" />
-        <div className="absolute inset-0 bg-linear-to-r from-background via-background/70 to-background/40 -z-10" />
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-10 px-4 md:px-6 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/luxury-fashion-hero-background-with-models.jpg')] bg-cover bg-center opacity-20 -z-10" />
+        <div className="absolute inset-0 bg-linear-to-r from-background via-background/80 to-background/50 -z-10" />
 
         <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            <div className="order-2 lg:order-1">
               <p className="text-accent font-medium tracking-widest uppercase mb-4 text-sm">New Collection 2025</p>
-              <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-8 tracking-tight text-balance leading-snug sm:leading-tight">
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-[1.1]">
                 Timeless Elegance Meets Contemporary Style
               </h1>
-              <p className="text-lg text-foreground/70 mb-6 max-w-xl leading-relaxed">
+              <p className="text-lg text-foreground/70 mb-8 max-w-xl leading-relaxed">
                 Explore our carefully curated selection of premium fashion pieces from emerging and established designers. Each item is chosen for its craftsmanship and enduring appeal.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/shop"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all duration-300 group"
+                  className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-all duration-300 group"
                 >
                   Explore Collection
                   <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
                   href="#featured"
-                  className="inline-flex items-center justify-center px-8 py-4 border border-primary text-primary font-medium hover:bg-primary/5 transition-colors"
+                  className="inline-flex items-center justify-center px-8 py-4 border border-primary text-primary font-medium rounded-lg hover:bg-primary/5 transition-colors"
                 >
                   View Highlights
                 </a>
               </div>
             </div>
-            <div className="hidden lg:block">
-              <div className="relative h-96 rounded-lg overflow-hidden">
+            <div className="order-1 lg:order-2">
+              <div className="relative aspect-4/5 rounded-2xl overflow-hidden shadow-2xl">
                 <img
                   src="/luxury-fashion-model-wearing-elegant-designer-outf.jpg"
                   alt="Hero Fashion"
@@ -80,49 +81,53 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 md:px-6 lg:px-8 bg-primary/5">
+      {/* Stats Section */}
+      <section className="py-16 px-4 md:px-6 lg:px-8 bg-secondary/50">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+          <div className="grid grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-accent mb-3">500+</div>
-              <p className="text-foreground/70">Premium designers curated</p>
+              <div className="text-3xl md:text-4xl font-bold text-accent mb-2">500+</div>
+              <p className="text-sm md:text-base text-foreground/60">Premium designers</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-accent mb-3">10K+</div>
-              <p className="text-foreground/70">Satisfied customers worldwide</p>
+              <div className="text-3xl md:text-4xl font-bold text-accent mb-2">10K+</div>
+              <p className="text-sm md:text-base text-foreground/60">Happy customers</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-accent mb-3">100%</div>
-              <p className="text-foreground/70">Authentic quality guaranteed</p>
+              <div className="text-3xl md:text-4xl font-bold text-accent mb-2">100%</div>
+              <p className="text-sm md:text-base text-foreground/60">Quality guaranteed</p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Featured Collections */}
       <section className="py-20 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl font-bold">Featured Collections</h2>
+          <div className="flex justify-between items-end mb-10">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold">Featured Collections</h2>
             <Link
               to="/shop"
-              className="text-accent font-medium flex items-center hover:translate-x-1 transition-transform"
+              className="text-accent font-medium flex items-center hover:translate-x-1 transition-transform text-sm"
             >
-              View All <ChevronRight className="ml-2 w-4 h-4" />
+              View All <ChevronRight className="ml-1 w-4 h-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[{ name: 'Evening Wear', image: '/elegant-evening-dresses-luxury-fashion.jpg' }, { name: 'Casual Chic', image: '/stylish-casual-outfits-contemporary-fashion.jpg' }, { name: 'Premium Accessories', image: '/luxury-fashion-accessories-bags-jewelry.jpg' }].map((category) => (
               <Link key={category.name} to="/shop" search={{ category: category.name.toLowerCase() }} className="group cursor-pointer">
-                <div className="bg-secondary rounded-lg overflow-hidden h-80 mb-6 relative">
+                <div className="bg-secondary rounded-xl overflow-hidden aspect-4/5 mb-4 relative">
                   <img
                     src={category.image || '/placeholder.svg'}
                     alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="font-serif text-xl font-bold text-white">{category.name}</h3>
+                    <p className="text-white/70 text-sm mt-1">Discover our selection</p>
+                  </div>
                 </div>
-                <h3 className="font-serif text-2xl font-bold group-hover:text-accent transition-colors">{category.name}</h3>
-                <p className="text-foreground/60 mt-2">Discover our selection</p>
               </Link>
             ))}
           </div>

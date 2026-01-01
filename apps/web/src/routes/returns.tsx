@@ -15,13 +15,13 @@ function ReturnsPage() {
 
           {/* Return Policy Highlights */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 text-center">
-              <Clock className="w-8 h-8 text-green-500 mx-auto mb-3" />
+            <div className="bg-primary/10 border border-primary/30 rounded-xl p-6 text-center">
+              <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-1">30-Day Returns</h3>
               <p className="text-sm text-foreground/60">Return within 30 days of delivery</p>
             </div>
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 text-center">
-              <RotateCcw className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+            <div className="bg-primary/10 border border-primary/30 rounded-xl p-6 text-center">
+              <RotateCcw className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-1">Free Exchanges</h3>
               <p className="text-sm text-foreground/60">Exchange for a different size or color</p>
             </div>
@@ -38,7 +38,7 @@ function ReturnsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-card rounded-xl border border-border p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <CheckCircle className="w-5 h-5 text-primary" />
                   <h3 className="font-semibold">Eligible for Return</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-foreground/70">
@@ -50,7 +50,7 @@ function ReturnsPage() {
               </div>
               <div className="bg-card rounded-xl border border-border p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <XCircle className="w-5 h-5 text-red-500" />
+                  <XCircle className="w-5 h-5 text-destructive" />
                   <h3 className="font-semibold">Not Eligible</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-foreground/70">

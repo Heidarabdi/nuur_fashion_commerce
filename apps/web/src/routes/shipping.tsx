@@ -58,8 +58,8 @@ function ShippingPage() {
           {/* International Shipping */}
           <section className="mb-12 bg-card rounded-xl border border-border p-8">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center shrink-0">
-                <Globe className="w-6 h-6 text-blue-500" />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                <Globe className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h2 className="text-2xl font-semibold mb-2">International Shipping</h2>

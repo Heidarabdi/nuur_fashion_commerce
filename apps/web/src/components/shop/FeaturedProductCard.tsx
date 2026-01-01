@@ -60,8 +60,8 @@ export function FeaturedProductCard({
                 <button
                     onClick={handleWishlistClick}
                     className={`absolute top-4 right-4 p-3 rounded-full backdrop-blur-md border-2 shadow-xl transition-all duration-300 ${isWishlisted
-                            ? 'bg-red-500 border-red-500 text-white scale-110'
-                            : 'bg-white/80 dark:bg-black/50 border-white/30 text-gray-700 dark:text-white hover:bg-red-500 hover:border-red-500 hover:text-white'
+                        ? 'bg-primary border-primary text-primary-foreground scale-110'
+                        : 'bg-card/80 border-border text-foreground/60 hover:bg-primary hover:border-primary hover:text-primary-foreground'
                         } ${isAnimating ? 'scale-125' : ''}`}
                 >
                     <Heart
@@ -90,10 +90,10 @@ export function FeaturedProductCard({
                 <p className="text-foreground/60 text-sm">
                     {product.brand?.name || 'Designer Studio'}
                 </p>
-                <h3 className="font-medium mt-1 line-clamp-1 group-hover:text-accent transition-colors">
+                <h3 className="font-medium mt-1 line-clamp-1 group-hover:text-primary transition-colors">
                     {product.name}
                 </h3>
-                <p className="text-accent font-bold mt-1">
+                <p className="text-primary font-bold mt-1">
                     ${product.price}
                 </p>
             </div>

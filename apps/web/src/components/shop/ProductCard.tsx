@@ -52,12 +52,12 @@ export function ProductCard({
                         <p className="text-sm text-foreground/60 mt-2 line-clamp-2">{product.description}</p>
                     </div>
                     <div className="flex items-center justify-between mt-4">
-                        <p className="font-semibold text-lg text-accent">${product.price}</p>
+                        <p className="font-semibold text-lg text-primary">${product.price}</p>
                         <button
                             onClick={handleWishlistClick}
                             className={`p-2.5 rounded-full border-2 transition-all duration-200 ${isWishlisted
-                                    ? 'bg-red-50 border-red-500 text-red-500 dark:bg-red-500/10'
-                                    : 'border-border hover:border-red-300 hover:text-red-400'
+                                ? 'bg-primary/10 border-primary text-primary'
+                                : 'border-border hover:border-primary/50 hover:text-primary'
                                 } ${isAnimating ? 'scale-125' : 'scale-100'}`}
                         >
                             <Heart
@@ -97,8 +97,8 @@ export function ProductCard({
                 <button
                     onClick={handleWishlistClick}
                     className={`absolute top-3 right-3 p-2.5 rounded-full backdrop-blur-sm border-2 shadow-lg transition-all duration-200 ${isWishlisted
-                            ? 'bg-red-500 border-red-500 text-white'
-                            : 'bg-white/90 dark:bg-black/50 border-white/50 dark:border-white/20 text-gray-600 dark:text-gray-300 hover:text-red-500 hover:border-red-300'
+                        ? 'bg-primary border-primary text-primary-foreground'
+                        : 'bg-card/90 border-border text-foreground/60 hover:text-primary hover:border-primary/50'
                         } ${isAnimating ? 'scale-125' : 'scale-100 hover:scale-110'}`}
                 >
                     <Heart
@@ -108,9 +108,9 @@ export function ProductCard({
                     />
                 </button>
             </div>
-            <h3 className="font-medium mb-1 group-hover:text-accent transition-colors line-clamp-1">{product.name}</h3>
+            <h3 className="font-medium mb-1 group-hover:text-primary transition-colors line-clamp-1">{product.name}</h3>
             <p className="text-sm text-foreground/60 mb-2">{product.brand?.name || 'Designer Studio'}</p>
-            <p className="font-semibold text-accent">${product.price}</p>
+            <p className="font-semibold text-primary">${product.price}</p>
         </Link>
     )
 }

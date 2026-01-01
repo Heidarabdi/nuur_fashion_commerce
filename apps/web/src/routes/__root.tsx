@@ -31,8 +31,37 @@ export const Route = createRootRoute({
     ],
   }),
 
+  notFoundComponent: NotFoundPage,
   shellComponent: RootDocument,
 })
+
+function NotFoundPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="text-center max-w-md">
+        <h1 className="font-serif text-6xl font-bold text-primary mb-4">404</h1>
+        <h2 className="text-2xl font-semibold mb-4">Page Not Found</h2>
+        <p className="text-foreground/60 mb-8">
+          Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:opacity-90 transition-opacity"
+          >
+            Go Home
+          </a>
+          <a
+            href="/shop"
+            className="inline-flex items-center justify-center px-6 py-3 border border-border rounded-full font-medium hover:bg-secondary transition-colors"
+          >
+            Browse Shop
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +69,20 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <html lang="en" suppressHydrationWarning>
         <head>
           <HeadContent />
+          {/* Prevent flash of unstyled content for dark mode */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  const theme = localStorage.getItem('theme');
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (theme === 'dark' || (!theme && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                  }
+                })();
+              `,
+            }}
+          />
         </head>
         <body className="font-sans bg-background text-foreground">
           <Header />
