@@ -3,6 +3,9 @@ import { X } from 'lucide-react'
 import { useCart, useRemoveFromCart, useUpdateCartItem } from '@nuur-fashion-commerce/api'
 import { toast } from 'sonner'
 
+import { useState } from 'react'
+import { ConfirmationModal } from '../components/ui/confirmation-modal'
+
 export const Route = createFileRoute('/cart')({
   component: CartPage,
 })
@@ -12,13 +15,31 @@ function CartPage() {
   const removeFromCart = useRemoveFromCart()
   const updateCartItem = useUpdateCartItem()
 
+  // Confirmation Modal State
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; itemId: string | null; itemName: string }>({
+    isOpen: false,
+    itemId: null,
+    itemName: '',
+  })
+
   const cart = cartData?.data || cartData
   const items = cart?.items || []
 
-  const handleRemoveItem = async (itemId: string) => {
+  const handleRemoveClick = (item: any) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      itemId: item.id,
+      itemName: item.product?.name || 'Item',
+    })
+  }
+
+  const confirmRemoveItem = async () => {
+    if (!deleteConfirmation.itemId) return
+
     try {
-      await removeFromCart.mutateAsync(itemId)
+      await removeFromCart.mutateAsync(deleteConfirmation.itemId)
       toast.success('Item removed from cart')
+      setDeleteConfirmation({ isOpen: false, itemId: null, itemName: '' })
     } catch (error) {
       toast.error('Failed to remove item')
     }
@@ -26,7 +47,10 @@ function CartPage() {
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      handleRemoveItem(itemId)
+      const item = items.find((i: any) => i.id === itemId)
+      if (item) {
+        handleRemoveClick(item)
+      }
       return
     }
     try {
@@ -122,16 +146,11 @@ function CartPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() => handleRemoveItem(item.id)}
-                          disabled={removeFromCart.isPending}
+                          onClick={() => handleRemoveClick(item)}
                           className="p-2 hover:bg-secondary rounded-md transition-colors disabled:opacity-50"
                           aria-label="Remove item"
                         >
-                          {removeFromCart.isPending ? (
-                            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <X size={20} />
-                          )}
+                          <X size={20} />
                         </button>
                       </div>
                     )
@@ -190,6 +209,17 @@ function CartPage() {
               </div>
             )}
           </div>
+
+          <ConfirmationModal
+            isOpen={deleteConfirmation.isOpen}
+            onClose={() => setDeleteConfirmation({ ...deleteConfirmation, isOpen: false })}
+            onConfirm={confirmRemoveItem}
+            title="Remove Item"
+            description={`Are you sure you want to remove "${deleteConfirmation.itemName}" from your cart?`}
+            confirmText="Remove"
+            variant="danger"
+            isLoading={removeFromCart.isPending}
+          />
         </div>
       </div>
     </div>

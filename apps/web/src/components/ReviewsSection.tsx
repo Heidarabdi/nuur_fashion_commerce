@@ -14,7 +14,7 @@ interface ReviewsSectionProps {
 }
 
 const reviewSchema = z.object({
-    rating: z.number().min(1, 'Please select a rating').max(5),
+    rating: z.coerce.number().min(1, 'Please select a rating').max(5),
     title: z.string(),
     content: z.string(),
 })
@@ -39,7 +39,7 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
             content: '',
         },
         validators: {
-            onChange: reviewSchema,
+            onChange: reviewSchema as any,
         },
         onSubmit: async ({ value }) => {
             if (!user) return

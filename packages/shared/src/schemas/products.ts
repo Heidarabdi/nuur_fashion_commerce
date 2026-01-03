@@ -28,10 +28,12 @@ export const productSchema = z.object({
 export const createProductSchema = z.object({
     name: z.string().min(1),
     description: z.string().optional(),
-    price: z.number().min(0),
-    categoryId: z.string().uuid().optional(),
-    brandId: z.string().uuid().optional(),
-    status: productStatusSchema.default("draft"),
+    price: z.coerce.number().min(0), // coerce handles string-to-number from forms
+    categoryId: z.string().uuid().optional().nullable().or(z.literal('')),
+    brandId: z.string().uuid().optional().nullable().or(z.literal('')),
+    status: productStatusSchema.optional().default("draft"),
+    isFeatured: z.coerce.boolean().optional(),
+    isNew: z.coerce.boolean().optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();

@@ -7,6 +7,8 @@ interface Column<T> {
     sortable?: boolean
     render?: (item: T) => React.ReactNode
     className?: string
+    hideOnMobile?: boolean // Hide this column on mobile card view
+    primary?: boolean // Show as main title on mobile card
 }
 
 interface DataTableProps<T> {
@@ -89,6 +91,11 @@ export function DataTable<T extends Record<string, any>>({
         return sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
     }
 
+    // Get columns for mobile view
+    const mobileColumns = columns.filter(col => !col.hideOnMobile && col.key !== 'actions')
+    const actionsColumn = columns.find(col => col.key === 'actions')
+    const primaryColumn = columns.find(col => col.primary) || columns[0]
+
     return (
         <div className="space-y-4">
             {/* Search */}
@@ -105,8 +112,8 @@ export function DataTable<T extends Record<string, any>>({
                 </div>
             )}
 
-            {/* Table */}
-            <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+            {/* Desktop Table - hidden on small screens */}
+            <div className="hidden sm:block bg-card rounded-lg border border-border shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full">
                         <thead>
@@ -158,11 +165,52 @@ export function DataTable<T extends Record<string, any>>({
                 </div>
             </div>
 
+            {/* Mobile Card View - visible only on small screens */}
+            <div className="sm:hidden space-y-3">
+                {paginatedData.length > 0 ? (
+                    paginatedData.map((item, index) => (
+                        <div
+                            key={item.id || index}
+                            className={`bg-card rounded-lg border border-border p-4 ${onRowClick ? 'cursor-pointer active:bg-secondary/50' : ''}`}
+                            onClick={() => onRowClick?.(item)}
+                        >
+                            {/* Primary/Title row */}
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                                <div className="flex-1 min-w-0">
+                                    {primaryColumn.render ? primaryColumn.render(item) : getNestedValue(item, primaryColumn.key)}
+                                </div>
+                                {actionsColumn && (
+                                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        {actionsColumn.render?.(item)}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Other columns as label: value pairs */}
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                                {mobileColumns.filter(col => col.key !== primaryColumn.key).map((col) => (
+                                    <div key={col.key}>
+                                        <span className="text-muted-foreground text-xs">{col.label}</span>
+                                        <div className="text-foreground">
+                                            {col.render ? col.render(item) : getNestedValue(item, col.key) || '-'}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="bg-card rounded-lg border border-border p-8 text-center text-muted-foreground">
+                        {emptyMessage}
+                    </div>
+                )}
+            </div>
+
             {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} results
+                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                        Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length}
                     </p>
                     <div className="flex items-center gap-1">
                         <PaginationButton
@@ -179,8 +227,8 @@ export function DataTable<T extends Record<string, any>>({
                         >
                             <ChevronLeft size={16} />
                         </PaginationButton>
-                        <span className="px-3 py-1 text-sm">
-                            Page {currentPage} of {totalPages}
+                        <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm">
+                            {currentPage} / {totalPages}
                         </span>
                         <PaginationButton
                             onClick={() => setCurrentPage(currentPage + 1)}

@@ -3,12 +3,12 @@ import { z } from "zod";
 export const addToCartSchema = z.object({
     productId: z.string().uuid(),
     variantId: z.string().uuid().optional(),
-    quantity: z.number().int().min(1).default(1),
+    quantity: z.coerce.number().int().min(1).default(1),
     guestId: z.string().optional(), // For guest carts
 });
 
 export const updateCartItemSchema = z.object({
-    quantity: z.number().int().min(1),
+    quantity: z.coerce.number().int().min(1),
 });
 
 export const cartItemSchema = z.object({

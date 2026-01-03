@@ -35,9 +35,9 @@ function AnalyticsPage() {
       return d.getMonth() === lastMonth && d.getFullYear() === year
     })
 
-    // Revenue calculations
-    const thisMonthRevenue = thisMonthOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0)
-    const lastMonthRevenue = lastMonthOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0)
+    // Revenue calculations - ensure numeric values with Number() parsing
+    const thisMonthRevenue = thisMonthOrders.reduce((sum: number, o: any) => sum + (Number(o.totalAmount) || 0), 0)
+    const lastMonthRevenue = lastMonthOrders.reduce((sum: number, o: any) => sum + (Number(o.totalAmount) || 0), 0)
     const revenueGrowth = lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
 
     // Order calculations
@@ -83,12 +83,13 @@ function AnalyticsPage() {
   }, [orders, stats])
 
   const formatCurrency = (value: number) => {
+    const safeValue = isNaN(value) ? 0 : value
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(value)
+    }).format(safeValue)
   }
 
   const formatPercent = (value: number) => {

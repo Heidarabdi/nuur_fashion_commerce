@@ -38,7 +38,8 @@ export const categoriesController = {
             if (!validation.success) {
                 return response.error(c, "Invalid input", 400, validation.error);
             }
-            const slug = slugify(validation.data.name, { lower: true, strict: true });
+            // Use provided slug if valid, otherwise auto-generate from name
+            const slug = validation.data.slug || slugify(validation.data.name, { lower: true, strict: true });
             const category = await categoriesService.create(validation.data, slug);
             return response.created(c, category);
         } catch (error) {

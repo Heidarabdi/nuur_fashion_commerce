@@ -13,12 +13,13 @@ export const categorySchema = z.object({
     updatedAt: z.date(),
 });
 
-export const createCategorySchema = categorySchema.pick({
-    name: true,
-    description: true,
-    parentId: true,
-    position: true,
-    isActive: true,
-}).extend({
-    imageUrl: z.string().url().optional(),
+// Schema for creating a category - only name is required
+export const createCategorySchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    slug: z.string().min(1).optional().or(z.literal('')), // Optional or empty - auto-generated if not provided
+    description: z.string().optional().nullable(),
+    imageUrl: z.string().url().optional().or(z.literal('')).nullable(),
+    parentId: z.string().uuid().optional().nullable(),
+    position: z.coerce.number().int().optional().default(0),
+    isActive: z.coerce.boolean().optional().default(true),
 });

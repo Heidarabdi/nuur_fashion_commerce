@@ -1,4 +1,4 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ApiProvider } from '@nuur-fashion-commerce/api'
@@ -12,26 +12,17 @@ import appCss from '../styles.css?url'
 export const Route = createRootRoute({
   head: () => ({
     meta: [
-      {
-        charSet: 'utf-8',
-      },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'Nuur Fashion Commerce',
-      },
+      { charSet: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { title: 'Nuur Fashion Commerce' },
     ],
     links: [
-      {
-        rel: 'stylesheet',
-        href: appCss,
-      },
+      { rel: 'stylesheet', href: appCss },
     ],
   }),
 
   notFoundComponent: NotFoundPage,
+  component: RootLayout,
   shellComponent: RootDocument,
 })
 
@@ -63,6 +54,30 @@ function NotFoundPage() {
   )
 }
 
+// Root Layout - conditionally shows header/footer based on route
+function RootLayout() {
+  const { location } = useRouterState()
+  const isAdminRoute = location.pathname.startsWith('/admin')
+
+  // Admin routes have their own layout (AdminShell)
+  if (isAdminRoute) {
+    return <Outlet />
+  }
+
+  // Regular customer-facing routes
+  return (
+    <>
+      <Header />
+      <div className="pt-16 min-h-screen flex flex-col">
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </>
+  )
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <ApiProvider>
@@ -85,11 +100,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           />
         </head>
         <body className="font-sans bg-background text-foreground">
-          <Header />
-          <div className="pt-16 min-h-screen flex flex-col">
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          {children}
           <Toaster
             position="top-right"
             richColors
@@ -116,4 +127,3 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     </ApiProvider>
   )
 }
-

@@ -29,7 +29,7 @@ function LoginPage() {
     },
     onSubmit: async ({ value }) => {
       try {
-        const { error, data } = await authClient.signIn.email({
+        const { error } = await authClient.signIn.email({
           email: value.email,
           password: value.password,
         })
@@ -39,12 +39,8 @@ function LoginPage() {
           description: 'You have been signed in successfully.',
         })
 
-        // Redirect admin users to admin dashboard
-        if ((data?.user as any)?.role === 'admin') {
-          navigate({ to: '/admin' })
-        } else {
-          navigate({ to: '/' })
-        }
+        // All users go to homepage - admins can click "Admin Dashboard" link when needed
+        navigate({ to: '/' })
       } catch (err) {
         toast.error('Sign in failed', {
           description: (err as Error).message,

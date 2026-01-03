@@ -7,6 +7,7 @@ import { useCategories, useBrands, useProduct, useUpdateProduct } from '@nuur-fa
 import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
+import { getFieldError } from '../../../lib/form-utils'
 
 export const Route = createFileRoute('/admin/products/$id')({
     component: EditProductPage,
@@ -15,8 +16,8 @@ export const Route = createFileRoute('/admin/products/$id')({
 const productSchema = z.object({
     name: z.string().min(1, 'Name is required').max(255),
     description: z.string().min(1, 'Description is required'),
-    price: z.number().min(0.01, 'Price must be greater than 0'),
-    compareAtPrice: z.number().min(0).optional(),
+    price: z.coerce.number().min(0.01, 'Price must be greater than 0'),
+    compareAtPrice: z.coerce.number().min(0).optional(),
     categoryId: z.string().optional(),
     brandId: z.string().optional(),
     status: z.enum(['active', 'draft', 'archived']),
@@ -46,7 +47,7 @@ function EditProductPage() {
             status: 'draft',
         } as ProductFormValues,
         validators: {
-            onChange: productSchema,
+            onChange: productSchema as any,
         },
         onSubmit: async ({ value }) => {
             try {
@@ -153,8 +154,8 @@ function EditProductPage() {
                                         placeholder="Enter product name"
                                         className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                                     />
-                                    {field.state.meta.isTouched && field.state.meta.errors?.length > 0 && (
-                                        <p className="text-destructive text-sm mt-1">{field.state.meta.errors[0]?.message || String(field.state.meta.errors[0])}</p>
+                                    {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
+                                        <p className="text-destructive text-sm mt-1">{getFieldError(field.state.meta.errors)}</p>
                                     )}
                                 </div>
                             )}
@@ -174,8 +175,8 @@ function EditProductPage() {
                                         rows={4}
                                         className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                                     />
-                                    {field.state.meta.isTouched && field.state.meta.errors?.length > 0 && (
-                                        <p className="text-destructive text-sm mt-1">{field.state.meta.errors[0]?.message || String(field.state.meta.errors[0])}</p>
+                                    {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
+                                        <p className="text-destructive text-sm mt-1">{getFieldError(field.state.meta.errors)}</p>
                                     )}
                                 </div>
                             )}
@@ -206,8 +207,8 @@ function EditProductPage() {
                                                 className="w-full pl-8 pr-4 py-3 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                                             />
                                         </div>
-                                        {field.state.meta.isTouched && field.state.meta.errors?.length > 0 && (
-                                            <p className="text-destructive text-sm mt-1">{field.state.meta.errors[0]?.message || String(field.state.meta.errors[0])}</p>
+                                        {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
+                                            <p className="text-destructive text-sm mt-1">{getFieldError(field.state.meta.errors)}</p>
                                         )}
                                     </div>
                                 )}

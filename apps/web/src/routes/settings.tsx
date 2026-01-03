@@ -8,6 +8,8 @@ import { authClient } from '../lib/auth-client'
 import { useAddresses, useCreateAddress, useDeleteAddress } from '@nuur-fashion-commerce/api'
 import { getFieldError } from '../lib/form-utils'
 
+import { ConfirmationModal } from '../components/ui/confirmation-modal'
+
 export const Route = createFileRoute('/settings')({
     component: SettingsPage,
 })
@@ -42,8 +44,35 @@ function SettingsPage() {
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'addresses'>('profile')
     const [showAddressForm, setShowAddressForm] = useState(false)
 
+    // Confirmation Modal State
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; addressId: string | null; addressLabel: string }>({
+        isOpen: false,
+        addressId: null,
+        addressLabel: '',
+    })
+
     const user = session?.user
     const addresses = addressesData || []
+
+    const handleDeleteAddressClick = (address: any) => {
+        setDeleteConfirmation({
+            isOpen: true,
+            addressId: address.id,
+            addressLabel: `${address.addressLine1}, ${address.city}`,
+        })
+    }
+
+    const confirmDeleteAddress = async () => {
+        if (!deleteConfirmation.addressId) return
+
+        try {
+            await deleteAddress.mutateAsync(deleteConfirmation.addressId)
+            toast.success('Address deleted')
+            setDeleteConfirmation({ isOpen: false, addressId: null, addressLabel: '' })
+        } catch (err) {
+            toast.error('Failed to delete address')
+        }
+    }
 
     // Profile Form
     const profileForm = useForm({
@@ -135,15 +164,6 @@ function SettingsPage() {
             }
         },
     })
-
-    const handleDeleteAddress = async (addressId: string) => {
-        try {
-            await deleteAddress.mutateAsync(addressId)
-            toast.success('Address deleted')
-        } catch (err) {
-            toast.error('Failed to delete address')
-        }
-    }
 
     if (isSessionLoading) {
         return (
@@ -524,8 +544,7 @@ function SettingsPage() {
                                                 )}
                                             </div>
                                             <button
-                                                onClick={() => handleDeleteAddress(address.id)}
-                                                disabled={deleteAddress.isPending}
+                                                onClick={() => handleDeleteAddressClick(address)}
                                                 className="p-2 text-foreground/40 hover:text-destructive transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -534,6 +553,17 @@ function SettingsPage() {
                                     ))}
                                 </div>
                             )}
+
+                            <ConfirmationModal
+                                isOpen={deleteConfirmation.isOpen}
+                                onClose={() => setDeleteConfirmation({ ...deleteConfirmation, isOpen: false })}
+                                onConfirm={confirmDeleteAddress}
+                                title="Delete Address"
+                                description={`Are you sure you want to delete the address for "${deleteConfirmation.addressLabel}"?`}
+                                confirmText="Delete Address"
+                                variant="danger"
+                                isLoading={deleteAddress.isPending}
+                            />
                         </div>
                     )}
                 </div>

@@ -2,6 +2,8 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react'
 import { useWishlist, useRemoveFromWishlist, useAddToCart } from '@nuur-fashion-commerce/api'
 import { toast } from 'sonner'
+import { useState } from 'react'
+import { ConfirmationModal } from '../components/ui/confirmation-modal'
 
 export const Route = createFileRoute('/wishlist')({
     component: WishlistPage,
@@ -12,12 +14,30 @@ function WishlistPage() {
     const removeFromWishlist = useRemoveFromWishlist()
     const addToCart = useAddToCart()
 
+    // Confirmation Modal State
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; productId: string | null; productName: string }>({
+        isOpen: false,
+        productId: null,
+        productName: '',
+    })
+
     const items = wishlistData?.items || wishlistData || []
 
-    const handleRemove = async (productId: string) => {
+    const handleRemoveClick = (product: any) => {
+        setDeleteConfirmation({
+            isOpen: true,
+            productId: product.id,
+            productName: product.name,
+        })
+    }
+
+    const confirmRemoveItem = async () => {
+        if (!deleteConfirmation.productId) return
+
         try {
-            await removeFromWishlist.mutateAsync(productId)
+            await removeFromWishlist.mutateAsync(deleteConfirmation.productId)
             toast.success('Removed from wishlist')
+            setDeleteConfirmation({ isOpen: false, productId: null, productName: '' })
         } catch (err) {
             toast.error('Failed to remove item')
         }
@@ -120,16 +140,12 @@ function WishlistPage() {
 
                                         {/* Remove Button */}
                                         <button
-                                            onClick={() => handleRemove(product.id)}
+                                            onClick={() => handleRemoveClick(product)}
                                             disabled={removeFromWishlist.isPending}
                                             className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-50"
                                             title="Remove from wishlist"
                                         >
-                                            {removeFromWishlist.isPending ? (
-                                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                            ) : (
-                                                <Trash2 className="w-4 h-4" />
-                                            )}
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
 
                                         {/* Product Info */}
@@ -166,6 +182,17 @@ function WishlistPage() {
                     )}
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={deleteConfirmation.isOpen}
+                onClose={() => setDeleteConfirmation({ ...deleteConfirmation, isOpen: false })}
+                onConfirm={confirmRemoveItem}
+                title="Remove Item"
+                description={`Are you sure you want to remove "${deleteConfirmation.productName}" from your wishlist?`}
+                confirmText="Remove"
+                variant="danger"
+                isLoading={removeFromWishlist.isPending}
+            />
         </div>
     )
 }

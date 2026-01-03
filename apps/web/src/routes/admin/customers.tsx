@@ -54,6 +54,7 @@ function CustomersPage() {
       key: 'name',
       label: 'Customer',
       sortable: true,
+      primary: true,
       render: (customer: any) => (
         <div className="flex items-center gap-3">
           {customer.image ? (
