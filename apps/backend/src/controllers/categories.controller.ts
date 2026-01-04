@@ -71,7 +71,15 @@ export const categoriesController = {
             const category = await categoriesService.delete(id);
             if (!category) return response.notFound(c, "Category not found");
             return response.success(c, { success: true, id });
-        } catch (error) {
+        } catch (error: any) {
+            // PostgreSQL foreign key violation error code
+            if (error?.code === "23503") {
+                return response.error(
+                    c,
+                    "Cannot delete this category because it has products linked to it. Please reassign or delete those products first.",
+                    400
+                );
+            }
             return response.error(c, "Failed to delete category", 500, error);
         }
     }

@@ -82,27 +82,9 @@ Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, 
 
 ## Known Issues & Fixes Needed
 
-### 🔧 Database & Auth
-- [x] **User role enum migration** - Role column needs proper enum migration (user_role: 'user' | 'admin')
-- [ ] **Admin seed data** - Need to create admin user for testing
-- [ ] **Session refresh** - Verify sessions persist across page refreshes
-- [ ] **Deletion Constraints** - Deleting Categories/Brands with linked products fails (FK Violation 23503). Need backend check to prevent 500s.
-
-### 🎨 UI/UX Fixes
-- [ ] **Cart optimistic updates** - UI should reflect accurate state during add/update
-- [ ] **Loading states** - Add loading spinners to all action buttons
-- [ ] **Error boundaries** - Add React error boundaries for graceful error handling
-- [ ] **Dark mode consistency** - Review all pages for proper dark mode styling
-
-###  Missing/Incomplete Pages
-- [ ] **Admin Dashboard** - Fix API errors preventing stats from loading
-- [ ] **Order Checkout** - Complete Stripe/PayPal integration testing
-- [ ] **Product variants** - Size/color selection not fully implemented
-- [ ] **Search results page** - Needs styling improvements
-
-### 🚀 Production Readiness
+###  Production Readiness
 - [ ] **Environment variables** - Document all required env vars in `.env.example`
-- [ ] **Rate limiting** - Add rate limiting to auth endpoints
+- [x] **Rate limiting** - Better Auth rate limiting enabled (100 req/min global)
 - [ ] **Domain verification** - Verify Resend domain for production emails
 - [ ] **Security headers** - Configure CORS, CSP headers
 - [ ] **Error logging** - Integrate Sentry or similar

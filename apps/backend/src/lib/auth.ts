@@ -68,4 +68,10 @@ export const auth = betterAuth({
             ipAddressHeaders: ["x-forwarded-for", "x-real-ip", "cf-connecting-ip"],
         },
     },
+    // Rate limiting to prevent brute-force attacks
+    rateLimit: {
+        enabled: true,
+        window: 60, // 60 second window
+        max: 100,   // 100 requests per window (global default)
+    },
 });

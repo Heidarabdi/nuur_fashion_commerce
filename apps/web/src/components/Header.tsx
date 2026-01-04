@@ -10,7 +10,7 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const { data: session } = authClient.useSession()
+  const { data: session, isPending } = authClient.useSession()
 
   // Focus search input when opened
   useEffect(() => {
@@ -95,7 +95,9 @@ export default function Header() {
               {/* Theme Toggle */}
               <ThemeToggle />
 
-              {session ? (
+              {isPending ? (
+                <div className="w-8 h-8 rounded-full bg-secondary animate-pulse" />
+              ) : session ? (
                 <div className="relative group">
                   <button className="flex items-center gap-2 p-1 hover:bg-secondary rounded-full transition-colors">
                     <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-medium">

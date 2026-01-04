@@ -71,7 +71,15 @@ export const brandsController = {
             const brand = await brandsService.delete(id);
             if (!brand) return response.notFound(c, "Brand not found");
             return response.success(c, { success: true, id });
-        } catch (error) {
+        } catch (error: any) {
+            // PostgreSQL foreign key violation error code
+            if (error?.code === "23503") {
+                return response.error(
+                    c,
+                    "Cannot delete this brand because it has products linked to it. Please reassign or delete those products first.",
+                    400
+                );
+            }
             return response.error(c, "Failed to delete brand", 500, error);
         }
     }
