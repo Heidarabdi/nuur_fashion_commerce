@@ -1,290 +1,312 @@
-Welcome to your new TanStack app! 
+# Nuur Fashion Web
 
-# Getting Started
+Complete frontend for Nuur Fashion e-commerce platform, built with TanStack Start (React) and deployed on Cloudflare Workers.
 
-To run this application:
+---
+
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
 bun install
-bun --bun run start
+
+# Local development
+bun run dev              # http://localhost:3000
+
+# Build & Deploy
+bun run build            # Build for production
+bunx wrangler deploy     # Deploy to Cloudflare
 ```
 
-# Building For Production
+---
 
-To build this application for production:
+## 📁 Complete Project Structure
 
-```bash
-bun --bun run build
+```
+apps/web/
+├── src/
+│   ├── router.tsx                  # TanStack Router config
+│   ├── routeTree.gen.ts            # Auto-generated routes
+│   ├── styles.css                  # Global Tailwind styles
+│   │
+│   ├── components/
+│   │   ├── Header.tsx              # Navigation, search, auth
+│   │   ├── Footer.tsx              # Site footer
+│   │   ├── ThemeToggle.tsx         # Dark/light mode
+│   │   ├── StarRating.tsx          # Star rating display
+│   │   ├── ReviewsSection.tsx      # Product reviews
+│   │   ├── AdminGuard.tsx          # Admin route protection
+│   │   ├── AdminShell.tsx          # Admin layout/sidebar
+│   │   │
+│   │   ├── shop/                   # Shop components
+│   │   │   ├── ProductCard.tsx
+│   │   │   ├── ProductGrid.tsx
+│   │   │   ├── FilterSidebar.tsx
+│   │   │   └── FeaturedProductCard.tsx
+│   │   │
+│   │   ├── admin/                  # Admin components
+│   │   │   └── DataTable.tsx       # Reusable data table
+│   │   │
+│   │   ├── ImageUploader.tsx       # Multi-image upload to R2
+│   │   ├── AvatarUploader.tsx      # User avatar upload
+│   │   │
+│   │   └── ui/                     # shadcn/ui components
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── dialog.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── select.tsx
+│   │       ├── skeleton.tsx
+│   │       └── confirmation-modal.tsx
+│   │
+│   ├── routes/                     # File-based routing (22 pages)
+│   │   ├── __root.tsx              # Root layout
+│   │   │
+│   │   │   # Public Pages
+│   │   ├── index.tsx               # Homepage
+│   │   ├── shop.tsx                # Product listing
+│   │   ├── product.$id.tsx         # Product detail
+│   │   ├── category.$slug.tsx      # Category page
+│   │   ├── collections.tsx         # Collections
+│   │   ├── new-arrivals.tsx        # New products
+│   │   ├── sale.tsx                # Sale items
+│   │   ├── about.tsx               # About us
+│   │   ├── contact.tsx             # Contact form
+│   │   │
+│   │   │   # Policy Pages
+│   │   ├── shipping.tsx            # Shipping info
+│   │   ├── returns.tsx             # Return policy
+│   │   ├── privacy.tsx             # Privacy policy
+│   │   ├── terms.tsx               # Terms of service
+│   │   │
+│   │   │   # User Pages (Auth Required)
+│   │   ├── cart.tsx                # Shopping cart
+│   │   ├── checkout.tsx            # Checkout flow
+│   │   ├── orders.tsx              # Order history
+│   │   ├── orders.$id.tsx          # Order detail
+│   │   ├── profile.tsx             # User profile
+│   │   ├── settings.tsx            # Account settings
+│   │   ├── wishlist.tsx            # Wishlist
+│   │   │
+│   │   │   # Auth Pages
+│   │   ├── auth/
+│   │   │   ├── login.tsx           # Sign in
+│   │   │   ├── signup.tsx          # Create account
+│   │   │   ├── forgot-password.tsx # Password recovery
+│   │   │   └── reset-password.tsx  # Reset password
+│   │   │
+│   │   │   # Admin Pages (Admin Role Required)
+│   │   └── admin/
+│   │       ├── index.tsx           # Dashboard/analytics
+│   │       ├── products/
+│   │       │   ├── index.tsx       # Product list
+│   │       │   ├── new.tsx         # Create product
+│   │       │   └── $id.tsx         # Edit product
+│   │       ├── categories.tsx      # Category management
+│   │       ├── brands.tsx          # Brand management
+│   │       ├── orders/
+│   │       │   ├── index.tsx       # Order list
+│   │       │   └── $id.tsx         # Order detail
+│   │       └── settings.tsx        # Admin settings
+│   │
+│   ├── lib/
+│   │   └── auth-client.ts          # Better Auth client
+│   │
+│   └── data/
+│       └── static-data.ts          # Static content
+│
+├── wrangler.jsonc                  # Cloudflare config
+├── vite.config.ts                  # Vite + TanStack Start
+├── tailwind.config.ts              # Tailwind config
+└── tsconfig.json                   # TypeScript config
 ```
 
-## Testing
+---
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+## 📱 Complete Page Reference
 
-```bash
-bun --bun run test
-```
+### Public Pages
+| Route | File | Description |
+|-------|------|-------------|
+| `/` | `index.tsx` | Homepage with hero, featured products |
+| `/shop` | `shop.tsx` | Product grid with filters |
+| `/product/:id` | `product.$id.tsx` | Product details, variants, reviews |
+| `/category/:slug` | `category.$slug.tsx` | Products by category |
+| `/collections` | `collections.tsx` | Collection browsing |
+| `/new-arrivals` | `new-arrivals.tsx` | Latest products |
+| `/sale` | `sale.tsx` | Discounted products |
+| `/about` | `about.tsx` | Company info |
+| `/contact` | `contact.tsx` | Contact form |
+| `/shipping` | `shipping.tsx` | Shipping policy |
+| `/returns` | `returns.tsx` | Return policy |
+| `/privacy` | `privacy.tsx` | Privacy policy |
+| `/terms` | `terms.tsx` | Terms of service |
 
-## Styling
+### Auth Pages
+| Route | File | Description |
+|-------|------|-------------|
+| `/auth/login` | `auth/login.tsx` | Email/password sign in |
+| `/auth/signup` | `auth/signup.tsx` | Account creation |
+| `/auth/forgot-password` | `auth/forgot-password.tsx` | Request reset link |
+| `/auth/reset-password` | `auth/reset-password.tsx` | Set new password |
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+### User Pages (Auth Required)
+| Route | File | Description |
+|-------|------|-------------|
+| `/cart` | `cart.tsx` | Shopping cart management |
+| `/checkout` | `checkout.tsx` | Address, payment, confirm |
+| `/orders` | `orders.tsx` | Order history list |
+| `/orders/:id` | `orders.$id.tsx` | Order details |
+| `/profile` | `profile.tsx` | View/edit profile |
+| `/settings` | `settings.tsx` | Account settings |
+| `/wishlist` | `wishlist.tsx` | Saved items |
 
+### Admin Pages (Admin Role Required)
+| Route | File | Description |
+|-------|------|-------------|
+| `/admin` | `admin/index.tsx` | Dashboard with analytics |
+| `/admin/products` | `admin/products/index.tsx` | Product list with actions |
+| `/admin/products/new` | `admin/products/new.tsx` | Create product form |
+| `/admin/products/:id` | `admin/products/$id.tsx` | Edit product |
+| `/admin/categories` | `admin/categories.tsx` | CRUD categories |
+| `/admin/brands` | `admin/brands.tsx` | CRUD brands |
+| `/admin/orders` | `admin/orders/index.tsx` | All orders |
+| `/admin/orders/:id` | `admin/orders/$id.tsx` | Order management |
+| `/admin/settings` | `admin/settings.tsx` | Store settings |
 
+---
 
+## 🎨 Components
 
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
+### Layout Components
+| Component | Description |
+|-----------|-------------|
+| `Header.tsx` | Navigation, search, cart icon, user menu |
+| `Footer.tsx` | Links, newsletter, social icons |
+| `AdminShell.tsx` | Admin sidebar layout |
+| `ThemeToggle.tsx` | Dark/light mode switch |
 
-### Adding A Route
+### Shop Components
+| Component | Description |
+|-----------|-------------|
+| `ProductCard.tsx` | Product card with image, price |
+| `ProductGrid.tsx` | Grid layout for products |
+| `FilterSidebar.tsx` | Category, brand, price filters |
+| `FeaturedProductCard.tsx` | Large featured product |
 
-To add a new route to your application just add another a new file in the `./src/routes` directory.
+### UI Components (shadcn/ui)
+| Component | Description |
+|-----------|-------------|
+| `button.tsx` | Button variants |
+| `card.tsx` | Card container |
+| `dialog.tsx` | Modal dialog |
+| `dropdown-menu.tsx` | Dropdown menus |
+| `input.tsx` | Form inputs |
+| `label.tsx` | Form labels |
+| `select.tsx` | Select dropdowns |
+| `skeleton.tsx` | Loading skeletons |
+| `confirmation-modal.tsx` | Confirm delete dialogs |
 
-TanStack will automatically generate the content of the route file for you.
+### Other Components
+| Component | Description |
+|-----------|-------------|
+| `AdminGuard.tsx` | Protects admin routes |
+| `ReviewsSection.tsx` | Product reviews display |
+| `StarRating.tsx` | Star rating display |
 
-Now that you have two routes you can use a `Link` component to navigate between them.
+---
 
-### Adding Links
+## 🔗 API Integration
 
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+Uses `@nuur-fashion-commerce/api` package (Hono RPC + TanStack Query):
 
 ```tsx
-import { Link } from "@tanstack/react-router";
+// Fetch products
+import { useProducts } from '@nuur-fashion-commerce/api';
+const { data, isLoading } = useProducts();
+
+// Cart operations
+import { useCart, useAddToCart } from '@nuur-fashion-commerce/api';
+const { data: cart } = useCart();
+const addToCart = useAddToCart();
+addToCart.mutate({ productId, quantity });
 ```
 
-Then anywhere in your JSX you can use it like so:
+---
+
+## 🔐 Authentication
+
+Uses Better Auth client:
 
 ```tsx
-<Link to="/about">About</Link>
+import { authClient } from '~/lib/auth-client';
+
+// Check session
+const { data: session } = authClient.useSession();
+
+// Sign in
+await authClient.signIn.email({ email, password });
+
+// Sign out
+await authClient.signOut();
 ```
 
-This will create a link that will navigate to the `/about` route.
+---
 
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
+## 🔧 Environment Variables
 
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-
-import { Link } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
+### Local Development (`.env`)
+```env
+VITE_API_URL=http://localhost:3002
 ```
 
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-bun install @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
+### Cloudflare Workers (wrangler.jsonc vars)
+```jsonc
+"vars": {
+  "VITE_API_URL": "https://nuur-fashion-api.hono-waitlist-template-cloudflare.workers.dev"
 }
 ```
 
-You can also add TanStack Query Devtools to the root route (optional).
+---
 
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+## 🎨 Styling
 
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
+- **CSS Framework**: Tailwind CSS 4.x
+- **Components**: shadcn/ui
+- **Icons**: Lucide React
+- **Theme**: Dark/light mode with CSS variables
+
+---
+
+## 🚀 Deployment
+
+### Live URL
+```
+https://nuur-fashion.hono-waitlist-template-cloudflare.workers.dev
 ```
 
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
+### Deploy Commands
 ```bash
-bun install @tanstack/store
+bun run build          # Build production bundle
+bunx wrangler deploy   # Deploy to Cloudflare
 ```
 
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
+### Key Config Files
+- `wrangler.jsonc` - Cloudflare Workers config
+- `vite.config.ts` - Vite + TanStack Start + Cloudflare plugin
 
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
+---
 
-const countStore = new Store(0);
+## 📦 Key Dependencies
 
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `@tanstack/react-start` | latest | Full-stack React framework |
+| `@tanstack/react-router` | latest | Type-safe file routing |
+| `@tanstack/react-query` | latest | Data fetching & caching |
+| `@nuur-fashion-commerce/api` | workspace | Shared API hooks |
+| `better-auth/react` | latest | Auth client |
+| `tailwindcss` | 4.x | CSS framework |
+| `lucide-react` | latest | Icons |

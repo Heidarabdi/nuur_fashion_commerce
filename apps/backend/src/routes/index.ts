@@ -9,6 +9,7 @@ import ordersRoutes from "./orders.routes";
 import reviewsRoutes from "./reviews.routes";
 import wishlistsRoutes from "./wishlists.routes";
 import adminRoutes from "./admin";
+import uploadRoutes from "./upload.routes";
 
 const routes = new Hono();
 
@@ -22,5 +23,6 @@ routes.route("/orders", ordersRoutes);
 routes.route("/reviews", reviewsRoutes);
 routes.route("/wishlists", wishlistsRoutes);
 routes.route("/admin", adminRoutes);
+routes.route("/upload", uploadRoutes);
 
 export default routes;

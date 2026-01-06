@@ -100,9 +100,17 @@ export default function Header() {
               ) : session ? (
                 <div className="relative group">
                   <button className="flex items-center gap-2 p-1 hover:bg-secondary rounded-full transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-medium">
-                      {session.user.name?.[0] || 'U'}
-                    </div>
+                    {session.user.image ? (
+                      <img
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-medium">
+                        {session.user.name?.[0] || 'U'}
+                      </div>
+                    )}
                   </button>
                   <div className="absolute right-0 top-full mt-2 w-48 bg-background border border-border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                     <div className="p-3 border-b border-border">

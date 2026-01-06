@@ -3,6 +3,19 @@ import { productsService } from "../services/products.service";
 import { response } from "../utils";
 import slugify from "slugify";
 import { createProductSchema } from "@nuur-fashion-commerce/shared";
+import { r2Service } from "../services/external/r2.service";
+
+// Helper to extract R2 key from URL
+function extractR2Key(url: string): string | null {
+    // URL format: https://pub-xxx.r2.dev/products/timestamp-filename.jpg
+    try {
+        const urlObj = new URL(url);
+        // The key is the pathname without leading slash
+        return urlObj.pathname.slice(1);
+    } catch {
+        return null;
+    }
+}
 
 export const productsController = {
     async getAll(c: Context) {
@@ -56,8 +69,15 @@ export const productsController = {
             if (!validation.success) {
                 return response.error(c, "Invalid input", 400, validation.error);
             }
+
             const slug = slugify(validation.data.name, { lower: true, strict: true });
-            const product = await productsService.create(validation.data, slug);
+            // Pass images from raw body since TypeScript doesn't infer the schema correctly
+            const productData = {
+                ...validation.data,
+                images: body.images as string[] | undefined,
+            };
+
+            const product = await productsService.create(productData, slug);
             return response.created(c, product);
         } catch (error) {
             return response.error(c, "Failed to create product", 500, error);
@@ -74,7 +94,43 @@ export const productsController = {
                 return response.error(c, "Invalid input", 400, validation.error);
             }
 
-            const product = await productsService.update(id, validation.data);
+            // Get existing images to delete from R2 if images are being updated
+            const newImages = body.images as string[] | undefined;
+            if (newImages !== undefined) {
+                const existingProduct = await productsService.getById(id);
+                const existingImages = (existingProduct?.images as unknown) as Array<{ url: string }> | undefined;
+                if (existingImages && Array.isArray(existingImages)) {
+                    const existingUrls = existingImages.map((img) => img.url);
+                    // Find images that are being removed
+                    const removedUrls = existingUrls.filter((url) => !newImages.includes(url));
+                    const failedDeletions: string[] = [];
+
+                    // Delete removed images from R2 first
+                    for (const url of removedUrls) {
+                        const key = extractR2Key(url);
+                        if (key) {
+                            try {
+                                await r2Service.deleteImage(c.env, key);
+                            } catch (err) {
+                                failedDeletions.push(key);
+                            }
+                        }
+                    }
+
+                    // If R2 deletion failed, abort the update
+                    if (failedDeletions.length > 0) {
+                        return response.error(c, `Failed to delete images from storage: ${failedDeletions.join(', ')}`, 500);
+                    }
+                }
+            }
+
+            // Pass images from raw body since TypeScript doesn't infer the schema correctly
+            const productData = {
+                ...validation.data,
+                images: newImages,
+            };
+
+            const product = await productsService.update(id, productData);
             if (!product) return response.notFound(c, "Product not found");
             return response.success(c, product);
         } catch (error) {
@@ -85,6 +141,36 @@ export const productsController = {
     async delete(c: Context) {
         try {
             const id = c.req.param("id");
+
+            // Get product images to delete from R2
+            const existingProduct = await productsService.getById(id);
+            if (!existingProduct) {
+                return response.notFound(c, "Product not found");
+            }
+
+            // Delete from R2 first - if this fails, don't delete from DB
+            const existingImages = (existingProduct.images as unknown) as Array<{ url: string }> | undefined;
+            if (existingImages && Array.isArray(existingImages) && existingImages.length > 0) {
+                const failedDeletions: string[] = [];
+
+                for (const img of existingImages) {
+                    const key = extractR2Key(img.url);
+                    if (key) {
+                        try {
+                            await r2Service.deleteImage(c.env, key);
+                        } catch (err) {
+                            failedDeletions.push(key);
+                        }
+                    }
+                }
+
+                // If any R2 deletions failed, abort the operation
+                if (failedDeletions.length > 0) {
+                    return response.error(c, `Failed to delete images from storage: ${failedDeletions.join(', ')}`, 500);
+                }
+            }
+
+            // Only delete from DB after R2 succeeded
             const product = await productsService.delete(id);
             if (!product) return response.notFound(c, "Product not found");
             return response.success(c, { success: true, id });

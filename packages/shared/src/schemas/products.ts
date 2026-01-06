@@ -34,6 +34,7 @@ export const createProductSchema = z.object({
     status: productStatusSchema.optional().default("draft"),
     isFeatured: z.coerce.boolean().optional(),
     isNew: z.coerce.boolean().optional(),
+    images: z.array(z.string().url()).optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();

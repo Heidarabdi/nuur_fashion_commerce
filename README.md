@@ -4,179 +4,153 @@ Elevate your style. Shop effortlessly, anywhere.
 
 ## Overview
 
-Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, mobile, and admin. The project emphasizes code reuse, performance, accessibility, and a great developer experience, built with modern technologies across the stack.
+Nuur Fashion is a scalable, full-featured clothing e-commerce platform for web, mobile, and admin. Built with modern technologies emphasizing code reuse, performance, accessibility, and developer experience.
 
 ## Technology Stack
 
 | Layer | Technology |
 | --- | --- |
-| Frontend (Web/Admin) | Vite, React, TanStack Router/Query/Table, Zustand, Framer Motion, shadcn/ui, Better Auth |
-| Mobile | React Native with TanStack Query and Zustand for state management |
-| Backend | Hono (Bun runtime), Drizzle ORM, Zod validation |
-| Database | PostgreSQL via Drizzle ORM |
+| Frontend (Web/Admin) | TanStack Start (Vite + React), TanStack Router/Query/Form, Tailwind CSS 4 |
+| Mobile | React Native with TanStack Query |
+| Backend | Hono, Drizzle ORM, Zod validation |
+| Database | PostgreSQL |
 | Authentication | Better Auth |
-| CDN & Hosting | Cloudflare Workers, Pages, Images |
-| Payments | Stripe, PayPal |
-| Media | Cloudinary, Cloudflare Images |
-| Email | Resend, Postmark, SendGrid |
-| API Documentation | OpenAPI auto-generated from TypeScript types (backend) |
+| Storage | Cloudflare R2 |
+| Hosting | Cloudflare Workers |
+| Email | Resend |
 
 ## Features
 
-### Customer portal
-- Social and email login (Better Auth)
-- Full product catalog with filters: gender, category, brand, price
-- Product detail pages with image galleries, size charts, and reviews
-- Smart search with autocomplete; wishlist & favorites
-- Shopping cart with multi-step checkout (Stripe / PayPal)
-- Order management and tracking; returns and refunds
-- Responsive design optimized for mobile and desktop, with PWA support
-- Notifications and promotions
+### Customer Portal
+- Email/password authentication (Better Auth)
+- Product catalog with filters: category, brand, price, search
+- Product detail pages with image galleries and reviews
+- Wishlist & favorites
+- Shopping cart and checkout
+- Order management and tracking
+- Dark/light theme toggle
+- Responsive design (mobile-first)
 
-### Admin dashboard (Integrated in web app)
-- Role-based access control with TanStack Router
-- Unified authentication with customer portal
-- Analytics for sales, traffic, and user behavior
-- Full product CRUD and inventory management
-- Order processing and fulfillment tools
-- User account and role management
-- Promotions, discounts, and CMS features
-- Review moderation and reporting
-- Exportable reports and data analysis
-- Seamless switching between admin and shop views
-
-### Mobile app
-- React Native app sharing business logic with web via TanStack Query & Zustand
-- Push notifications for orders and promotions
-- Offline caching support and deep links
+### Admin Dashboard
+- Role-based access control
+- Analytics overview (orders, revenue, customers)
+- Full product CRUD with image uploads to R2
+- Category and brand management
+- Order management and status updates
+- User management
 
 ## Project Structure
 
 ```
 /
-├── apps
-│   ├── web            # Vite + React + TanStack (unified shop + admin UI)
-│   │   ├── routes/
-│   │   │   ├── _shop/      # Customer-facing routes
-│   │   │   ├── _admin/     # Admin dashboard routes (role-protected)
-│   │   │   └── _auth/      # Authentication routes
-│   ├── mobile         # React Native (mobile client)
-├── packages           # Shared packages across apps
-│   ├── shared         # Shared components, hooks, types, utilities, API
-├── backend
-│   ├── controllers     # Hono handlers
-│   ├── middleware      # Validation (Zod), auth, logging
-│   ├── models          # Drizzle ORM schema and migrations
-│   ├── routes          # API routes
-│   ├── services        # Payments, emails, business logic
-│   ├── utils           # Helpers
-│   └── server.ts       # Hono Bun server entrypoint
-├── public              # Static assets
-├── config              # Env and deployment configs
-├── docs                # Setup guides, API docs, design links
-├── README.md
-├── package.json
-├── turbo.json          # Monorepo config
-└── tsconfig.json
+├── apps/
+│   ├── web/              # TanStack Start frontend (shop + admin)
+│   ├── backend/          # Hono API server
+│   └── mobile/           # React Native (planned)
+├── packages/
+│   ├── api/              # Shared API client & hooks
+│   └── shared/           # Shared schemas & types
+├── turbo.json            # Turborepo config
+└── package.json          # Root package.json
 ```
 
-## Known Issues & Fixes Needed
+## 📱 Mobile App (Planned)
 
-###  Production Readiness
-- [ ] **Environment variables** - Document all required env vars in `.env.example`
-- [x] **Rate limiting** - Better Auth rate limiting enabled (100 req/min global)
-- [ ] **Domain verification** - Verify Resend domain for production emails
-- [ ] **Security headers** - Configure CORS, CSP headers
-- [ ] **Error logging** - Integrate Sentry or similar
-
-### 📱 Mobile App
 - [ ] Setup React Native project structure
 - [ ] Connect to shared API hooks
+- [ ] Push notifications for orders and promotions
+- [ ] Offline caching support
 
 ## Getting Started
 
-Clone the repo and install dependencies:
+### Prerequisites
+- [Bun](https://bun.sh/) runtime
+- PostgreSQL database
+- Cloudflare account (for deployment)
+
+### Installation
 
 ```bash
+# Clone and install
+git clone <repo-url>
+cd nuur-fashion-commerce
 bun install
 ```
 
-Note about the shared package
-Before running builds or starting apps that depend on the workspace `shared` package, produce the compiled output and type declarations for it. This ensures non-TypeScript-aware runtimes and build steps (for example Bun build or other CI steps) will resolve the package correctly.
+### Environment Setup
 
-Build the shared package:
+Create `.env` files in each app directory. See `.env.example` files for required variables.
 
-```bash
-cd packages/shared
-bun run build
+**Backend (`apps/backend/.env`):**
+```env
+DATABASE_URL=postgresql://user:password@host:5432/nuur_fashion
+BETTER_AUTH_SECRET=your-secret-key
+BETTER_AUTH_URL=http://localhost:3002
+FRONTEND_URL=http://localhost:3000
+RESEND_API_KEY=re_xxxx
+RESEND_EMAIL=noreply@yourdomain.com
 ```
 
-(There is also a root-level `prepare`/`build:shared` helper that runs the shared build automatically when running the main `build` script.)
-
-**Set up environment**  
-Add Better Auth, Stripe, Cloudflare, and database credentials to a .env file.
-
-**Database setup:**
-
-```bash
-cd backend
-bun drizzle generate
-bun drizzle migrate dev
+**Frontend (`apps/web/.env`):**
+```env
+VITE_API_URL=http://localhost:3002
 ```
 
-**Run backend server:**
+### Database Setup
 
 ```bash
-bun run server.ts
+cd apps/backend
+bunx drizzle-kit generate   # Generate migrations
+bunx drizzle-kit push       # Apply migrations
 ```
 
-**Run frontend:**
+### Development
 
 ```bash
+# Run backend (port 3002)
+cd apps/backend && bun run dev
+
+# Run frontend (port 3000)
 cd apps/web && bun run dev
 ```
 
-**Run mobile app:**
+## Deployment
+
+Both apps deploy to Cloudflare Workers:
 
 ```bash
-cd apps/mobile && expo start
+# Deploy backend
+cd apps/backend && bun run deploy
+
+# Deploy frontend
+cd apps/web && bun run build && bunx wrangler deploy
 ```
 
-View API docs: Access /openapi in the backend for auto-generated documentation.
-
-## Design System
-
-- UI powered by shadcn/ui for consistent, accessible components
-- Animations and transitions with Framer Motion for a polished UX
-- Brand colors: deep blue/green primary, coral/magenta accents, light backgrounds
-- Figma design and style guide linked in /docs/design.md
+### Live URLs
+- **Frontend:** https://nuur-fashion.hono-waitlist-template-cloudflare.workers.dev
+- **Backend:** https://nuur-fashion-api.hono-waitlist-template-cloudflare.workers.dev
 
 ## Integrations
 
 | Integration | Purpose |
 | --- | --- |
-| Better Auth | Authentication & user sessions |
-| Stripe / PayPal | Payments & checkout |
-| Cloudflare | Hosting, CDN, image delivery |
-| Drizzle ORM | Database access & migrations |
-| Zod | Validation and API schema |
-| Cloudinary | Media management |
-| Resend / Postmark / SendGrid | Transactional emails |
-| Google / Cloudflare | Analytics |
-| OpenAI / OpenRouter | AI-driven product recommendations (future) |
+| Better Auth | Authentication & sessions |
+| Cloudflare R2 | Image storage |
+| Cloudflare Workers | Hosting |
+| Drizzle ORM | Database access |
+| Zod | Validation |
+| Resend | Transactional emails |
 
 ## Contributing
 
-- Code is TypeScript-first, with linting (ESLint + Prettier)
-- API requests and validation use Zod schemas
-- Shared UI and business logic live in /shared for cross-platform reuse
-- Work on feature branches with PRs; maintain test coverage
-- CI/CD setup with Cloudflare Pages and GitHub Actions
+- TypeScript-first codebase with ESLint
+- Work on feature branches with PRs
+- Shared logic lives in `/packages` for cross-platform reuse
 
 ## License
 
 This project is licensed under the MIT License.
 
-Nuur Fashion — Elevate your style. Shop effortlessly, anywhere.
+---
 
-This README provides a clear, practical base for development and collaboration, aligned with a modern, high-performance stack.
+**Nuur Fashion** — Elevate your style. Shop effortlessly, anywhere.

@@ -8,6 +8,7 @@
     "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
+    "deploy": "bunx wrangler deploy",
     "test": "bun test --preload ./tests/setup.ts",
     "lint": "eslint src/",
     "typecheck": "bunx tsc --noEmit",
@@ -32,10 +33,12 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260103.0",
     "@electric-sql/pglite": "^0.3.14",
     "@types/bun": "^1.1.15",
     "@types/node": "^22.10.5",
     "drizzle-kit": "^0.30.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "^4.54.0"
   }
 }

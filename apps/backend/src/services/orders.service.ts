@@ -4,21 +4,23 @@ import { eq, desc } from "drizzle-orm";
 import { createOrderSchema } from "@nuur-fashion-commerce/shared";
 import { z } from "zod";
 import { cartsService } from "./carts.service";
-import { emailService } from "./external/email.service";
+// TODO: Refactor to pass email service via context for Cloudflare Workers
+// import { createEmailService } from "./external/email.service";
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 export const ordersService = {
     async createFromCart(userId: string | undefined, guestId: string | undefined, data: CreateOrderInput) {
         const cart = await cartsService.getCart(userId, guestId);
+        const cartItemsArr = (cart?.items || []) as any[];
 
-        if (!cart || cart.items.length === 0) {
+        if (!cart || cartItemsArr.length === 0) {
             throw new Error("Cart is empty");
         }
 
         // 1. Calculate Total (in real app, re-verify prices from DB, assume cart.items has fresh data)
         let totalAmount = 0;
-        cart.items.forEach((item: any) => {
+        cartItemsArr.forEach((item: any) => {
             // Price logic: usage of variant price vs product price
             // item.price is not stored in cartItems, we must take it from product relation
             // Basic logic:
@@ -46,7 +48,7 @@ export const ordersService = {
             }).returning();
 
             // 3. Create Order Items (Snapshot)
-            const itemsToInsert = cart.items.map((item: any) => ({
+            const itemsToInsert = cartItemsArr.map((item: any) => ({
                 orderId: createdOrder.id,
                 productId: item.productId,
                 variantId: item.variantId,
@@ -64,20 +66,10 @@ export const ordersService = {
             return createdOrder;
         });
 
+        // TODO: Re-enable email once email service is refactored for Workers
         // 5. Send order confirmation email (async, don't block order creation)
-        emailService.sendOrderConfirmation({
-            orderId: newOrder.id,
-            customerName: data.firstName,
-            customerEmail: data.email,
-            totalAmount,
-            items: cart.items.map((item: any) => ({
-                name: item.product.name,
-                quantity: item.quantity,
-                price: Number(item.product.price),
-            })),
-        }).catch((err) => {
-            console.error("Order email failed (non-blocking):", err);
-        });
+        // This requires passing env through context - to be implemented later
+        console.log(`Order ${newOrder.id} created successfully. Email notification skipped (Workers refactor pending).`);
 
         return newOrder;
     },

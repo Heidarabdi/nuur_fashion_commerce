@@ -138,30 +138,70 @@ export const productsService = {
         });
     },
 
-    // Basic implementation - will be expanded with full generic CRUD later
-    async create(data: CreateProductInput, slug: string) {
+    // Create product with images
+    async create(data: CreateProductInput & { images?: string[] }, slug: string) {
+        const { images, ...productData } = data;
+
         // @ts-ignore - Drizzle types can be strict with insert mocks in early dev
         const [newProduct] = await db.insert(products).values({
-            ...data,
+            ...productData,
             slug,
-            price: data.price.toString(), // DB stores as decimal/string
+            price: productData.price.toString(), // DB stores as decimal/string
         }).returning();
-        return newProduct;
+
+        // Insert images if provided
+        if (images && images.length > 0) {
+            const imageRecords = images.map((url, index) => ({
+                productId: newProduct.id,
+                url,
+                position: index,
+            }));
+            await db.insert(productImages).values(imageRecords);
+        }
+
+        // Return product with images
+        return this.getById(newProduct.id);
     },
 
-    async update(id: string, data: Partial<CreateProductInput>) {
+    // Update product with images
+    async update(id: string, data: Partial<CreateProductInput> & { images?: string[] }) {
+        const { images, ...productData } = data;
+
         const [updatedProduct] = await db.update(products)
             .set({
-                ...data,
-                price: data.price ? data.price.toString() : undefined,
+                ...productData,
+                price: productData.price ? productData.price.toString() : undefined,
                 updatedAt: new Date(),
             })
             .where(eq(products.id, id))
             .returning();
-        return updatedProduct;
+
+        if (!updatedProduct) return null;
+
+        // Update images if provided
+        if (images !== undefined) {
+            // Delete existing images
+            await db.delete(productImages).where(eq(productImages.productId, id));
+
+            // Insert new images
+            if (images.length > 0) {
+                const imageRecords = images.map((url, index) => ({
+                    productId: id,
+                    url,
+                    position: index,
+                }));
+                await db.insert(productImages).values(imageRecords);
+            }
+        }
+
+        // Return product with images
+        return this.getById(id);
     },
 
     async delete(id: string) {
+        // Delete images first (foreign key constraint)
+        await db.delete(productImages).where(eq(productImages.productId, id));
+
         const [deletedProduct] = await db.delete(products)
             .where(eq(products.id, id))
             .returning();

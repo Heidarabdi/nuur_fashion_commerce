@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nuur-fashion-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "nuur-fashion-images"
+    }
+  ],
+  "vars": {
+    "FRONTEND_URL": "https://nuur-fashion.hono-waitlist-template-cloudflare.workers.dev",
+    "NODE_ENV": "production",
+    "BETTER_AUTH_URL": "https://nuur-fashion-api.hono-waitlist-template-cloudflare.workers.dev",
+    "R2_PUBLIC_URL": "https://pub-2d08ce4f66f142de8c2f677840e9e023.r2.dev"
+  }
+}

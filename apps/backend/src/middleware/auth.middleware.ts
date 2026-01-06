@@ -1,8 +1,9 @@
 import { Context, Next } from "hono";
 import { response } from "../utils";
-import { auth } from "../lib/auth";
+import { createAuth, AuthEnv } from "../lib/auth";
 import { logger } from "../utils/logger";
 import { users } from "../db/schema";
+import { WorkerEnv } from "../app";
 
 // Extend Hono Context to include user and session
 declare module "hono" {
@@ -16,7 +17,8 @@ declare module "hono" {
  * Strict Auth Middleware
  * Blocks request if user is not authenticated
  */
-export const authMiddleware = async (c: Context, next: Next) => {
+export const authMiddleware = async (c: Context<{ Bindings: WorkerEnv }>, next: Next) => {
+    const auth = createAuth(c.env);
     const session = await auth.api.getSession({
         headers: c.req.raw.headers,
     });
@@ -39,7 +41,8 @@ export const authMiddleware = async (c: Context, next: Next) => {
  * Optional Auth Middleware
  * Sets user in context if authenticated, but continues if guest
  */
-export const optionalAuthMiddleware = async (c: Context, next: Next) => {
+export const optionalAuthMiddleware = async (c: Context<{ Bindings: WorkerEnv }>, next: Next) => {
+    const auth = createAuth(c.env);
     const session = await auth.api.getSession({
         headers: c.req.raw.headers,
     });
@@ -51,5 +54,3 @@ export const optionalAuthMiddleware = async (c: Context, next: Next) => {
 
     await next();
 };
-
-

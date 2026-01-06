@@ -2,6 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { User, Mail, Calendar, Package, Settings, LogOut } from 'lucide-react'
 import { authClient } from '../lib/auth-client'
 import { useOrders } from '@nuur-fashion-commerce/api'
+import { AvatarUploader } from '../components/AvatarUploader'
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -65,20 +66,11 @@ function ProfilePage() {
           {/* Profile Card */}
           <div className="bg-card rounded-2xl border border-border p-8 mb-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              {/* Avatar */}
-              <div className="w-24 h-24 rounded-full bg-linear-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                {user.image ? (
-                  <img
-                    src={user.image}
-                    alt={user.name || 'Profile'}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-4xl font-serif font-bold text-primary">
-                    {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                  </span>
-                )}
-              </div>
+              {/* Avatar - Now Uploadable */}
+              <AvatarUploader
+                currentImage={user.image}
+                size="lg"
+              />
 
               {/* User Info */}
               <div className="flex-1">

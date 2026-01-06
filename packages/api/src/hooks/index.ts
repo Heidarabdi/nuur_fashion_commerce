@@ -7,3 +7,4 @@ export * from './reviews';
 export * from './wishlists';
 export * from './addresses';
 export * from './admin';
+export * from './uploads';

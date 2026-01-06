@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
-import { ArrowLeft, Loader2, Plus, X } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { AdminShell } from '../../../components/AdminShell'
 import { useCategories, useBrands, useProduct, useUpdateProduct } from '@nuur-fashion-commerce/api'
 import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import { getFieldError } from '../../../lib/form-utils'
+import { ImageUploader } from '../../../components/ImageUploader'
 
 export const Route = createFileRoute('/admin/products/$id')({
     component: EditProductPage,
@@ -33,7 +34,6 @@ function EditProductPage() {
     const { data: categories } = useCategories()
     const { data: brands } = useBrands()
     const [imageUrls, setImageUrls] = useState<string[]>([])
-    const [newImageUrl, setNewImageUrl] = useState('')
     const [initialized, setInitialized] = useState(false)
 
     const form = useForm({
@@ -80,17 +80,6 @@ function EditProductPage() {
             setInitialized(true)
         }
     }, [product, initialized, form])
-
-    const addImageUrl = () => {
-        if (newImageUrl && !imageUrls.includes(newImageUrl)) {
-            setImageUrls([...imageUrls, newImageUrl])
-            setNewImageUrl('')
-        }
-    }
-
-    const removeImageUrl = (url: string) => {
-        setImageUrls(imageUrls.filter((u) => u !== url))
-    }
 
     if (productLoading) {
         return (
@@ -308,44 +297,11 @@ function EditProductPage() {
                     {/* Images Card */}
                     <div className="bg-card p-6 rounded-lg border border-border shadow-sm space-y-4">
                         <h2 className="text-lg font-semibold text-foreground">Images</h2>
-
-                        <div className="flex gap-2">
-                            <input
-                                type="url"
-                                value={newImageUrl}
-                                onChange={(e) => setNewImageUrl(e.target.value)}
-                                placeholder="Enter image URL"
-                                className="flex-1 px-4 py-3 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-                            />
-                            <button
-                                type="button"
-                                onClick={addImageUrl}
-                                className="px-4 py-3 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors"
-                            >
-                                <Plus size={20} />
-                            </button>
-                        </div>
-
-                        {imageUrls.length > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                {imageUrls.map((url, index) => (
-                                    <div key={index} className="relative group">
-                                        <img
-                                            src={url}
-                                            alt={`Product image ${index + 1}`}
-                                            className="w-full aspect-square object-cover rounded-lg border border-border"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImageUrl(url)}
-                                            className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X size={16} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <ImageUploader
+                            images={imageUrls}
+                            onImagesChange={setImageUrls}
+                            maxImages={10}
+                        />
                     </div>
 
                     {/* Actions */}

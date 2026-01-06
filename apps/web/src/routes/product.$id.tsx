@@ -120,7 +120,7 @@ function ProductPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="space-y-4">
-              <div className="bg-secondary rounded-lg overflow-hidden h-96 md:h-full relative">
+              <div className="bg-secondary rounded-lg overflow-hidden h-[500px] relative">
                 <img src={images[selectedImage] || '/placeholder.svg'} alt={product.name} className="w-full h-full object-cover" />
                 {images.length > 1 && (
                   <>
