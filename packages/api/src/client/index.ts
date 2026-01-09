@@ -4,19 +4,32 @@ import type { AppType } from '@nuur-fashion-commerce/backend/src/app';
 // Type helper for Hono client
 type HonoClientType = ReturnType<typeof hc<AppType>>;
 
-// IMPORTANT: This is hardcoded because Vite's define doesn't work properly 
-// for Cloudflare Workers SSR. The SSR environment bundler doesn't apply defines.
-// If you change deployment URL, update this value!
+// Production and Dev URLs
 const PRODUCTION_API_URL = 'https://nuur-fashion-api.hono-waitlist-template-cloudflare.workers.dev';
 const DEV_API_URL = 'http://localhost:3002';
 
 /**
- * Get API URL - For production, always use the production URL
- * The only time we use localhost is when literally on localhost
+ * Detect if running in React Native
+ */
+const isReactNative = (): boolean => {
+  return typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+};
+
+/**
+ * Get API URL based on environment
+ * - React Native: Always use production URL
+ * - Browser: Check hostname for localhost
+ * - SSR: Use production URL
  */
 const getApiUrl = (): string => {
+  // React Native - always use production
+  if (isReactNative()) {
+    console.log('[API] React Native - using production API');
+    return PRODUCTION_API_URL;
+  }
+
   // Browser context - check hostname
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && 'location' in window) {
     const hostname = window.location.hostname;
 
     // Only use localhost if we're actually on localhost
@@ -26,10 +39,35 @@ const getApiUrl = (): string => {
     }
   }
 
-  // For SSR and all other cases, ALWAYS use production URL
-  // This is safe because SSR only runs on Cloudflare Workers which is production
+  // For SSR and all other cases, use production URL
   console.log('[API] Production mode - using deployed API');
   return PRODUCTION_API_URL;
+};
+
+/**
+ * Storage abstraction for guest ID
+ * Works in both web (localStorage) and React Native (AsyncStorage if available)
+ */
+const storage = {
+  getItem: (key: string): string | null => {
+    if (isReactNative()) {
+      // In React Native, we'll skip guest ID for now
+      // Full implementation would use AsyncStorage
+      return null;
+    }
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem(key);
+    }
+    return null;
+  },
+  setItem: (key: string, value: string): void => {
+    if (isReactNative()) {
+      return; // Skip in React Native
+    }
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(key, value);
+    }
+  },
 };
 
 // Create client with the URL
@@ -44,13 +82,14 @@ const createClient = (url: string): HonoClientType => {
     fetch: (input: RequestInfo | URL, init?: RequestInit) => {
       const headers = new Headers(init?.headers);
 
-      if (typeof window !== 'undefined') {
-        let guestId = localStorage.getItem('guest_id');
-        if (!guestId) {
-          guestId = crypto.randomUUID();
-          localStorage.setItem('guest_id', guestId);
-        }
+      // Add guest ID header for non-authenticated requests
+      const guestId = storage.getItem('guest_id');
+      if (guestId) {
         headers.set('X-Guest-Id', guestId);
+      } else if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        const newGuestId = crypto.randomUUID();
+        storage.setItem('guest_id', newGuestId);
+        headers.set('X-Guest-Id', newGuestId);
       }
 
       return fetch(input, { ...init, headers });
