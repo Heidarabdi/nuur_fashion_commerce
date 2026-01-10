@@ -14,14 +14,14 @@ import { Header, Button, CartItem, Divider } from '@/components/ui';
 import { mockCartItems, getCartTotal, formatPrice } from '@/constants/mock-data';
 import { palette, spacing, fontFamilies, radius } from '@/constants/theme';
 
-export default function CartScreen() {
+export default function CartStandaloneScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const [cartItems, setCartItems] = useState(mockCartItems);
     const [promoCode, setPromoCode] = useState('');
 
     const subtotal = getCartTotal(cartItems);
-    const shipping = 0; // Free shipping
+    const shipping = 0;
     const total = subtotal + shipping;
 
     const handleQuantityChange = (itemId: string, quantity: number) => {
@@ -40,6 +40,29 @@ export default function CartScreen() {
         router.push('/checkout');
     };
 
+    if (cartItems.length === 0) {
+        return (
+            <View style={styles.container}>
+                <Header title="Shopping Cart" showBack />
+                <View style={styles.emptyState}>
+                    <Ionicons name="cart-outline" size={64} color={palette.textMuted} />
+                    <Text style={styles.emptyTitle}>Your cart is empty</Text>
+                    <Text style={styles.emptySubtitle}>
+                        Add items to start shopping
+                    </Text>
+                    <Button
+                        variant="primary"
+                        size="md"
+                        onPress={() => router.push('/(tabs)/shop')}
+                        style={{ marginTop: spacing.xl }}
+                    >
+                        Start Shopping
+                    </Button>
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <Header title="Shopping Cart" showBack />
@@ -49,7 +72,6 @@ export default function CartScreen() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Cart Items */}
                 <View style={styles.itemsContainer}>
                     {cartItems.map((item, index) => (
                         <React.Fragment key={item.id}>
@@ -63,7 +85,6 @@ export default function CartScreen() {
                     ))}
                 </View>
 
-                {/* Promo Code */}
                 <View style={styles.promoContainer}>
                     <TextInput
                         style={styles.promoInput}
@@ -78,9 +99,7 @@ export default function CartScreen() {
                 </View>
             </ScrollView>
 
-            {/* Footer */}
             <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-                {/* Summary */}
                 <View style={styles.summary}>
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Subtotal</Text>
@@ -96,7 +115,6 @@ export default function CartScreen() {
                     </View>
                 </View>
 
-                {/* Checkout Button */}
                 <Button
                     variant="primary"
                     size="lg"
@@ -123,16 +141,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.sm,
     },
-
-    // Items
     itemsContainer: {
         marginBottom: spacing.xl,
     },
     divider: {
         marginVertical: spacing.lg,
     },
-
-    // Promo
     promoContainer: {
         flexDirection: 'row',
         gap: spacing.sm,
@@ -151,8 +165,6 @@ const styles = StyleSheet.create({
     promoButton: {
         paddingHorizontal: spacing.lg,
     },
-
-    // Footer
     footer: {
         backgroundColor: palette.surface,
         borderTopWidth: 1,
@@ -160,8 +172,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.lg,
     },
-
-    // Summary
     summary: {
         marginBottom: spacing.lg,
     },
@@ -196,5 +206,24 @@ const styles = StyleSheet.create({
         fontFamily: fontFamilies.sansBold,
         fontSize: 20,
         color: palette.text,
+    },
+    emptyState: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: spacing.xl,
+    },
+    emptyTitle: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 20,
+        color: palette.text,
+        marginTop: spacing.lg,
+    },
+    emptySubtitle: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: palette.textSecondary,
+        marginTop: spacing.sm,
+        textAlign: 'center',
     },
 });

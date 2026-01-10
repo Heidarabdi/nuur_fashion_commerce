@@ -1,90 +1,133 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { IconSymbol } from './ui/icon-symbol';
+import {
+    View,
+    Text,
+    Image,
+    StyleSheet,
+    TouchableOpacity,
+    ViewStyle,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { palette, radius, spacing, fontFamilies, shadows } from '@/constants/theme';
+import { Product, formatPrice } from '@/constants/mock-data';
 
 interface ProductCardProps {
-    id: string;
-    name: string;
-    brand: string;
-    price: number;
-    image: string;
+    product: Product;
     onPress?: () => void;
+    onFavoritePress?: () => void;
+    style?: ViewStyle;
 }
 
-export function ProductCard({ name, brand, price, image, onPress }: ProductCardProps) {
+/**
+ * ProductCard - matches the prototype design:
+ * - 3:4 aspect ratio image with rounded corners
+ * - Heart button top-right (shows on hover in web)
+ * - Brand name in uppercase small text
+ * - Product name in Playfair Display font
+ * - Price in primary color
+ */
+export function ProductCard({
+    product,
+    onPress,
+    onFavoritePress,
+    style,
+}: ProductCardProps) {
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
+        <TouchableOpacity
+            style={[styles.container, style]}
+            onPress={onPress}
+            activeOpacity={0.9}
+        >
+            {/* Image Container */}
             <View style={styles.imageContainer}>
-                <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
-                <TouchableOpacity style={styles.heartButton}>
-                    <IconSymbol name="heart" size={20} color="#000" />
+                <Image
+                    source={{ uri: product.image }}
+                    style={styles.image}
+                    resizeMode="cover"
+                />
+                {/* Heart Button - positioned top right */}
+                <TouchableOpacity
+                    style={styles.favoriteButton}
+                    onPress={onFavoritePress}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <Ionicons
+                        name={product.isFavorite ? 'heart' : 'heart-outline'}
+                        size={18}
+                        color={product.isFavorite ? palette.primary : palette.text}
+                    />
                 </TouchableOpacity>
             </View>
+
+            {/* Product Details - following prototype layout */}
             <View style={styles.details}>
-                <Text style={styles.brand}>{brand}</Text>
-                <Text style={styles.name} numberOfLines={1}>{name}</Text>
-                <Text style={styles.price}>${price.toFixed(2)}</Text>
-                <View style={styles.colors}>
-                    <View style={[styles.colorDot, { backgroundColor: '#D2B48C' }]} />
-                    <View style={[styles.colorDot, { backgroundColor: '#000000' }]} />
-                    <View style={[styles.colorDot, { backgroundColor: '#556B2F' }]} />
-                </View>
+                {/* Brand Name - uppercase, small, muted */}
+                <Text style={styles.brand}>{product.brand}</Text>
+                {/* Product Name - Playfair Display, bold */}
+                <Text style={styles.name} numberOfLines={1}>
+                    {product.name}
+                </Text>
+                {/* Price - primary color */}
+                <Text style={styles.price}>{formatPrice(product.price)}</Text>
             </View>
         </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
-    card: {
-        flex: 1,
-        margin: 8,
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        overflow: 'hidden',
+    container: {
+        // Width controlled by parent via style prop
     },
+    // Image: 3:4 aspect ratio with rounded corners
     imageContainer: {
         position: 'relative',
-        aspectRatio: 0.75, // Vertical aspect ratio
+        aspectRatio: 3 / 4,
+        borderRadius: radius.xl,
+        overflow: 'hidden',
+        backgroundColor: palette.accent,
+        marginBottom: spacing.sm,
     },
     image: {
         width: '100%',
         height: '100%',
     },
-    heartButton: {
+    // Heart button: top-right, rounded, translucent background
+    favoriteButton: {
         position: 'absolute',
-        top: 8,
-        right: 8,
-        backgroundColor: 'rgba(255,255,255,0.8)',
-        borderRadius: 20,
-        padding: 6,
+        top: spacing.sm,
+        right: spacing.sm,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...shadows.sm,
     },
+    // Details container with proper gap
     details: {
-        padding: 12,
+        gap: 4,
     },
+    // Brand: uppercase, very small, tracking
     brand: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 4,
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 10,
+        letterSpacing: 1,
         textTransform: 'uppercase',
+        color: palette.textSecondary,
     },
+    // Name: Playfair Display, semibold
     name: {
+        fontFamily: 'Playfair_700Bold',
         fontSize: 14,
-        fontWeight: 'bold',
-        color: '#000',
-        marginBottom: 4,
+        color: palette.text,
+        lineHeight: 18,
     },
+    // Price: medium weight, primary color
     price: {
+        fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: '#000',
-        marginBottom: 8,
-    },
-    colors: {
-        flexDirection: 'row',
-        gap: 6,
-    },
-    colorDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
+        color: palette.primary,
+        marginTop: 2,
     },
 });

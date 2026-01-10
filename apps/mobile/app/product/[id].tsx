@@ -1,153 +1,179 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, StatusBar, Platform, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useProduct, useAddToCart } from '@nuur-fashion-commerce/api';
+import {
+    View,
+    Text,
+    Image,
+    StyleSheet,
+    TouchableOpacity,
+    ScrollView,
+    Dimensions,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function ProductDetailScreen() {
+import { Button } from '@/components/ui';
+import { mockProducts, formatPrice } from '@/constants/mock-data';
+import { palette, spacing, fontFamilies, shadows } from '@/constants/theme';
+
+const { height } = Dimensions.get('window');
+const IMAGE_HEIGHT = height * 0.65;
+
+export default function ProductDetailsScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
+
+    const product = mockProducts.find((p) => p.id === id) || mockProducts[0];
     const [selectedSize, setSelectedSize] = useState('M');
-    const [selectedColor, setSelectedColor] = useState('#D2B48C');
+    const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+    const [isFavorite, setIsFavorite] = useState(product.isFavorite);
 
-    // Fetch product from API
-    const { data: product, isLoading, error } = useProduct(id || '');
-    const addToCart = useAddToCart();
-
-    const handleAddToCart = () => {
-        if (!product) return;
-
-        // The shared useAddToCart uses variantId for size/color variants
-        // For now, just add with productId and quantity
-        addToCart.mutate({
-            productId: product.id,
-            quantity: 1,
-        });
-    };
-
-    if (isLoading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#000" />
-            </View>
-        );
-    }
-
-    if (error || !product) {
-        return (
-            <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>Product not found</Text>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Text>Go Back</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
+    const sizes = product.sizes;
+    const colors = product.colors;
 
     return (
         <View style={styles.container}>
-            <Stack.Screen options={{ headerShown: false }} />
-            <StatusBar barStyle="light-content" />
-
-            {/* Full Screen Image */}
+            {/* Full Height Product Image - 65% of screen */}
             <View style={styles.imageContainer}>
                 <Image
-                    source={{ uri: product.images?.[0]?.url || 'https://via.placeholder.com/400' }}
-                    style={styles.image}
+                    source={{ uri: product.image }}
+                    style={styles.productImage}
                     resizeMode="cover"
                 />
 
-                {/* Header Actions Overlay */}
-                <SafeAreaView style={styles.headerActions}>
-                    <TouchableOpacity style={styles.iconButton} onPress={() => router.back()}>
-                        <IconSymbol name="arrow.left" size={24} color="#000" />
+                {/* Floating Header Buttons - over image */}
+                <View style={[styles.floatingHeader, { top: insets.top + spacing.sm }]}>
+                    <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={() => router.back()}
+                    >
+                        <Ionicons name="arrow-back" size={22} color={palette.text} />
                     </TouchableOpacity>
-                    <View style={styles.rightActions}>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <IconSymbol name="square.and.arrow.up" size={24} color="#000" />
+
+                    <View style={styles.headerRight}>
+                        <TouchableOpacity style={styles.headerButton}>
+                            <Ionicons name="share-outline" size={22} color={palette.text} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <IconSymbol name="heart" size={24} color="#000" />
+                        <TouchableOpacity
+                            style={styles.headerButton}
+                            onPress={() => setIsFavorite(!isFavorite)}
+                        >
+                            <Ionicons
+                                name={isFavorite ? 'heart' : 'heart-outline'}
+                                size={22}
+                                color={isFavorite ? palette.primary : palette.text}
+                            />
                         </TouchableOpacity>
                     </View>
-                </SafeAreaView>
+                </View>
             </View>
 
-            {/* Content Sheet */}
-            <View style={styles.contentContainer}>
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            {/* Bottom Sheet Drawer - overlaps image */}
+            <View style={styles.bottomSheet}>
+                {/* Drag Indicator */}
+                <View style={styles.dragIndicatorContainer}>
+                    <View style={styles.dragIndicator} />
+                </View>
+
+                <ScrollView
+                    style={styles.bottomSheetContent}
+                    contentContainerStyle={styles.bottomSheetScrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Title and Price Row */}
                     <View style={styles.titleRow}>
-                        <Text style={styles.title}>{product.name}</Text>
-                        {product.rating && (
-                            <View style={styles.ratingContainer}>
-                                <IconSymbol name="star.fill" size={16} color="#FFD700" />
-                                <Text style={styles.rating}>{product.rating}</Text>
-                            </View>
-                        )}
+                        <Text style={styles.productName}>{product.name}</Text>
                     </View>
 
-                    <Text style={styles.price}>${Number(product.price).toFixed(2)}</Text>
-
-                    {product.description && (
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Description</Text>
-                            <Text style={styles.description}>{product.description}</Text>
+                    <View style={styles.priceRatingRow}>
+                        <Text style={styles.price}>{formatPrice(product.price)}</Text>
+                        <View style={styles.ratingContainer}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <Ionicons
+                                    key={star}
+                                    name="star"
+                                    size={14}
+                                    color="#FFB800"
+                                />
+                            ))}
                         </View>
-                    )}
+                    </View>
 
-                    {product.sizes && product.sizes.length > 0 && (
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Select Size</Text>
-                            <View style={styles.sizeContainer}>
-                                {product.sizes.map((size: string) => (
-                                    <TouchableOpacity
-                                        key={size}
-                                        style={[styles.sizeButton, selectedSize === size && styles.sizeButtonActive]}
-                                        onPress={() => setSelectedSize(size)}
-                                    >
-                                        <Text style={[styles.sizeText, selectedSize === size && styles.sizeTextActive]}>{size}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-                    )}
+                    {/* Description */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Description</Text>
+                        <Text style={styles.description} numberOfLines={2}>
+                            {product.description}
+                        </Text>
+                        <TouchableOpacity>
+                            <Text style={styles.readMore}>
+                                Read more <Ionicons name="chevron-down" size={12} color={palette.primary} />
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
 
-                    {product.colors && product.colors.length > 0 && (
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Select Color</Text>
-                            <View style={styles.colorContainer}>
-                                {product.colors.map((color: string) => (
-                                    <TouchableOpacity
-                                        key={color}
+                    {/* Size Selection */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Select Size</Text>
+                        <View style={styles.sizeRow}>
+                            {sizes.map((size) => (
+                                <TouchableOpacity
+                                    key={size}
+                                    style={[
+                                        styles.sizeButton,
+                                        selectedSize === size && styles.sizeButtonSelected,
+                                    ]}
+                                    onPress={() => setSelectedSize(size)}
+                                >
+                                    <Text
                                         style={[
-                                            styles.colorButton,
-                                            { backgroundColor: color },
-                                            selectedColor === color && styles.colorButtonActive
+                                            styles.sizeText,
+                                            selectedSize === size && styles.sizeTextSelected,
                                         ]}
-                                        onPress={() => setSelectedColor(color)}
-                                    />
-                                ))}
-                            </View>
+                                    >
+                                        {size}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
-                    )}
+                    </View>
 
-                    <View style={{ height: 100 }} />
+                    {/* Color Selection */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Select Color</Text>
+                        <View style={styles.colorRow}>
+                            {colors.map((color) => (
+                                <TouchableOpacity
+                                    key={color}
+                                    style={[
+                                        styles.colorButton,
+                                        { backgroundColor: color },
+                                        selectedColor === color && styles.colorButtonSelected,
+                                    ]}
+                                    onPress={() => setSelectedColor(color)}
+                                />
+                            ))}
+                        </View>
+                    </View>
                 </ScrollView>
 
-                {/* Sticky Bottom Bar */}
-                <View style={styles.bottomBar}>
-                    <TouchableOpacity
-                        style={[styles.addToCartButton, addToCart.isPending && styles.buttonDisabled]}
-                        onPress={handleAddToCart}
-                        disabled={addToCart.isPending}
+                {/* Add to Cart Button - Fixed at bottom */}
+                <View style={[styles.addToCartContainer, { paddingBottom: insets.bottom + spacing.md }]}>
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        fullWidth
+                        onPress={() => router.push('/(tabs)/cart')}
+                        style={styles.addToCartButton}
                     >
-                        {addToCart.isPending ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.addToCartText}>Add to Cart</Text>
-                        )}
-                    </TouchableOpacity>
+                        Add to Cart
+                    </Button>
+                </View>
+
+                {/* Home Indicator */}
+                <View style={styles.homeIndicatorContainer}>
+                    <View style={styles.homeIndicator} />
                 </View>
             </View>
         </View>
@@ -157,179 +183,196 @@ export default function ProductDetailScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: palette.background,
     },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-    },
-    errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        padding: 20,
-    },
-    errorText: {
-        fontSize: 18,
-        color: '#666',
-        marginBottom: 20,
-    },
-    backButton: {
-        padding: 12,
-        borderRadius: 8,
-        backgroundColor: '#f5f5f5',
-    },
+
+    // Full-height Image
     imageContainer: {
-        height: '50%',
+        height: IMAGE_HEIGHT,
         width: '100%',
-        position: 'relative',
     },
-    image: {
+    productImage: {
         width: '100%',
         height: '100%',
     },
-    headerActions: {
+
+    // Floating Header
+    floatingHeader: {
         position: 'absolute',
-        top: 0,
         left: 0,
         right: 0,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'android' ? 40 : 10,
+        paddingHorizontal: spacing.lg,
     },
-    rightActions: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    iconButton: {
+    headerButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.8)',
-        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
         alignItems: 'center',
+        justifyContent: 'center',
+        ...shadows.sm,
     },
-    contentContainer: {
+    headerRight: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+    },
+
+    // Bottom Sheet
+    bottomSheet: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: height * 0.55,
+        backgroundColor: palette.surface,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        ...shadows.lg,
+    },
+    dragIndicatorContainer: {
+        alignItems: 'center',
+        paddingTop: spacing.sm,
+        paddingBottom: spacing.xs,
+    },
+    dragIndicator: {
+        width: 48,
+        height: 5,
+        borderRadius: 3,
+        backgroundColor: palette.border,
+    },
+    bottomSheetContent: {
         flex: 1,
-        marginTop: -24,
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        overflow: 'hidden',
     },
-    scrollContent: {
-        padding: 24,
+    bottomSheetScrollContent: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+        paddingBottom: spacing.xl,
     },
+
+    // Title & Price
     titleRow: {
+        marginBottom: spacing.xs,
+    },
+    productName: {
+        fontFamily: fontFamilies.sansBold,
+        fontSize: 22,
+        color: palette.text,
+        letterSpacing: -0.3,
+    },
+    priceRatingRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
+        alignItems: 'center',
+        marginBottom: spacing.lg,
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#000',
-        flex: 1,
-        marginRight: 10,
+    price: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 18,
+        color: palette.text,
     },
     ratingContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        marginTop: 6,
+        gap: 2,
     },
-    rating: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    price: {
-        fontSize: 24,
-        color: '#000',
-        marginBottom: 20,
-    },
+
+    // Section
     section: {
-        marginBottom: 24,
+        marginBottom: spacing.lg,
     },
     sectionTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 12,
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 14,
+        color: palette.text,
+        marginBottom: spacing.sm,
     },
     description: {
-        fontSize: 16,
-        color: '#666',
-        lineHeight: 24,
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: palette.textSecondary,
+        lineHeight: 20,
     },
-    sizeContainer: {
+    readMore: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 14,
+        color: palette.primary,
+        marginTop: spacing.xs,
+    },
+
+    // Sizes
+    sizeRow: {
         flexDirection: 'row',
-        gap: 12,
+        gap: spacing.sm,
     },
     sizeButton: {
         width: 44,
         height: 44,
         borderRadius: 22,
         borderWidth: 1,
-        borderColor: '#e5e5e5',
-        justifyContent: 'center',
+        borderColor: palette.border,
         alignItems: 'center',
+        justifyContent: 'center',
     },
-    sizeButtonActive: {
-        backgroundColor: '#C19A6B',
-        borderColor: '#C19A6B',
+    sizeButtonSelected: {
+        backgroundColor: palette.primary,
+        borderColor: palette.primary,
     },
     sizeText: {
-        fontSize: 16,
-        color: '#000',
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 14,
+        color: palette.textSecondary,
     },
-    sizeTextActive: {
-        color: '#fff',
-        fontWeight: 'bold',
+    sizeTextSelected: {
+        color: palette.white,
     },
-    colorContainer: {
+
+    // Colors
+    colorRow: {
         flexDirection: 'row',
-        gap: 12,
+        gap: spacing.md,
     },
     colorButton: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: 36,
+        height: 36,
+        borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#e5e5e5',
+        borderColor: palette.border,
     },
-    colorButtonActive: {
+    colorButtonSelected: {
         borderWidth: 2,
-        borderColor: '#000',
+        borderColor: palette.primary,
+        shadowColor: palette.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 4,
     },
-    bottomBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#fff',
-        padding: 24,
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#f5f5f5',
+
+    // Add to Cart
+    addToCartContainer: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+        backgroundColor: palette.surface,
     },
     addToCartButton: {
-        backgroundColor: '#C19A6B',
-        paddingVertical: 18,
-        borderRadius: 12,
+        shadowColor: palette.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        elevation: 8,
+    },
+
+    // Home Indicator
+    homeIndicatorContainer: {
         alignItems: 'center',
+        paddingVertical: spacing.sm,
+        backgroundColor: palette.surface,
     },
-    buttonDisabled: {
-        opacity: 0.7,
-    },
-    addToCartText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
+    homeIndicator: {
+        width: 120,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: palette.text,
     },
 });

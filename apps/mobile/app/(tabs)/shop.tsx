@@ -1,203 +1,557 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Dimensions, FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    Dimensions,
+    Modal,
+    Pressable,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-import { useProducts, useCategories } from '@nuur-fashion-commerce/api';
 import { ProductCard } from '@/components/ProductCard';
+import { CategoryPill } from '@/components/ui';
+import { mockProducts, mockCategories } from '@/constants/mock-data';
+import { palette, spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const COLUMN_COUNT = 2;
-const GAP_SIZE = 16;
-const CONTAINER_PADDING = 16;
-const ITEM_WIDTH = (SCREEN_WIDTH - (CONTAINER_PADDING * 2) - GAP_SIZE) / COLUMN_COUNT;
+const { width, height } = Dimensions.get('window');
+const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
 
 export default function ShopScreen() {
     const router = useRouter();
-    const { category: initialCategory } = useLocalSearchParams<{ category: string }>();
-    const [activeCategory, setActiveCategory] = useState(initialCategory || 'All');
+    const insets = useSafeAreaInsets();
     const [searchQuery, setSearchQuery] = useState('');
+    const [showCategories, setShowCategories] = useState(true);
+    const [filterVisible, setFilterVisible] = useState(false);
 
-    // API
-    const { data: productsData, isLoading: productsLoading } = useProducts(
-        activeCategory !== 'All' ? { category: activeCategory } : undefined
-    );
-    const { data: categoriesData } = useCategories();
+    // Filter states
+    const [selectedSort, setSelectedSort] = useState('Recommended');
+    const [selectedSize, setSelectedSize] = useState<string | null>('M');
+    const [selectedColor, setSelectedColor] = useState<string | null>('#BC6C4D');
 
-    // Data Processing
-    const products = useMemo(() => productsData?.products || productsData || [], [productsData]);
+    const filteredProducts = searchQuery.trim()
+        ? mockProducts.filter(
+            (p) =>
+                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : mockProducts;
 
-    const categories = useMemo(() => {
-        const unique = Array.from(new Set(categoriesData?.map((c: any) => c.name) || [])) as string[];
-        return ['All', ...unique];
-    }, [categoriesData]);
+    const resultCount = filteredProducts.length;
 
-    const filteredProducts = useMemo(() =>
-        products.filter((p: any) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (p.brand?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-        ),
-        [products, searchQuery]);
+    const handleProductPress = (productId: string) => {
+        router.push(`/product/${productId}`);
+    };
 
-    const renderItem = ({ item }: { item: any }) => (
-        <View style={{ width: ITEM_WIDTH, marginBottom: GAP_SIZE }}>
-            <ProductCard
-                id={item.id}
-                name={item.name}
-                brand={item.brand?.name || 'Unknown'}
-                price={Number(item.price)}
-                image={item.images?.[0]?.url || 'https://via.placeholder.com/300'}
-                onPress={() => router.push(`/product/${item.id}` as any)}
-            />
-        </View>
-    );
+
+    const handleSearch = (text: string) => {
+        setSearchQuery(text);
+        setShowCategories(text.length === 0);
+    };
+
+    const sortOptions = ['Recommended', 'Newest Arrivals', 'Price: Low to High', 'Price: High to Low'];
+    const sizes = ['S', 'M', 'L', 'XL'];
+    const colors = ['#BC6C4D', '#E8E1D5', '#1F1F1F', '#FFFFFF', '#2A3B4C'];
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-            {/* Header Section */}
-            <View style={styles.header}>
-                <Text style={styles.title}>Shop</Text>
+        <View style={styles.container}>
+            {/* Sticky Search Header */}
+            <View style={[styles.searchHeader, { paddingTop: insets.top + spacing.md }]}>
+                <View style={styles.searchBar}>
+                    <Ionicons name="search" size={22} color={palette.textMuted} />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search for styles, brands..."
+                        placeholderTextColor={palette.textMuted}
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                    />
+                    <TouchableOpacity onPress={() => setFilterVisible(true)}>
+                        <Ionicons name="options-outline" size={22} color={palette.textMuted} />
+                    </TouchableOpacity>
+                </View>
+            </View>
 
-                <View style={styles.searchRow}>
-                    <View style={styles.searchContainer}>
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search collection..."
-                            placeholderTextColor="#999"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingBottom: insets.bottom + 120 },
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Categories - show when no search */}
+                {showCategories && (
+                    <View style={styles.categoriesSection}>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.categoriesContent}
+                        >
+                            {mockCategories.map((category) => (
+                                <CategoryPill
+                                    key={category.id}
+                                    category={category}
+                                    onPress={() => {
+                                        setSearchQuery(category.name);
+                                        setShowCategories(false);
+                                    }}
+                                />
+                            ))}
+                        </ScrollView>
                     </View>
+                )}
+
+                {/* Results Count */}
+                {searchQuery.trim() && (
+                    <View style={styles.resultsHeader}>
+                        <Text style={styles.resultsCount}>
+                            {resultCount} Results for <Text style={styles.searchTerm}>{searchQuery}</Text>
+                        </Text>
+                    </View>
+                )}
+
+                {/* Products Grid */}
+                <View style={styles.productsGrid}>
+                    {filteredProducts.map((product) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onPress={() => handleProductPress(product.id)}
+                            style={styles.productCard}
+                        />
+                    ))}
                 </View>
 
-                {/* Categories */}
-                <FlatList
-                    data={categories}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.categoryList}
-                    contentContainerStyle={styles.categoryContent}
-                    renderItem={({ item }) => {
-                        const isActive = activeCategory === item;
-                        return (
-                            <TouchableOpacity
-                                onPress={() => setActiveCategory(item as string)}
-                                style={[styles.categoryPill, isActive && styles.categoryPillActive]}
-                            >
-                                <Text style={[styles.categoryText, isActive && styles.categoryTextActive]}>
-                                    {item as string}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    }}
-                />
+                {filteredProducts.length === 0 && (
+                    <View style={styles.emptyState}>
+                        <Ionicons name="search-outline" size={64} color={palette.textMuted} />
+                        <Text style={styles.emptyTitle}>No products found</Text>
+                        <Text style={styles.emptySubtitle}>
+                            Try a different search term
+                        </Text>
+                    </View>
+                )}
+            </ScrollView>
+
+            {/* Floating Sort/Filter Bar */}
+            <View style={[styles.floatingBarContainer, { bottom: insets.bottom + 32 }]}>
+                <View style={styles.floatingBar}>
+                    <TouchableOpacity style={styles.floatingButton} onPress={() => setFilterVisible(true)}>
+                        <Ionicons name="swap-vertical" size={18} color={palette.white} />
+                        <Text style={styles.floatingButtonText}>Sort</Text>
+                    </TouchableOpacity>
+                    <View style={styles.floatingDivider} />
+                    <TouchableOpacity style={styles.floatingButton} onPress={() => setFilterVisible(true)}>
+                        <Ionicons name="filter" size={18} color={palette.white} />
+                        <Text style={styles.floatingButtonText}>Filter</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
-            {/* Product Grid */}
-            <View style={styles.productContainer}>
-                {productsLoading ? (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#007AFF" />
+            {/* Filter Bottom Sheet Modal */}
+            <Modal
+                visible={filterVisible}
+                animationType="slide"
+                transparent
+                onRequestClose={() => setFilterVisible(false)}
+            >
+                <Pressable
+                    style={styles.modalOverlay}
+                    onPress={() => setFilterVisible(false)}
+                />
+                <View style={styles.filterSheet}>
+                    {/* Drag Indicator */}
+                    <View style={styles.dragIndicatorContainer}>
+                        <View style={styles.dragIndicator} />
                     </View>
-                ) : (
-                    <FlatList
-                        data={filteredProducts}
-                        numColumns={2}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.productGrid}
-                        columnWrapperStyle={{ gap: GAP_SIZE }}
-                        ListEmptyComponent={() => (
-                            <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>No products found</Text>
+
+                    {/* Header */}
+                    <View style={styles.filterHeader}>
+                        <TouchableOpacity onPress={() => {
+                            setSelectedSort('Recommended');
+                            setSelectedSize('M');
+                            setSelectedColor('#BC6C4D');
+                        }}>
+                            <Text style={styles.resetText}>Reset</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.filterTitle}>Filter</Text>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setFilterVisible(false)}
+                        >
+                            <Ionicons name="close" size={18} color={palette.textSecondary} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={styles.filterContent} showsVerticalScrollIndicator={false}>
+                        {/* Sort By */}
+                        <View style={styles.filterSection}>
+                            <Text style={styles.filterSectionTitle}>SORT BY</Text>
+                            <View style={styles.sortOptions}>
+                                {sortOptions.map((option) => (
+                                    <TouchableOpacity
+                                        key={option}
+                                        style={styles.sortOption}
+                                        onPress={() => setSelectedSort(option)}
+                                    >
+                                        <Text style={[
+                                            styles.sortOptionText,
+                                            selectedSort === option && styles.sortOptionTextActive
+                                        ]}>
+                                            {option}
+                                        </Text>
+                                        {selectedSort === option && (
+                                            <Ionicons name="checkmark" size={20} color={palette.primary} />
+                                        )}
+                                    </TouchableOpacity>
+                                ))}
                             </View>
-                        )}
-                        renderItem={renderItem}
-                    />
-                )}
-            </View>
-        </SafeAreaView>
+                        </View>
+
+                        {/* Size */}
+                        <View style={styles.filterSection}>
+                            <Text style={styles.filterSectionTitle}>SIZE</Text>
+                            <View style={styles.sizeOptions}>
+                                {sizes.map((size) => (
+                                    <TouchableOpacity
+                                        key={size}
+                                        style={[
+                                            styles.sizeButton,
+                                            selectedSize === size && styles.sizeButtonActive
+                                        ]}
+                                        onPress={() => setSelectedSize(size)}
+                                    >
+                                        <Text style={[
+                                            styles.sizeButtonText,
+                                            selectedSize === size && styles.sizeButtonTextActive
+                                        ]}>
+                                            {size}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Color */}
+                        <View style={styles.filterSection}>
+                            <Text style={styles.filterSectionTitle}>COLOR</Text>
+                            <View style={styles.colorOptions}>
+                                {colors.map((color) => (
+                                    <TouchableOpacity
+                                        key={color}
+                                        style={[
+                                            styles.colorButton,
+                                            { backgroundColor: color },
+                                            color === '#FFFFFF' && styles.colorButtonWhite,
+                                            selectedColor === color && styles.colorButtonActive
+                                        ]}
+                                        onPress={() => setSelectedColor(color)}
+                                    />
+                                ))}
+                            </View>
+                        </View>
+                    </ScrollView>
+
+                    {/* Apply Button */}
+                    <View style={[styles.applyContainer, { paddingBottom: insets.bottom + spacing.md }]}>
+                        <TouchableOpacity
+                            style={styles.applyButton}
+                            onPress={() => setFilterVisible(false)}
+                        >
+                            <Text style={styles.applyButtonText}>Apply Filters</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: palette.background,
     },
-    header: {
-        paddingHorizontal: 16,
-        paddingBottom: 16,
-        paddingTop: 8,
+
+    // Search Header
+    searchHeader: {
+        paddingHorizontal: spacing.md,
+        paddingBottom: spacing.sm,
+        backgroundColor: palette.background,
     },
-    title: {
-        fontSize: 34,
-        fontWeight: 'bold',
-        marginBottom: 16,
-    },
-    searchRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    searchContainer: {
-        flex: 1,
+    searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        height: 48,
+        backgroundColor: palette.surface,
+        borderRadius: radius.xl,
+        paddingHorizontal: spacing.md,
+        height: 52,
+        borderWidth: 1,
+        borderColor: palette.border,
+        ...shadows.sm,
     },
     searchInput: {
         flex: 1,
+        fontFamily: fontFamilies.sans,
+        fontSize: 15,
+        color: palette.text,
+        marginLeft: spacing.sm,
+        paddingVertical: 0,
+    },
+
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: spacing.md,
+    },
+
+    // Categories
+    categoriesSection: {
+        marginVertical: spacing.md,
+    },
+    categoriesContent: {
+        gap: spacing.md,
+        paddingHorizontal: spacing.xs,
+    },
+
+    // Results
+    resultsHeader: {
+        paddingVertical: spacing.sm,
+    },
+    resultsCount: {
+        fontFamily: fontFamilies.sans,
         fontSize: 16,
+        color: palette.text,
+        fontWeight: '300',
     },
-    categoryList: {
-        marginTop: 16,
-    },
-    categoryContent: {
-        gap: 8,
-    },
-    categoryPill: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: '#f5f5f5',
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-    },
-    categoryPillActive: {
-        backgroundColor: '#007AFF',
-        borderColor: '#007AFF',
-    },
-    categoryText: {
-        fontSize: 14,
-        color: '#333',
-    },
-    categoryTextActive: {
-        color: '#fff',
+    searchTerm: {
+        fontFamily: fontFamilies.sansMedium,
         fontWeight: '500',
     },
-    productContainer: {
-        flex: 1,
-        paddingHorizontal: 16,
+
+    // Products Grid - 2 column layout
+    productsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: spacing.md,
+        paddingTop: spacing.md,
     },
-    productGrid: {
-        paddingTop: 16,
-        paddingBottom: 80,
+    productCard: {
+        width: CARD_WIDTH,
+        marginBottom: spacing.sm,
     },
-    loadingContainer: {
+
+    // Empty State
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: spacing.xxl * 2,
+    },
+    emptyTitle: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 20,
+        color: palette.text,
+        marginTop: spacing.lg,
+    },
+    emptySubtitle: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: palette.textSecondary,
+        marginTop: spacing.sm,
+    },
+
+    // Floating Sort/Filter Bar
+    floatingBarContainer: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+    },
+    floatingBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: palette.text,
+        borderRadius: radius.full,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.sm + 2,
+        ...shadows.lg,
+    },
+    floatingButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        paddingHorizontal: spacing.sm,
+    },
+    floatingButtonText: {
+        fontFamily: fontFamilies.sansBold,
+        fontSize: 14,
+        color: palette.white,
+        letterSpacing: 0.3,
+    },
+    floatingDivider: {
+        width: 1,
+        height: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        marginHorizontal: spacing.sm,
+    },
+
+    // Modal Overlay
+    modalOverlay: {
         flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+
+    // Filter Sheet
+    filterSheet: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: height * 0.85,
+        backgroundColor: palette.background,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        ...shadows.lg,
+    },
+    dragIndicatorContainer: {
+        alignItems: 'center',
+        paddingTop: spacing.sm,
+    },
+    dragIndicator: {
+        width: 48,
+        height: 5,
+        borderRadius: 3,
+        backgroundColor: palette.border,
+        opacity: 0.6,
+    },
+    filterHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: palette.borderLight,
+    },
+    resetText: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 14,
+        color: palette.textSecondary,
+    },
+    filterTitle: {
+        fontFamily: 'Playfair_700Bold',
+        fontSize: 20,
+        color: palette.text,
+    },
+    closeButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: palette.surface,
+        borderWidth: 1,
+        borderColor: palette.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    emptyContainer: {
+    filterContent: {
         flex: 1,
+        paddingHorizontal: spacing.lg,
+    },
+    filterSection: {
+        paddingVertical: spacing.lg,
+        borderBottomWidth: 1,
+        borderBottomColor: palette.borderLight,
+    },
+    filterSectionTitle: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 11,
+        color: palette.text,
+        letterSpacing: 1.5,
+        marginBottom: spacing.lg,
+    },
+    sortOptions: {
+        gap: spacing.md,
+    },
+    sortOption: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    sortOptionText: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 15,
+        color: palette.textSecondary,
+    },
+    sortOptionTextActive: {
+        color: palette.primary,
+    },
+    sizeOptions: {
+        flexDirection: 'row',
+        gap: spacing.md,
+    },
+    sizeButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: palette.border,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 80,
     },
-    emptyText: {
-        color: '#999',
-        marginTop: 16,
+    sizeButtonActive: {
+        backgroundColor: palette.primary,
+        borderColor: palette.primary,
+    },
+    sizeButtonText: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 14,
+        color: palette.textSecondary,
+    },
+    sizeButtonTextActive: {
+        color: palette.white,
+    },
+    colorOptions: {
+        flexDirection: 'row',
+        gap: spacing.lg,
+    },
+    colorButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
+    colorButtonWhite: {
+        borderWidth: 1,
+        borderColor: palette.border,
+    },
+    colorButtonActive: {
+        borderWidth: 2,
+        borderColor: palette.primary,
+        transform: [{ scale: 1.1 }],
+    },
+    applyContainer: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+        backgroundColor: palette.surface,
+        borderTopWidth: 1,
+        borderTopColor: palette.borderLight,
+    },
+    applyButton: {
+        backgroundColor: palette.text,
+        paddingVertical: spacing.md + 2,
+        borderRadius: radius.xl,
+        alignItems: 'center',
+        ...shadows.lg,
+    },
+    applyButtonText: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 16,
+        color: palette.white,
     },
 });

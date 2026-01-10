@@ -1,170 +1,190 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { authClient } from '@/lib/auth-client';
+import {
+    View,
+    Text,
+    StyleSheet,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    TouchableOpacity,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ExpoCheckbox from 'expo-checkbox';
+
+import { Button, Input } from '@/components/ui';
+import { palette, spacing, fontFamilies } from '@/constants/theme';
 
 export default function SignupScreen() {
+    const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleSignup = async () => {
-        if (!name || !email || !password) {
-            Alert.alert('Error', 'Please fill in all fields');
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            const result = await authClient.signUp.email({ name, email, password });
-
-            if ('error' in result && result.error) {
-                Alert.alert('Signup Failed', result.error.message || 'Something went wrong');
-            } else {
-                router.replace('/(tabs)' as any);
-            }
-        } catch (error: any) {
-            Alert.alert('Signup Failed', error.message || 'Something went wrong');
-        } finally {
-            setIsLoading(false);
-        }
+        setLoading(true);
+        // Simulate signup
+        setTimeout(() => {
+            setLoading(false);
+            router.replace('/(tabs)');
+        }, 1500);
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Create Account</Text>
-                <Text style={styles.subtitle}>Join Nuur Fashion today</Text>
-            </View>
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
+                ]}
+                keyboardShouldPersistTaps="handled"
+            >
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>Create Account</Text>
+                    <Text style={styles.subtitle}>Join the community of style.</Text>
+                </View>
 
-            <View style={styles.form}>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Full Name</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="John Doe"
+                {/* Form */}
+                <View style={styles.form}>
+                    <Input
+                        label="Full Name"
+                        placeholder="Full Name"
+                        autoCapitalize="words"
                         value={name}
                         onChangeText={setName}
-                        autoCapitalize="words"
                     />
-                </View>
 
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Email</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="john@example.com"
+                    <Input
+                        label="Email"
+                        placeholder="Email"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
                         value={email}
                         onChangeText={setEmail}
-                        autoCapitalize="none"
-                        keyboardType="email-address"
                     />
-                </View>
 
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="••••••••"
+                    <Input
+                        label="Password"
+                        placeholder="Password"
+                        isPassword
                         value={password}
                         onChangeText={setPassword}
-                        secureTextEntry
+                        hint="Min. 8 characters"
                     />
+
+                    {/* Terms Checkbox */}
+                    <View style={styles.termsContainer}>
+                        <ExpoCheckbox
+                            value={agreedToTerms}
+                            onValueChange={setAgreedToTerms}
+                            color={agreedToTerms ? palette.primary : undefined}
+                            style={styles.checkbox}
+                        />
+                        <Text style={styles.termsText}>
+                            I agree to the{' '}
+                            <Text style={styles.termsLink}>Terms & Conditions</Text>
+                        </Text>
+                    </View>
                 </View>
 
-                <TouchableOpacity
-                    style={[styles.button, isLoading && styles.buttonDisabled]}
+                {/* Sign Up Button */}
+                <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    loading={loading}
+                    disabled={!agreedToTerms}
                     onPress={handleSignup}
-                    disabled={isLoading}
                 >
-                    {isLoading ? (
-                        <ActivityIndicator color="white" />
-                    ) : (
-                        <Text style={styles.buttonText}>Sign Up</Text>
-                    )}
-                </TouchableOpacity>
+                    Sign Up
+                </Button>
 
+                {/* Login Link */}
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>Already have an account? </Text>
-                    <Link href={"/auth/login" as any} asChild>
-                        <TouchableOpacity>
-                            <Text style={styles.link}>Sign In</Text>
-                        </TouchableOpacity>
-                    </Link>
+                    <TouchableOpacity onPress={() => router.push('/auth/login')}>
+                        <Text style={styles.footerLink}>Login</Text>
+                    </TouchableOpacity>
                 </View>
-            </View>
-        </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        padding: 24,
-        justifyContent: 'center',
+        backgroundColor: palette.background,
     },
+    scrollContent: {
+        flexGrow: 1,
+        paddingHorizontal: spacing.lg,
+    },
+
+    // Header
     header: {
-        marginBottom: 30,
+        marginBottom: spacing.xl,
     },
     title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#000',
-        marginBottom: 8,
+        fontFamily: 'Playfair_700Bold',
+        fontSize: 28,
+        color: palette.text,
+        marginBottom: spacing.sm,
     },
     subtitle: {
-        fontSize: 16,
-        color: '#666',
-    },
-    form: {
-        gap: 20,
-    },
-    inputContainer: {
-        gap: 8,
-    },
-    label: {
+        fontFamily: fontFamilies.sans,
         fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
+        color: palette.textSecondary,
+        lineHeight: 20,
     },
-    input: {
-        borderWidth: 1,
-        borderColor: '#e5e5e5',
-        borderRadius: 12,
-        padding: 16,
-        fontSize: 16,
-        backgroundColor: '#fafafa',
+
+    // Form
+    form: {
+        marginBottom: spacing.xl,
     },
-    button: {
-        backgroundColor: '#000',
-        padding: 18,
-        borderRadius: 12,
+    termsContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: spacing.sm,
     },
-    buttonDisabled: {
-        opacity: 0.7,
+    checkbox: {
+        marginRight: spacing.sm,
+        borderRadius: 4,
     },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
+    termsText: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: palette.textSecondary,
+        flex: 1,
     },
+    termsLink: {
+        fontFamily: fontFamilies.sansMedium,
+        color: palette.text,
+        textDecorationLine: 'underline',
+    },
+
+    // Footer
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 20,
+        marginTop: 'auto',
+        paddingTop: spacing.xl,
     },
     footerText: {
-        color: '#666',
+        fontFamily: fontFamilies.sans,
         fontSize: 14,
+        color: palette.textSecondary,
     },
-    link: {
-        color: '#000',
-        fontWeight: 'bold',
+    footerLink: {
+        fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
+        color: palette.primary,
     },
 });

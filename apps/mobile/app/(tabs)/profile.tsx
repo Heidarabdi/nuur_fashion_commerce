@@ -1,202 +1,210 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, StatusBar, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+    View,
+    Text,
+    ScrollView,
+    StyleSheet,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/lib/auth-store';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+
+import { Avatar, ListItem, Card } from '@/components/ui';
+import { mockUser } from '@/constants/mock-data';
+import { palette, spacing, fontFamilies } from '@/constants/theme';
 
 export default function ProfileScreen() {
     const router = useRouter();
-    const { user, signOut, isAuthenticated } = useAuthStore();
+    const insets = useSafeAreaInsets();
 
-    const handleLogout = async () => {
-        await signOut();
-        router.replace('/auth/login' as any);
-    };
-
-    if (!isAuthenticated && !user) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.content}>
-                    <Text style={styles.title}>Account</Text>
-                    <Text style={styles.message}>Please sign in to view your profile.</Text>
-                    <TouchableOpacity style={styles.button} onPress={() => router.push('/auth/login' as any)}>
-                        <Text style={styles.buttonText}>Sign In</Text>
-                    </TouchableOpacity>
-                </View>
-            </SafeAreaView>
-        );
-    }
+    const menuItems = [
+        { icon: 'bag-outline' as const, title: 'My Orders', route: '/orders' },
+        { icon: 'heart-outline' as const, title: 'Wishlist', route: '/wishlist' },
+        { icon: 'location-outline' as const, title: 'Shipping Address', route: '/address' },
+        { icon: 'card-outline' as const, title: 'Payment Methods', route: '/payment' },
+        { icon: 'settings-outline' as const, title: 'App Settings', route: '/settings' },
+    ];
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" />
-
-            <ScrollView>
+        <View style={styles.container}>
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + 100 },
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Profile Header */}
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Profile</Text>
+                    <Avatar
+                        source={mockUser.avatar}
+                        name={mockUser.name}
+                        size={96}
+                        showEditBadge
+                        onEditPress={() => router.push('/profile/edit' as any)}
+                    />
+                    <Text style={styles.name}>{mockUser.name}</Text>
+                    <Text style={styles.email}>{mockUser.email}</Text>
                 </View>
 
-                <View style={styles.profileSection}>
-                    <View style={styles.avatarContainer}>
-                        {user?.image ? (
-                            <Image source={{ uri: user.image }} style={styles.avatar} />
-                        ) : (
-                            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                                <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'U'}</Text>
-                            </View>
-                        )}
-                        <TouchableOpacity style={styles.editBadge}>
-                            <IconSymbol name="pencil" size={12} color="#fff" />
-                        </TouchableOpacity>
+                {/* Stats */}
+                <View style={styles.statsRow}>
+                    <View style={styles.stat}>
+                        <Text style={styles.statValue}>{mockUser.ordersCount}</Text>
+                        <Text style={styles.statLabel}>ORDERS</Text>
                     </View>
-                    <Text style={styles.userName}>{user?.name || 'User'}</Text>
-                    <Text style={styles.userEmail}>{user?.email}</Text>
+                    <View style={[styles.stat, styles.statBorder]}>
+                        <Text style={styles.statValue}>{mockUser.wishlistCount}</Text>
+                        <Text style={styles.statLabel}>WISHLIST</Text>
+                    </View>
+                    <View style={styles.stat}>
+                        <Text style={styles.statValue}>
+                            {mockUser.points >= 1000 ? `${(mockUser.points / 1000).toFixed(1)}k` : mockUser.points}
+                        </Text>
+                        <Text style={styles.statLabel}>POINTS</Text>
+                    </View>
                 </View>
 
-                <View style={styles.menu}>
-                    <MenuItem icon="box.truck" label="My Orders" />
-                    <MenuItem icon="heart" label="Wishlist" />
-                    <MenuItem icon="map" label="Shipping Addresses" />
-                    <MenuItem icon="creditcard" label="Payment Methods" />
-                    <MenuItem icon="gear" label="Settings" />
+                {/* Menu Section */}
+                <View style={styles.menuSection}>
+                    <Text style={styles.sectionTitle}>ACCOUNT SETTINGS</Text>
+                    <View style={styles.menuItems}>
+                        {menuItems.map((item, index) => (
+                            <ListItem
+                                key={index}
+                                title={item.title}
+                                leftIcon={item.icon}
+                                onPress={() => router.push(item.route as any)}
+                                style={styles.menuItem}
+                            />
+                        ))}
+                    </View>
                 </View>
 
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                    <Text style={styles.logoutText}>Log Out</Text>
-                </TouchableOpacity>
+                {/* Promo Card */}
+                <Card variant="outline" padding="lg" style={styles.promoCard}>
+                    <View style={styles.promoContent}>
+                        <View style={styles.promoIcon}>
+                            <Ionicons name="gift-outline" size={24} color={palette.white} />
+                        </View>
+                        <View style={styles.promoText}>
+                            <Text style={styles.promoTitle}>Join Nuur Insider</Text>
+                            <Text style={styles.promoSubtitle}>Unlock early access & free shipping</Text>
+                        </View>
+                    </View>
+                </Card>
             </ScrollView>
-        </SafeAreaView>
-    );
-}
-
-function MenuItem({ icon, label }: { icon: string; label: string }) {
-    return (
-        <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIcon}>
-                <IconSymbol name={icon as any} size={20} color="#333" />
-            </View>
-            <Text style={styles.menuLabel}>{label}</Text>
-            <IconSymbol name="chevron.right" size={16} color="#ccc" />
-        </TouchableOpacity>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        backgroundColor: palette.background,
     },
-    content: {
+    scrollView: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 24,
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 16,
+    scrollContent: {
+        paddingHorizontal: spacing.lg,
     },
-    message: {
-        fontSize: 16,
-        color: '#666',
-        marginBottom: 32,
-    },
-    button: {
-        backgroundColor: '#000',
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        borderRadius: 8,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
+
+    // Header
     header: {
-        padding: 24,
-        paddingBottom: 0,
-    },
-    headerTitle: {
-        fontSize: 32,
-        fontWeight: 'bold',
-    },
-    profileSection: {
         alignItems: 'center',
-        paddingVertical: 32,
+        marginBottom: spacing.xl,
     },
-    avatarContainer: {
-        position: 'relative',
-        marginBottom: 16,
-    },
-    avatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-    },
-    avatarPlaceholder: {
-        backgroundColor: '#f0f0f0',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    avatarText: {
-        fontSize: 40,
-        fontWeight: 'bold',
-        color: '#ccc',
-    },
-    editBadge: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        backgroundColor: '#000',
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    userName: {
+    name: {
+        fontFamily: 'Playfair_700Bold',
         fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 4,
+        color: palette.text,
+        marginTop: spacing.md,
     },
-    userEmail: {
-        fontSize: 16,
-        color: '#666',
+    email: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: palette.textSecondary,
+        marginTop: 4,
     },
-    menu: {
-        paddingHorizontal: 24,
+
+    // Stats
+    statsRow: {
+        flexDirection: 'row',
+        marginBottom: spacing.xl,
+    },
+    stat: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    statBorder: {
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        borderColor: palette.border,
+    },
+    statValue: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 18,
+        color: palette.text,
+    },
+    statLabel: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 10,
+        letterSpacing: 1,
+        color: palette.textMuted,
+        marginTop: 2,
+    },
+
+    // Menu
+    menuSection: {
+        marginBottom: spacing.xl,
+    },
+    sectionTitle: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 11,
+        letterSpacing: 2,
+        color: palette.textMuted,
+        marginBottom: spacing.md,
+        paddingHorizontal: spacing.xs,
+    },
+    menuItems: {
+        gap: spacing.xs,
     },
     menuItem: {
+        marginBottom: 0,
+    },
+
+    // Promo
+    promoCard: {
+        backgroundColor: 'rgba(188, 108, 77, 0.05)',
+        borderColor: 'rgba(188, 108, 77, 0.1)',
+    },
+    promoContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        gap: spacing.md,
     },
-    menuIcon: {
-        width: 40,
-        alignItems: 'flex-start',
-    },
-    menuLabel: {
-        flex: 1,
-        fontSize: 16,
-        color: '#333',
-    },
-    logoutButton: {
-        margin: 24,
-        padding: 16,
-        backgroundColor: '#f5f5f5',
-        borderRadius: 12,
+    promoIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: palette.primary,
         alignItems: 'center',
+        justifyContent: 'center',
     },
-    logoutText: {
-        color: '#ff3b30',
-        fontWeight: '600',
-        fontSize: 16,
+    promoText: {
+        flex: 1,
+    },
+    promoTitle: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 14,
+        color: palette.text,
+    },
+    promoSubtitle: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 12,
+        color: palette.textSecondary,
+        marginTop: 2,
     },
 });

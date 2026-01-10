@@ -1,154 +1,303 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, StatusBar, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+    View,
+    Text,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    Image,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function OrderDetailScreen() {
-    const { id } = useLocalSearchParams();
+import { Button } from '@/components/ui';
+import { mockOrders, formatDate, formatPrice, Order } from '@/constants/mock-data';
+import { palette, spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+
+export default function OrderDetailsScreen() {
+    const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
+
+    const order = mockOrders.find((o) => o.id === id) || mockOrders[0];
+
+    const getStatusStyle = (status: Order['status']) => {
+        switch (status) {
+            case 'delivered':
+                return { bg: 'rgba(34, 197, 94, 0.1)', text: '#22C55E' };
+            case 'processing':
+                return { bg: palette.accent, text: palette.textSecondary };
+            case 'shipped':
+                return { bg: 'rgba(59, 130, 246, 0.1)', text: '#3B82F6' };
+            case 'cancelled':
+                return { bg: 'rgba(239, 68, 68, 0.1)', text: palette.error };
+            default:
+                return { bg: palette.accent, text: palette.textSecondary };
+        }
+    };
+
+    const statusStyle = getStatusStyle(order.status);
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <IconSymbol name="arrow.left" size={24} color="#000" />
+        <View style={styles.container}>
+            {/* Header */}
+            <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Ionicons name="arrow-back" size={22} color={palette.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Order Details</Text>
+                <Text style={styles.headerTitle}>Order #{order.id}</Text>
+                <View style={styles.placeholder} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.content}>
-                <View style={styles.section}>
-                    <Text style={styles.label}>Order ID</Text>
-                    <Text style={styles.value}>{id}</Text>
-                </View>
-
-                <View style={styles.section}>
-                    <Text style={styles.label}>Status</Text>
-                    <Text style={[styles.status, { color: '#00a651' }]}>Delivered</Text>
-                </View>
-
-                <View style={styles.divider} />
-
-                <Text style={styles.sectionTitle}>Items</Text>
-                <View style={styles.itemRow}>
-                    <View style={styles.itemInfo}>
-                        <Text style={styles.itemName}>The Essential Trench</Text>
-                        <Text style={styles.itemVariant}>Size: M • Color: Beige</Text>
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingBottom: insets.bottom + spacing.xl },
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Status Card */}
+                <View style={styles.statusCard}>
+                    <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+                        <Text style={[styles.statusText, { color: statusStyle.text }]}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </Text>
                     </View>
-                    <Text style={styles.itemPrice}>$295.00</Text>
+                    <Text style={styles.orderDate}>{formatDate(order.date)}</Text>
+                    {order.trackingNumber && (
+                        <View style={styles.trackingContainer}>
+                            <Text style={styles.trackingLabel}>Tracking Number</Text>
+                            <Text style={styles.trackingNumber}>{order.trackingNumber}</Text>
+                        </View>
+                    )}
                 </View>
-                <View style={styles.itemRow}>
-                    <View style={styles.itemInfo}>
-                        <Text style={styles.itemName}>Silk Slip Dress</Text>
-                        <Text style={styles.itemVariant}>Size: S • Color: Black</Text>
+
+                {/* Items Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Items ({order.items.length})</Text>
+                    {order.items.map((item) => (
+                        <View key={item.id} style={styles.itemCard}>
+                            <Image
+                                source={{ uri: item.image }}
+                                style={styles.itemImage}
+                            />
+                            <View style={styles.itemDetails}>
+                                <Text style={styles.itemName}>{item.name}</Text>
+                                <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                            </View>
+                            <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Order Summary */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Order Summary</Text>
+                    <View style={styles.summaryCard}>
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLabel}>Subtotal</Text>
+                            <Text style={styles.summaryValue}>{formatPrice(order.total - 10)}</Text>
+                        </View>
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLabel}>Shipping</Text>
+                            <Text style={styles.summaryValue}>$10.00</Text>
+                        </View>
+                        <View style={styles.divider} />
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.totalLabel}>Total</Text>
+                            <Text style={styles.totalValue}>{formatPrice(order.total)}</Text>
+                        </View>
                     </View>
-                    <Text style={styles.itemPrice}>$120.00</Text>
                 </View>
 
-                <View style={styles.divider} />
-
-                <View style={styles.row}>
-                    <Text style={styles.label}>Subtotal</Text>
-                    <Text style={styles.value}>$415.00</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Shipping</Text>
-                    <Text style={styles.value}>$10.00</Text>
-                </View>
-                <View style={[styles.row, { marginTop: 8 }]}>
-                    <Text style={styles.totalLabel}>Total</Text>
-                    <Text style={styles.totalValue}>$425.00</Text>
-                </View>
-
+                {/* Actions */}
+                {order.status === 'delivered' && (
+                    <Button
+                        variant="outline"
+                        size="lg"
+                        fullWidth
+                        onPress={() => { }}
+                    >
+                        Request Return
+                    </Button>
+                )}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        backgroundColor: palette.background,
     },
+
+    // Header
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        justifyContent: 'space-between',
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.md,
     },
     backButton: {
-        padding: 8,
-        marginRight: 8,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: palette.surface,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...shadows.sm,
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: fontFamilies.sansBold,
+        fontSize: 18,
+        color: palette.text,
     },
-    content: {
-        padding: 24,
+    placeholder: {
+        width: 40,
     },
-    section: {
-        marginBottom: 16,
+
+    scrollView: {
+        flex: 1,
     },
-    label: {
+    scrollContent: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+    },
+
+    // Status Card
+    statusCard: {
+        backgroundColor: palette.surface,
+        borderRadius: radius.xl,
+        padding: spacing.lg,
+        marginBottom: spacing.lg,
+        alignItems: 'center',
+        ...shadows.sm,
+    },
+    statusBadge: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: radius.full,
+        marginBottom: spacing.sm,
+    },
+    statusText: {
+        fontFamily: fontFamilies.sansBold,
         fontSize: 14,
-        color: '#666',
+    },
+    orderDate: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: palette.textSecondary,
+        marginBottom: spacing.md,
+    },
+    trackingContainer: {
+        alignItems: 'center',
+        paddingTop: spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: palette.border,
+        width: '100%',
+    },
+    trackingLabel: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 12,
+        color: palette.textMuted,
         marginBottom: 4,
     },
-    value: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#000',
+    trackingNumber: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 14,
+        color: palette.text,
     },
-    status: {
+
+    // Sections
+    section: {
+        marginBottom: spacing.xl,
+    },
+    sectionTitle: {
+        fontFamily: fontFamilies.sansSemiBold,
         fontSize: 16,
-        fontWeight: 'bold',
+        color: palette.text,
+        marginBottom: spacing.md,
+    },
+
+    // Items
+    itemCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: palette.surface,
+        borderRadius: radius.lg,
+        padding: spacing.md,
+        marginBottom: spacing.sm,
+        ...shadows.sm,
+    },
+    itemImage: {
+        width: 64,
+        height: 64,
+        borderRadius: radius.md,
+        backgroundColor: palette.accent,
+    },
+    itemDetails: {
+        flex: 1,
+        marginLeft: spacing.md,
+    },
+    itemName: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 15,
+        color: palette.text,
+    },
+    itemQuantity: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 13,
+        color: palette.textSecondary,
+        marginTop: 4,
+    },
+    itemPrice: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 15,
+        color: palette.text,
+    },
+
+    // Summary
+    summaryCard: {
+        backgroundColor: palette.surface,
+        borderRadius: radius.lg,
+        padding: spacing.lg,
+        ...shadows.sm,
+    },
+    summaryRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: spacing.sm,
+    },
+    summaryLabel: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: palette.textSecondary,
+    },
+    summaryValue: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 14,
+        color: palette.text,
     },
     divider: {
         height: 1,
-        backgroundColor: '#e5e5e5',
-        marginVertical: 24,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 16,
-    },
-    itemRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 16,
-    },
-    itemInfo: {
-        flex: 1,
-        gap: 4,
-    },
-    itemName: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    itemVariant: {
-        fontSize: 14,
-        color: '#666',
-    },
-    itemPrice: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 8,
+        backgroundColor: palette.border,
+        marginVertical: spacing.md,
     },
     totalLabel: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: fontFamilies.sansBold,
+        fontSize: 16,
+        color: palette.text,
     },
     totalValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: fontFamilies.sansBold,
+        fontSize: 16,
+        color: palette.text,
     },
 });
