@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -15,11 +15,14 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Input } from '@/components/ui';
 import { mockUser } from '@/constants/mock-data';
-import { palette, spacing, fontFamilies, shadows } from '@/constants/theme';
+import { spacing, fontFamilies, shadows } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function EditProfileScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     const [name, setName] = useState(mockUser.name);
     const [email, setEmail] = useState(mockUser.email);
@@ -42,7 +45,7 @@ export default function EditProfileScreen() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                 >
-                    <Ionicons name="arrow-back" size={24} color={palette.text} />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Edit Profile</Text>
                 <View style={styles.placeholder} />
@@ -68,7 +71,7 @@ export default function EditProfileScreen() {
                                 style={styles.avatar}
                             />
                             <TouchableOpacity style={styles.cameraButton}>
-                                <Ionicons name="camera" size={16} color={palette.white} />
+                                <Ionicons name="camera" size={16} color={colors.white} />
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity>
@@ -83,7 +86,7 @@ export default function EditProfileScreen() {
                             placeholder="Enter your name"
                             value={name}
                             onChangeText={setName}
-                            rightIcon={<Ionicons name="person-outline" size={20} color={palette.textMuted} />}
+                            rightIcon={<Ionicons name="person-outline" size={20} color={colors.textMuted} />}
                         />
 
                         <Input
@@ -93,7 +96,7 @@ export default function EditProfileScreen() {
                             autoCapitalize="none"
                             value={email}
                             onChangeText={setEmail}
-                            rightIcon={<Ionicons name="mail-outline" size={20} color={palette.textMuted} />}
+                            rightIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
                         />
 
                         <Input
@@ -102,7 +105,7 @@ export default function EditProfileScreen() {
                             keyboardType="phone-pad"
                             value={phone}
                             onChangeText={setPhone}
-                            rightIcon={<Ionicons name="call-outline" size={20} color={palette.textMuted} />}
+                            rightIcon={<Ionicons name="call-outline" size={20} color={colors.textMuted} />}
                         />
                     </View>
                 </ScrollView>
@@ -124,10 +127,10 @@ export default function EditProfileScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 
     // Header
@@ -137,7 +140,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: spacing.lg,
         paddingBottom: spacing.md,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     backButton: {
         width: 40,
@@ -145,7 +148,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
     },
     placeholder: {
         width: 40,
@@ -176,7 +179,7 @@ const styles = StyleSheet.create({
         height: 128,
         borderRadius: 64,
         borderWidth: 4,
-        borderColor: palette.surface,
+        borderColor: colors.surface,
         ...shadows.md,
     },
     cameraButton: {
@@ -186,16 +189,16 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 4,
-        borderColor: palette.background,
+        borderColor: colors.background,
     },
     changePhotoText: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 16,
-        color: palette.primary,
+        color: colors.primary,
     },
 
     // Form
@@ -211,6 +214,6 @@ const styles = StyleSheet.create({
         right: 0,
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.lg,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 });

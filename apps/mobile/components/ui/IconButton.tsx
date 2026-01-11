@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     TouchableOpacity,
     StyleSheet,
@@ -6,7 +6,7 @@ import {
     TouchableOpacityProps,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { palette } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type IconButtonVariant = 'default' | 'filled' | 'outline' | 'ghost';
 type IconButtonSize = 'sm' | 'md' | 'lg';
@@ -34,18 +34,20 @@ export function IconButton({
     disabled,
     ...props
 }: IconButtonProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const { container: containerSize, icon: iconSize } = sizeConfig[size];
 
     const getIconColor = () => {
         if (color) return color;
         switch (variant) {
             case 'filled':
-                return palette.white;
+                return colors.white;
             case 'outline':
             case 'ghost':
-                return palette.text;
+                return colors.text;
             default:
-                return palette.textSecondary;
+                return colors.textSecondary;
         }
     };
 
@@ -71,7 +73,7 @@ export function IconButton({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     base: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -80,12 +82,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
     },
     filled: {
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
     },
     outline: {
         backgroundColor: 'transparent',
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
     },
     ghost: {
         backgroundColor: 'transparent',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -11,18 +11,31 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withSpring,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Button } from '@/components/ui';
 import { mockProducts, formatPrice } from '@/constants/mock-data';
-import { palette, spacing, fontFamilies, shadows } from '@/constants/theme';
+import { spacing, fontFamilies, shadows } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
-const { height } = Dimensions.get('window');
-const IMAGE_HEIGHT = height * 0.65;
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Bottom sheet snap points
+const COLLAPSED_HEIGHT = 200; // Shows title, price, rating, and button
+const EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.70; // Full details with variants
+const MAX_TRANSLATE_Y = -EXPANDED_HEIGHT + COLLAPSED_HEIGHT;
 
 export default function ProductDetailsScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     const product = mockProducts.find((p) => p.id === id) || mockProducts[0];
     const [selectedSize, setSelectedSize] = useState('M');
@@ -30,11 +43,42 @@ export default function ProductDetailsScreen() {
     const [isFavorite, setIsFavorite] = useState(product.isFavorite);
 
     const sizes = product.sizes;
-    const colors = product.colors;
+    const productColors = product.colors;
+
+    // Animation values
+    const translateY = useSharedValue(0);
+    const context = useSharedValue({ y: 0 });
+
+    // Gesture handler for dragging
+    const gesture = Gesture.Pan()
+        .onStart(() => {
+            context.value = { y: translateY.value };
+        })
+        .onUpdate((event) => {
+            translateY.value = Math.max(
+                Math.min(context.value.y + event.translationY, 0),
+                MAX_TRANSLATE_Y
+            );
+        })
+        .onEnd((event) => {
+            if (event.velocityY < -500) {
+                translateY.value = withSpring(MAX_TRANSLATE_Y, { damping: 25, stiffness: 150 });
+            } else if (event.velocityY > 500) {
+                translateY.value = withSpring(0, { damping: 25, stiffness: 150 });
+            } else {
+                const snapPoint = translateY.value < MAX_TRANSLATE_Y / 2 ? MAX_TRANSLATE_Y : 0;
+                translateY.value = withSpring(snapPoint, { damping: 25, stiffness: 150 });
+            }
+        });
+
+    // Animated styles for sheet
+    const sheetStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }],
+    }));
 
     return (
-        <View style={styles.container}>
-            {/* Full Height Product Image - 65% of screen */}
+        <GestureHandlerRootView style={styles.container}>
+            {/* Full Screen Product Image */}
             <View style={styles.imageContainer}>
                 <Image
                     source={{ uri: product.image }}
@@ -42,18 +86,18 @@ export default function ProductDetailsScreen() {
                     resizeMode="cover"
                 />
 
-                {/* Floating Header Buttons - over image */}
+                {/* Floating Header Buttons */}
                 <View style={[styles.floatingHeader, { top: insets.top + spacing.sm }]}>
                     <TouchableOpacity
                         style={styles.headerButton}
                         onPress={() => router.back()}
                     >
-                        <Ionicons name="arrow-back" size={22} color={palette.text} />
+                        <Ionicons name="arrow-back" size={22} color={colors.text} />
                     </TouchableOpacity>
 
                     <View style={styles.headerRight}>
                         <TouchableOpacity style={styles.headerButton}>
-                            <Ionicons name="share-outline" size={22} color={palette.text} />
+                            <Ionicons name="share-outline" size={22} color={colors.text} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.headerButton}
@@ -62,134 +106,127 @@ export default function ProductDetailsScreen() {
                             <Ionicons
                                 name={isFavorite ? 'heart' : 'heart-outline'}
                                 size={22}
-                                color={isFavorite ? palette.primary : palette.text}
+                                color={isFavorite ? colors.primary : colors.text}
                             />
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
 
-            {/* Bottom Sheet Drawer - overlaps image */}
-            <View style={styles.bottomSheet}>
-                {/* Drag Indicator */}
-                <View style={styles.dragIndicatorContainer}>
-                    <View style={styles.dragIndicator} />
-                </View>
-
-                <ScrollView
-                    style={styles.bottomSheetContent}
-                    contentContainerStyle={styles.bottomSheetScrollContent}
-                    showsVerticalScrollIndicator={false}
+            {/* Bottom Sheet with Gesture */}
+            <GestureDetector gesture={gesture}>
+                <Animated.View
+                    style={[
+                        styles.bottomSheet,
+                        { height: EXPANDED_HEIGHT, paddingBottom: insets.bottom },
+                        sheetStyle
+                    ]}
                 >
-                    {/* Title and Price Row */}
-                    <View style={styles.titleRow}>
-                        <Text style={styles.productName}>{product.name}</Text>
+                    {/* Drag Handle */}
+                    <View style={styles.dragHandleContainer}>
+                        <View style={styles.dragHandle} />
                     </View>
 
-                    <View style={styles.priceRatingRow}>
-                        <Text style={styles.price}>{formatPrice(product.price)}</Text>
-                        <View style={styles.ratingContainer}>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Ionicons
-                                    key={star}
-                                    name="star"
-                                    size={14}
-                                    color="#FFB800"
-                                />
-                            ))}
+                    {/* Title, Price, Rating - Always visible */}
+                    <View style={styles.headerContent}>
+                        <View style={styles.titleRow}>
+                            <View style={styles.titleInfo}>
+                                <Text style={styles.productName}>{product.name}</Text>
+                                <Text style={styles.price}>{formatPrice(product.price)}</Text>
+                            </View>
+                            <View style={styles.ratingBadge}>
+                                <Ionicons name="star" size={16} color="#FFB800" />
+                                <Text style={styles.ratingText}>4.8</Text>
+                            </View>
                         </View>
                     </View>
 
-                    {/* Description */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Description</Text>
-                        <Text style={styles.description} numberOfLines={2}>
-                            {product.description}
-                        </Text>
-                        <TouchableOpacity>
-                            <Text style={styles.readMore}>
-                                Read more <Ionicons name="chevron-down" size={12} color={palette.primary} />
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Size Selection */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Select Size</Text>
-                        <View style={styles.sizeRow}>
-                            {sizes.map((size) => (
-                                <TouchableOpacity
-                                    key={size}
-                                    style={[
-                                        styles.sizeButton,
-                                        selectedSize === size && styles.sizeButtonSelected,
-                                    ]}
-                                    onPress={() => setSelectedSize(size)}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.sizeText,
-                                            selectedSize === size && styles.sizeTextSelected,
-                                        ]}
-                                    >
-                                        {size}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </View>
-
-                    {/* Color Selection */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Select Color</Text>
-                        <View style={styles.colorRow}>
-                            {colors.map((color) => (
-                                <TouchableOpacity
-                                    key={color}
-                                    style={[
-                                        styles.colorButton,
-                                        { backgroundColor: color },
-                                        selectedColor === color && styles.colorButtonSelected,
-                                    ]}
-                                    onPress={() => setSelectedColor(color)}
-                                />
-                            ))}
-                        </View>
-                    </View>
-                </ScrollView>
-
-                {/* Add to Cart Button - Fixed at bottom */}
-                <View style={[styles.addToCartContainer, { paddingBottom: insets.bottom + spacing.md }]}>
-                    <Button
-                        variant="primary"
-                        size="lg"
-                        fullWidth
-                        onPress={() => router.push('/(tabs)/cart')}
-                        style={styles.addToCartButton}
+                    {/* Expandable Content: Variants - shown when swiped up */}
+                    <ScrollView
+                        style={styles.expandedContent}
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
                     >
-                        Add to Cart
-                    </Button>
-                </View>
+                        {/* Description */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Description</Text>
+                            <Text style={styles.description}>
+                                {product.description}
+                            </Text>
+                        </View>
 
-                {/* Home Indicator */}
-                <View style={styles.homeIndicatorContainer}>
-                    <View style={styles.homeIndicator} />
-                </View>
-            </View>
-        </View>
+                        {/* Size Selection */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Select Size</Text>
+                            <View style={styles.optionsRow}>
+                                {sizes.map((size) => (
+                                    <TouchableOpacity
+                                        key={size}
+                                        style={[
+                                            styles.sizeButton,
+                                            selectedSize === size && styles.sizeButtonSelected,
+                                        ]}
+                                        onPress={() => setSelectedSize(size)}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.sizeText,
+                                                selectedSize === size && styles.sizeTextSelected,
+                                            ]}
+                                        >
+                                            {size}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Color Selection */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Select Color</Text>
+                            <View style={styles.optionsRow}>
+                                {productColors.map((color) => (
+                                    <TouchableOpacity
+                                        key={color}
+                                        style={[
+                                            styles.colorButton,
+                                            { backgroundColor: color },
+                                            selectedColor === color && styles.colorButtonSelected,
+                                        ]}
+                                        onPress={() => setSelectedColor(color)}
+                                    />
+                                ))}
+                            </View>
+                        </View>
+                    </ScrollView>
+
+                    {/* Add to Cart Button - Fixed at bottom of drawer */}
+                    <View style={styles.addToCartContainer}>
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            fullWidth
+                            onPress={() => router.push('/(tabs)/cart')}
+                            style={styles.addToCartButton}
+                        >
+                            Add to Cart
+                        </Button>
+                    </View>
+                </Animated.View>
+            </GestureDetector>
+        </GestureHandlerRootView>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 
-    // Full-height Image
+    // Full-screen Image
     imageContainer: {
-        height: IMAGE_HEIGHT,
-        width: '100%',
+        ...StyleSheet.absoluteFillObject,
     },
     productImage: {
         width: '100%',
@@ -206,10 +243,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
     },
     headerButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
         alignItems: 'center',
         justifyContent: 'center',
         ...shadows.sm,
@@ -222,157 +259,157 @@ const styles = StyleSheet.create({
     // Bottom Sheet
     bottomSheet: {
         position: 'absolute',
-        bottom: 0,
+        bottom: -EXPANDED_HEIGHT + COLLAPSED_HEIGHT,
         left: 0,
         right: 0,
-        height: height * 0.55,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
-        ...shadows.lg,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 20,
     },
-    dragIndicatorContainer: {
+
+    // Drag Handle
+    dragHandleContainer: {
         alignItems: 'center',
         paddingTop: spacing.sm,
         paddingBottom: spacing.xs,
     },
-    dragIndicator: {
-        width: 48,
-        height: 5,
-        borderRadius: 3,
-        backgroundColor: palette.border,
-    },
-    bottomSheetContent: {
-        flex: 1,
-    },
-    bottomSheetScrollContent: {
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md,
-        paddingBottom: spacing.xl,
+    dragHandle: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: colors.border,
     },
 
-    // Title & Price
+    // Header Content (always visible in collapsed state)
+    headerContent: {
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.md,
+    },
     titleRow: {
-        marginBottom: spacing.xs,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    titleInfo: {
+        flex: 1,
+        marginRight: spacing.md,
     },
     productName: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 22,
-        color: palette.text,
+        color: colors.text,
         letterSpacing: -0.3,
-    },
-    priceRatingRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: spacing.lg,
+        marginBottom: 4,
     },
     price: {
-        fontFamily: fontFamilies.sansMedium,
+        fontFamily: fontFamilies.sansSemiBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.primary,
     },
-    ratingContainer: {
+    ratingBadge: {
         flexDirection: 'row',
-        gap: 2,
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: colors.accent,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: 16,
+    },
+    ratingText: {
+        fontFamily: fontFamilies.sansSemiBold,
+        fontSize: 15,
+        color: colors.text,
     },
 
-    // Section
+    // Expanded Content
+    expandedContent: {
+        flex: 1,
+        paddingHorizontal: spacing.lg,
+    },
+    scrollContent: {
+        paddingBottom: spacing.md,
+    },
+
+    // Sections
     section: {
         marginBottom: spacing.lg,
     },
     sectionTitle: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
         marginBottom: spacing.sm,
     },
     description: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
-        lineHeight: 20,
-    },
-    readMore: {
-        fontFamily: fontFamilies.sansMedium,
-        fontSize: 14,
-        color: palette.primary,
-        marginTop: spacing.xs,
+        color: colors.textSecondary,
+        lineHeight: 22,
     },
 
-    // Sizes
-    sizeRow: {
+    // Options Row
+    optionsRow: {
         flexDirection: 'row',
         gap: spacing.sm,
     },
+
+    // Sizes
     sizeButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        borderWidth: 1,
-        borderColor: palette.border,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 1.5,
+        borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
     sizeButtonSelected: {
-        backgroundColor: palette.primary,
-        borderColor: palette.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     sizeText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     sizeTextSelected: {
-        color: palette.white,
+        color: colors.white,
     },
 
     // Colors
-    colorRow: {
-        flexDirection: 'row',
-        gap: spacing.md,
-    },
     colorButton: {
-        width: 36,
-        height: 36,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: palette.border,
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: 'transparent',
     },
     colorButtonSelected: {
-        borderWidth: 2,
-        borderColor: palette.primary,
-        shadowColor: palette.primary,
-        shadowOffset: { width: 0, height: 2 },
+        borderColor: colors.primary,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 4,
+        shadowRadius: 8,
+        elevation: 6,
     },
 
-    // Add to Cart
+    // Add to Cart - at bottom of drawer
     addToCartContainer: {
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
-        backgroundColor: palette.surface,
+        paddingBottom: spacing.md,
+        backgroundColor: colors.surface,
     },
     addToCartButton: {
-        shadowColor: palette.primary,
+        shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.35,
         shadowRadius: 16,
-        elevation: 8,
-    },
-
-    // Home Indicator
-    homeIndicatorContainer: {
-        alignItems: 'center',
-        paddingVertical: spacing.sm,
-        backgroundColor: palette.surface,
-    },
-    homeIndicator: {
-        width: 120,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: palette.text,
+        elevation: 10,
     },
 });

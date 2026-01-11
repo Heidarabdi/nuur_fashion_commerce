@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -8,9 +8,10 @@ import {
     ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { palette, radius, spacing, fontFamilies } from '@/constants/theme';
+import { radius, spacing, fontFamilies } from '@/constants/theme';
 import { CartItem as CartItemType, formatPrice } from '@/constants/mock-data';
 import { QuantityStepper } from './QuantityStepper';
+import { useTheme } from '@/contexts/theme-context';
 
 interface CartItemProps {
     item: CartItemType;
@@ -25,6 +26,8 @@ export function CartItem({
     onRemove,
     style,
 }: CartItemProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const { product, quantity, selectedColor, selectedSize } = item;
 
     return (
@@ -51,7 +54,7 @@ export function CartItem({
                         onPress={onRemove}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <Ionicons name="trash-outline" size={20} color={palette.textMuted} />
+                        <Ionicons name="trash-outline" size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                 </View>
 
@@ -69,7 +72,7 @@ export function CartItem({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flexDirection: 'row',
         gap: spacing.md,
@@ -79,7 +82,7 @@ const styles = StyleSheet.create({
         height: 128,
         borderRadius: radius.md,
         overflow: 'hidden',
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
     },
     image: {
         width: '100%',
@@ -102,12 +105,12 @@ const styles = StyleSheet.create({
     name: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 16,
-        color: palette.text,
+        color: colors.text,
     },
     variant: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: 2,
     },
     footer: {
@@ -118,6 +121,6 @@ const styles = StyleSheet.create({
     price: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
     },
 });

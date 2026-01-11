@@ -1,60 +1,77 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
-    View,
-    Text,
-    Image,
-    StyleSheet,
     TouchableOpacity,
+    Text,
+    StyleSheet,
     ViewStyle,
 } from 'react-native';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
-import { Category } from '@/constants/mock-data';
+
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
+
+interface Category {
+    id: string;
+    name: string;
+    image?: string;
+}
 
 interface CategoryPillProps {
-    category: Category;
+    label?: string;
+    category?: Category;
+    selected?: boolean;
     onPress?: () => void;
     style?: ViewStyle;
 }
 
-export function CategoryPill({ category, onPress, style }: CategoryPillProps) {
+export function CategoryPill({
+    label,
+    category,
+    selected = false,
+    onPress,
+    style,
+}: CategoryPillProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
+    // Use label prop or get name from category object
+    const displayLabel = label || category?.name || '';
+
     return (
         <TouchableOpacity
-            style={[styles.container, style]}
+            style={[
+                styles.pill,
+                selected && styles.pillSelected,
+                style,
+            ]}
             onPress={onPress}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
         >
-            <View style={styles.imageContainer}>
-                <Image
-                    source={{ uri: category.image }}
-                    style={styles.image}
-                    resizeMode="cover"
-                />
-            </View>
-            <Text style={styles.label}>{category.name}</Text>
+            <Text style={[styles.label, selected && styles.labelSelected]}>
+                {displayLabel}
+            </Text>
         </TouchableOpacity>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        alignItems: 'center',
-        gap: spacing.sm,
-    },
-    imageContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        overflow: 'hidden',
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+    pill: {
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.sm,
+        borderRadius: 20,
         borderWidth: 1,
-        borderColor: palette.borderLight,
+        borderColor: colors.borderLight,
+        backgroundColor: 'transparent',
     },
-    image: {
-        width: '100%',
-        height: '100%',
+    pillSelected: {
+        backgroundColor: colors.text,
+        borderColor: colors.text,
     },
     label: {
         fontFamily: fontFamilies.sansMedium,
-        fontSize: 12,
-        color: palette.textSecondary,
+        fontSize: 14,
+        color: colors.textSecondary,
+    },
+    labelSelected: {
+        color: colors.white,
     },
 });

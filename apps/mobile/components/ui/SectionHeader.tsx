@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -6,7 +6,8 @@ import {
     StyleSheet,
     ViewStyle,
 } from 'react-native';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface SectionHeaderProps {
     title: string;
@@ -21,6 +22,9 @@ export function SectionHeader({
     onActionPress,
     style,
 }: SectionHeaderProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
     return (
         <View style={[styles.container, style]}>
             <Text style={styles.title}>{title}</Text>
@@ -33,7 +37,7 @@ export function SectionHeader({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -43,11 +47,11 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
     },
     action: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 12,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
 });

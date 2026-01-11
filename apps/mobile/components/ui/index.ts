@@ -7,7 +7,7 @@ export { ListItem } from './ListItem';
 export { SectionHeader } from './SectionHeader';
 export { Avatar } from './Avatar';
 export { Divider } from './Divider';
-export { CategoryPill } from './CategoryPill';
 export { CartItem } from './CartItem';
 export { QuantityStepper } from './QuantityStepper';
 export { Header } from './Header';
+export { CategoryPill } from './CategoryPill';

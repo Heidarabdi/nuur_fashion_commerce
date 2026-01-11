@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -13,11 +13,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Input } from '@/components/ui';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function LoginScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -88,7 +91,7 @@ export default function LoginScreen() {
                     fullWidth
                     loading={loading}
                     onPress={handleLogin}
-                    rightIcon={<Ionicons name="arrow-forward" size={20} color={palette.white} />}
+                    rightIcon={<Ionicons name="arrow-forward" size={20} color={colors.white} />}
                 >
                     Login
                 </Button>
@@ -105,10 +108,10 @@ export default function LoginScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         flexGrow: 1,
@@ -123,7 +126,7 @@ const styles = StyleSheet.create({
     logo: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 36,
-        color: palette.text,
+        color: colors.text,
         letterSpacing: 2,
     },
 
@@ -134,13 +137,13 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         marginBottom: spacing.sm,
     },
     subtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 20,
     },
 
@@ -154,7 +157,7 @@ const styles = StyleSheet.create({
     forgotPasswordText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.primary,
+        color: colors.primary,
     },
 
     // Footer
@@ -167,11 +170,11 @@ const styles = StyleSheet.create({
     footerText: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     footerLink: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
     },
 });

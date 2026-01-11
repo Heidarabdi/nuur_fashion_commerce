@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -12,11 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Header, Button, CartItem, Divider } from '@/components/ui';
 import { mockCartItems, getCartTotal, formatPrice } from '@/constants/mock-data';
-import { palette, spacing, fontFamilies, radius } from '@/constants/theme';
+import { spacing, fontFamilies, radius } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function CartStandaloneScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [cartItems, setCartItems] = useState(mockCartItems);
     const [promoCode, setPromoCode] = useState('');
 
@@ -45,7 +48,7 @@ export default function CartStandaloneScreen() {
             <View style={styles.container}>
                 <Header title="Shopping Cart" showBack />
                 <View style={styles.emptyState}>
-                    <Ionicons name="cart-outline" size={64} color={palette.textMuted} />
+                    <Ionicons name="cart-outline" size={64} color={colors.textMuted} />
                     <Text style={styles.emptyTitle}>Your cart is empty</Text>
                     <Text style={styles.emptySubtitle}>
                         Add items to start shopping
@@ -89,7 +92,7 @@ export default function CartStandaloneScreen() {
                     <TextInput
                         style={styles.promoInput}
                         placeholder="Promo code"
-                        placeholderTextColor={palette.textMuted}
+                        placeholderTextColor={colors.textMuted}
                         value={promoCode}
                         onChangeText={setPromoCode}
                     />
@@ -120,7 +123,7 @@ export default function CartStandaloneScreen() {
                     size="lg"
                     fullWidth
                     onPress={handleCheckout}
-                    rightIcon={<Ionicons name="arrow-forward" size={20} color={palette.white} />}
+                    rightIcon={<Ionicons name="arrow-forward" size={20} color={colors.white} />}
                 >
                     Checkout
                 </Button>
@@ -129,10 +132,10 @@ export default function CartStandaloneScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     scrollView: {
         flex: 1,
@@ -154,21 +157,21 @@ const styles = StyleSheet.create({
     },
     promoInput: {
         flex: 1,
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
         borderRadius: radius.xl,
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.md,
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
     },
     promoButton: {
         paddingHorizontal: spacing.lg,
     },
     footer: {
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderTopWidth: 1,
-        borderTopColor: palette.borderLight,
+        borderTopColor: colors.borderLight,
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.lg,
     },
@@ -183,29 +186,29 @@ const styles = StyleSheet.create({
     summaryLabel: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     summaryValue: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
     },
     totalRow: {
         paddingTop: spacing.sm,
         borderTopWidth: 1,
-        borderTopColor: palette.border,
+        borderTopColor: colors.border,
         borderStyle: 'dashed',
         marginTop: spacing.xs,
     },
     totalLabel: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
     },
     totalValue: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
     },
     emptyState: {
         flex: 1,
@@ -216,13 +219,13 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
         marginTop: spacing.lg,
     },
     emptySubtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: spacing.sm,
         textAlign: 'center',
     },

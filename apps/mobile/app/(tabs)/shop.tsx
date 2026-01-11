@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -17,7 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { ProductCard } from '@/components/ProductCard';
 import { CategoryPill } from '@/components/ui';
 import { mockProducts, mockCategories } from '@/constants/mock-data';
-import { palette, spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 const { width, height } = Dimensions.get('window');
 const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
@@ -25,6 +26,9 @@ const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
 export default function ShopScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [showCategories, setShowCategories] = useState(true);
     const [filterVisible, setFilterVisible] = useState(false);
@@ -48,7 +52,6 @@ export default function ShopScreen() {
         router.push(`/product/${productId}`);
     };
 
-
     const handleSearch = (text: string) => {
         setSearchQuery(text);
         setShowCategories(text.length === 0);
@@ -56,23 +59,23 @@ export default function ShopScreen() {
 
     const sortOptions = ['Recommended', 'Newest Arrivals', 'Price: Low to High', 'Price: High to Low'];
     const sizes = ['S', 'M', 'L', 'XL'];
-    const colors = ['#BC6C4D', '#E8E1D5', '#1F1F1F', '#FFFFFF', '#2A3B4C'];
+    const colorOptions = ['#BC6C4D', '#E8E1D5', '#1F1F1F', '#FFFFFF', '#2A3B4C'];
 
     return (
         <View style={styles.container}>
             {/* Sticky Search Header */}
             <View style={[styles.searchHeader, { paddingTop: insets.top + spacing.md }]}>
                 <View style={styles.searchBar}>
-                    <Ionicons name="search" size={22} color={palette.textMuted} />
+                    <Ionicons name="search" size={22} color={colors.textMuted} />
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Search for styles, brands..."
-                        placeholderTextColor={palette.textMuted}
+                        placeholderTextColor={colors.textMuted}
                         value={searchQuery}
                         onChangeText={handleSearch}
                     />
                     <TouchableOpacity onPress={() => setFilterVisible(true)}>
-                        <Ionicons name="options-outline" size={22} color={palette.textMuted} />
+                        <Ionicons name="options-outline" size={22} color={colors.textMuted} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -130,7 +133,7 @@ export default function ShopScreen() {
 
                 {filteredProducts.length === 0 && (
                     <View style={styles.emptyState}>
-                        <Ionicons name="search-outline" size={64} color={palette.textMuted} />
+                        <Ionicons name="search-outline" size={64} color={colors.textMuted} />
                         <Text style={styles.emptyTitle}>No products found</Text>
                         <Text style={styles.emptySubtitle}>
                             Try a different search term
@@ -138,21 +141,6 @@ export default function ShopScreen() {
                     </View>
                 )}
             </ScrollView>
-
-            {/* Floating Sort/Filter Bar */}
-            <View style={[styles.floatingBarContainer, { bottom: insets.bottom + 32 }]}>
-                <View style={styles.floatingBar}>
-                    <TouchableOpacity style={styles.floatingButton} onPress={() => setFilterVisible(true)}>
-                        <Ionicons name="swap-vertical" size={18} color={palette.white} />
-                        <Text style={styles.floatingButtonText}>Sort</Text>
-                    </TouchableOpacity>
-                    <View style={styles.floatingDivider} />
-                    <TouchableOpacity style={styles.floatingButton} onPress={() => setFilterVisible(true)}>
-                        <Ionicons name="filter" size={18} color={palette.white} />
-                        <Text style={styles.floatingButtonText}>Filter</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
 
             {/* Filter Bottom Sheet Modal */}
             <Modal
@@ -185,7 +173,7 @@ export default function ShopScreen() {
                             style={styles.closeButton}
                             onPress={() => setFilterVisible(false)}
                         >
-                            <Ionicons name="close" size={18} color={palette.textSecondary} />
+                            <Ionicons name="close" size={18} color={colors.textSecondary} />
                         </TouchableOpacity>
                     </View>
 
@@ -207,7 +195,7 @@ export default function ShopScreen() {
                                             {option}
                                         </Text>
                                         {selectedSort === option && (
-                                            <Ionicons name="checkmark" size={20} color={palette.primary} />
+                                            <Ionicons name="checkmark" size={20} color={colors.primary} />
                                         )}
                                     </TouchableOpacity>
                                 ))}
@@ -242,7 +230,7 @@ export default function ShopScreen() {
                         <View style={styles.filterSection}>
                             <Text style={styles.filterSectionTitle}>COLOR</Text>
                             <View style={styles.colorOptions}>
-                                {colors.map((color) => (
+                                {colorOptions.map((color) => (
                                     <TouchableOpacity
                                         key={color}
                                         style={[
@@ -273,34 +261,34 @@ export default function ShopScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 
     // Search Header
     searchHeader: {
         paddingHorizontal: spacing.md,
         paddingBottom: spacing.sm,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: radius.xl,
         paddingHorizontal: spacing.md,
         height: 52,
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
         ...shadows.sm,
     },
     searchInput: {
         flex: 1,
         fontFamily: fontFamilies.sans,
         fontSize: 15,
-        color: palette.text,
+        color: colors.text,
         marginLeft: spacing.sm,
         paddingVertical: 0,
     },
@@ -328,7 +316,7 @@ const styles = StyleSheet.create({
     resultsCount: {
         fontFamily: fontFamilies.sans,
         fontSize: 16,
-        color: palette.text,
+        color: colors.text,
         fontWeight: '300',
     },
     searchTerm: {
@@ -356,13 +344,13 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
         marginTop: spacing.lg,
     },
     emptySubtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: spacing.sm,
     },
 
@@ -377,7 +365,7 @@ const styles = StyleSheet.create({
     floatingBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: palette.text,
+        backgroundColor: colors.text,
         borderRadius: radius.full,
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.sm + 2,
@@ -392,7 +380,7 @@ const styles = StyleSheet.create({
     floatingButtonText: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 14,
-        color: palette.white,
+        color: colors.white,
         letterSpacing: 0.3,
     },
     floatingDivider: {
@@ -415,7 +403,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: height * 0.85,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         ...shadows.lg,
@@ -428,7 +416,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 5,
         borderRadius: 3,
-        backgroundColor: palette.border,
+        backgroundColor: colors.border,
         opacity: 0.6,
     },
     filterHeader: {
@@ -438,25 +426,25 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: palette.borderLight,
+        borderBottomColor: colors.borderLight,
     },
     resetText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     filterTitle: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
     },
     closeButton: {
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -467,12 +455,12 @@ const styles = StyleSheet.create({
     filterSection: {
         paddingVertical: spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: palette.borderLight,
+        borderBottomColor: colors.borderLight,
     },
     filterSectionTitle: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 11,
-        color: palette.text,
+        color: colors.text,
         letterSpacing: 1.5,
         marginBottom: spacing.lg,
     },
@@ -487,10 +475,10 @@ const styles = StyleSheet.create({
     sortOptionText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 15,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     sortOptionTextActive: {
-        color: palette.primary,
+        color: colors.primary,
     },
     sizeOptions: {
         flexDirection: 'row',
@@ -501,21 +489,21 @@ const styles = StyleSheet.create({
         height: 48,
         borderRadius: 24,
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
     sizeButtonActive: {
-        backgroundColor: palette.primary,
-        borderColor: palette.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     sizeButtonText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     sizeButtonTextActive: {
-        color: palette.white,
+        color: colors.white,
     },
     colorOptions: {
         flexDirection: 'row',
@@ -528,22 +516,22 @@ const styles = StyleSheet.create({
     },
     colorButtonWhite: {
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
     },
     colorButtonActive: {
         borderWidth: 2,
-        borderColor: palette.primary,
+        borderColor: colors.primary,
         transform: [{ scale: 1.1 }],
     },
     applyContainer: {
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderTopWidth: 1,
-        borderTopColor: palette.borderLight,
+        borderTopColor: colors.borderLight,
     },
     applyButton: {
-        backgroundColor: palette.text,
+        backgroundColor: colors.text,
         paddingVertical: spacing.md + 2,
         borderRadius: radius.xl,
         alignItems: 'center',
@@ -552,6 +540,6 @@ const styles = StyleSheet.create({
     applyButtonText: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 16,
-        color: palette.white,
+        color: colors.white,
     },
 });

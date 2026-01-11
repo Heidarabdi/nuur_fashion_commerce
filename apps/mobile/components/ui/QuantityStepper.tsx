@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -7,7 +7,8 @@ import {
     ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { palette, radius, spacing, fontFamilies } from '@/constants/theme';
+import { radius, spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface QuantityStepperProps {
     value: number;
@@ -24,6 +25,9 @@ export function QuantityStepper({
     max = 99,
     style,
 }: QuantityStepperProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
     const handleDecrement = () => {
         if (value > min) {
             onChange?.(value - 1);
@@ -47,7 +51,7 @@ export function QuantityStepper({
                 <Ionicons
                     name="remove"
                     size={16}
-                    color={value <= min ? palette.textMuted : palette.text}
+                    color={value <= min ? colors.textMuted : colors.text}
                 />
             </TouchableOpacity>
 
@@ -62,18 +66,18 @@ export function QuantityStepper({
                 <Ionicons
                     name="add"
                     size={16}
-                    color={value >= max ? palette.textMuted : palette.text}
+                    color={value >= max ? colors.textMuted : colors.text}
                 />
             </TouchableOpacity>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
         borderRadius: radius.full,
         paddingHorizontal: spacing.xs,
         paddingVertical: spacing.xs,
@@ -88,7 +92,7 @@ const styles = StyleSheet.create({
     value: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
         minWidth: 32,
         textAlign: 'center',
     },

@@ -1,21 +1,25 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
     ScrollView,
     StyleSheet,
+    TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Avatar, ListItem, Card } from '@/components/ui';
+import { Avatar, ListItem } from '@/components/ui';
 import { mockUser } from '@/constants/mock-data';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function ProfileScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { isDark, toggleTheme, colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     const menuItems = [
         { icon: 'bag-outline' as const, title: 'My Orders', route: '/orders' },
@@ -83,26 +87,39 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Promo Card */}
-                <Card variant="outline" padding="lg" style={styles.promoCard}>
+                {/* <Card variant="outline" padding="lg" style={styles.promoCard}>
                     <View style={styles.promoContent}>
                         <View style={styles.promoIcon}>
-                            <Ionicons name="gift-outline" size={24} color={palette.white} />
+                            <Ionicons name="gift-outline" size={24} color={colors.white} />
                         </View>
                         <View style={styles.promoText}>
                             <Text style={styles.promoTitle}>Join Nuur Insider</Text>
                             <Text style={styles.promoSubtitle}>Unlock early access & free shipping</Text>
                         </View>
                     </View>
-                </Card>
+                </Card> */}
             </ScrollView>
+
+            {/* Floating Theme Toggle Button - Top Right */}
+            <TouchableOpacity
+                style={[styles.themeToggle, { top: insets.top + spacing.md }]}
+                onPress={toggleTheme}
+                activeOpacity={0.8}
+            >
+                <Ionicons
+                    name={isDark ? 'sunny-outline' : 'moon-outline'}
+                    size={22}
+                    color={colors.text}
+                />
+            </TouchableOpacity>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     scrollView: {
         flex: 1,
@@ -119,13 +136,13 @@ const styles = StyleSheet.create({
     name: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 24,
-        color: palette.text,
+        color: colors.text,
         marginTop: spacing.md,
     },
     email: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: 4,
     },
 
@@ -141,18 +158,18 @@ const styles = StyleSheet.create({
     statBorder: {
         borderLeftWidth: 1,
         borderRightWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
     },
     statValue: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
     },
     statLabel: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 10,
         letterSpacing: 1,
-        color: palette.textMuted,
+        color: colors.textMuted,
         marginTop: 2,
     },
 
@@ -164,7 +181,7 @@ const styles = StyleSheet.create({
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 11,
         letterSpacing: 2,
-        color: palette.textMuted,
+        color: colors.textMuted,
         marginBottom: spacing.md,
         paddingHorizontal: spacing.xs,
     },
@@ -177,7 +194,7 @@ const styles = StyleSheet.create({
 
     // Promo
     promoCard: {
-        backgroundColor: 'rgba(188, 108, 77, 0.05)',
+        backgroundColor: colors.accent,
         borderColor: 'rgba(188, 108, 77, 0.1)',
     },
     promoContent: {
@@ -189,7 +206,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -199,12 +216,31 @@ const styles = StyleSheet.create({
     promoTitle: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
     },
     promoSubtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 12,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: 2,
+    },
+
+    // Floating Theme Toggle - Top Right
+    themeToggle: {
+        position: 'absolute',
+        right: spacing.lg,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: colors.surface,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 3,
     },
 });

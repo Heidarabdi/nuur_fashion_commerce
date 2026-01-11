@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Image,
@@ -8,7 +8,8 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { palette, fontFamilies } from '@/constants/theme';
+import { fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface AvatarProps {
     source?: string;
@@ -27,6 +28,9 @@ export function Avatar({
     onEditPress,
     style,
 }: AvatarProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
     const getInitials = (name: string) => {
         return name
             .split(' ')
@@ -62,40 +66,40 @@ export function Avatar({
                     onPress={onEditPress}
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="pencil" size={12} color={palette.white} />
+                    <Ionicons name="pencil" size={12} color={colors.white} />
                 </TouchableOpacity>
             )}
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         position: 'relative',
     },
     image: {
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
     },
     placeholder: {
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
     },
     initials: {
         fontFamily: fontFamilies.sansSemiBold,
-        color: palette.white,
+        color: colors.white,
     },
     editBadge: {
         position: 'absolute',
         bottom: 0,
         right: 0,
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
         width: 28,
         height: 28,
         borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 2,
-        borderColor: palette.surface,
+        borderColor: colors.surface,
     },
 });

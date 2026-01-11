@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -10,7 +10,8 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { palette, spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface PaymentMethod {
     id: string;
@@ -70,6 +71,8 @@ const getCardLabel = (type: PaymentMethod['type']) => {
 export default function PaymentScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [paymentMethods] = useState(mockPaymentMethods);
     const [selectedId, setSelectedId] = useState(paymentMethods.find(p => p.isDefault)?.id);
 
@@ -81,11 +84,11 @@ export default function PaymentScreen() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                 >
-                    <Ionicons name="arrow-back" size={22} color={palette.text} />
+                    <Ionicons name="arrow-back" size={22} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Payment Methods</Text>
                 <TouchableOpacity style={styles.addButton}>
-                    <Ionicons name="add" size={24} color={palette.primary} />
+                    <Ionicons name="add" size={24} color={colors.primary} />
                 </TouchableOpacity>
             </View>
 
@@ -114,7 +117,7 @@ export default function PaymentScreen() {
                             <Ionicons
                                 name={getCardIcon(method.type) as any}
                                 size={28}
-                                color={selectedId === method.id ? palette.primary : palette.text}
+                                color={selectedId === method.id ? colors.primary : colors.text}
                             />
                         </View>
 
@@ -150,10 +153,10 @@ export default function PaymentScreen() {
 
                 <TouchableOpacity style={styles.otherOption}>
                     <View style={styles.optionIcon}>
-                        <Ionicons name="logo-apple" size={24} color={palette.text} />
+                        <Ionicons name="logo-apple" size={24} color={colors.text} />
                     </View>
                     <Text style={styles.optionText}>Apple Pay</Text>
-                    <Ionicons name="chevron-forward" size={20} color={palette.textMuted} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.otherOption}>
@@ -161,12 +164,12 @@ export default function PaymentScreen() {
                         <Ionicons name="logo-paypal" size={24} color="#003087" />
                     </View>
                     <Text style={styles.optionText}>PayPal</Text>
-                    <Ionicons name="chevron-forward" size={20} color={palette.textMuted} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
                 </TouchableOpacity>
 
                 {/* Add New Card */}
                 <TouchableOpacity style={styles.addNewCard}>
-                    <Ionicons name="add-circle-outline" size={24} color={palette.primary} />
+                    <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
                     <Text style={styles.addNewText}>Add New Card</Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -174,10 +177,10 @@ export default function PaymentScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 
     // Header
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
         ...shadows.sm,
@@ -200,7 +203,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
     },
     addButton: {
         width: 40,
@@ -221,7 +224,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginBottom: spacing.md,
         marginLeft: spacing.xs,
         textTransform: 'uppercase',
@@ -232,7 +235,7 @@ const styles = StyleSheet.create({
     paymentCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: radius.xl,
         padding: spacing.lg,
         marginBottom: spacing.md,
@@ -241,13 +244,13 @@ const styles = StyleSheet.create({
         ...shadows.sm,
     },
     paymentCardSelected: {
-        borderColor: palette.primary,
+        borderColor: colors.primary,
     },
     cardIcon: {
         width: 48,
         height: 48,
         borderRadius: 12,
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: spacing.md,
@@ -264,13 +267,13 @@ const styles = StyleSheet.create({
     cardType: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 16,
-        color: palette.text,
+        color: colors.text,
     },
     cardTypeSelected: {
-        color: palette.primary,
+        color: colors.primary,
     },
     defaultBadge: {
-        backgroundColor: palette.primary + '15',
+        backgroundColor: colors.primary + '15',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: radius.sm,
@@ -278,19 +281,19 @@ const styles = StyleSheet.create({
     defaultBadgeText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 10,
-        color: palette.primary,
+        color: colors.primary,
         textTransform: 'uppercase',
     },
     cardNumber: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginBottom: 2,
     },
     cardExpiry: {
         fontFamily: fontFamilies.sans,
         fontSize: 12,
-        color: palette.textMuted,
+        color: colors.textMuted,
     },
 
     // Radio
@@ -299,25 +302,25 @@ const styles = StyleSheet.create({
         height: 22,
         borderRadius: 11,
         borderWidth: 2,
-        borderColor: palette.border,
+        borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
     radioOuterSelected: {
-        borderColor: palette.primary,
+        borderColor: colors.primary,
     },
     radioInner: {
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
     },
 
     // Other Options
     otherOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: radius.xl,
         padding: spacing.lg,
         marginBottom: spacing.md,
@@ -327,7 +330,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 12,
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: spacing.md,
@@ -336,7 +339,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 16,
-        color: palette.text,
+        color: colors.text,
     },
 
     // Add New
@@ -345,17 +348,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: spacing.sm,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: radius.xl,
         padding: spacing.lg,
         marginTop: spacing.md,
         borderWidth: 2,
-        borderColor: palette.border,
+        borderColor: colors.border,
         borderStyle: 'dashed',
     },
     addNewText: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 16,
-        color: palette.primary,
+        color: colors.primary,
     },
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,8 @@ import {
   mockCartItems,
   getCartItemCount,
 } from '@/constants/mock-data';
-import { palette, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
@@ -29,6 +30,10 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const cartCount = getCartItemCount(mockCartItems);
+  const { colors } = useTheme();
+
+  // Memoize styles - only regenerate when colors change
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleProductPress = (productId: string) => {
     router.push(`/product/${productId}`);
@@ -42,8 +47,8 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {/* Header - matches prototype */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity style={styles.headerButton}>
-          <Ionicons name="menu" size={26} color={palette.text} />
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/notifications')}>
+          <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <View style={styles.logoContainer}>
@@ -55,7 +60,7 @@ export default function HomeScreen() {
           style={styles.headerButton}
           onPress={() => router.push('/(tabs)/cart')}
         >
-          <Ionicons name="bag-outline" size={24} color={palette.text} />
+          <Ionicons name="bag-outline" size={24} color={colors.text} />
           {cartCount > 0 && (
             <View style={styles.cartBadge} />
           )}
@@ -83,7 +88,7 @@ export default function HomeScreen() {
             <Button
               variant="primary"
               size="md"
-              rightIcon={<Ionicons name="arrow-forward" size={18} color={palette.white} />}
+              rightIcon={<Ionicons name="arrow-forward" size={18} color={colors.white} />}
               onPress={() => router.push('/(tabs)/shop')}
             >
               Shop Now
@@ -159,10 +164,11 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+// Style Factory - generates styles based on theme colors
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: colors.background,
   },
 
   // Header - matching prototype
@@ -172,7 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
-    backgroundColor: palette.background,
+    backgroundColor: colors.background,
   },
   headerButton: {
     padding: spacing.xs,
@@ -184,13 +190,13 @@ const styles = StyleSheet.create({
   logo: {
     fontFamily: 'Playfair_700Bold',
     fontSize: 24,
-    color: palette.text,
+    color: colors.text,
     letterSpacing: 1,
   },
   logoSubtitle: {
     fontSize: 8,
     letterSpacing: 3,
-    color: palette.textSecondary,
+    color: colors.textSecondary,
     marginTop: -2,
   },
   cartBadge: {
@@ -200,9 +206,9 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: palette.primary,
+    backgroundColor: colors.primary,
     borderWidth: 1,
-    borderColor: palette.background,
+    borderColor: colors.background,
   },
 
   scrollView: {
@@ -239,7 +245,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontFamily: 'Playfair_700Bold',
     fontSize: 40,
-    color: palette.white,
+    color: colors.white,
     marginBottom: spacing.lg,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 2 },
@@ -259,11 +265,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Playfair_700Bold',
     fontSize: 20,
-    color: palette.text,
+    color: colors.text,
   },
   seeAllText: {
     fontSize: 12,
-    color: palette.textSecondary,
+    color: colors.textSecondary,
   },
 
   // Categories - matching prototype circles
@@ -282,7 +288,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: colors.border,
   },
   categoryImage: {
     width: '100%',
@@ -290,7 +296,7 @@ const styles = StyleSheet.create({
   },
   categoryLabel: {
     fontSize: 12,
-    color: palette.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
 

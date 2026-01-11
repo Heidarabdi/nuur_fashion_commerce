@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -8,8 +8,9 @@ import {
     ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { palette, radius, spacing, fontFamilies, shadows } from '@/constants/theme';
+import { radius, spacing, fontFamilies, shadows } from '@/constants/theme';
 import { Product, formatPrice } from '@/constants/mock-data';
+import { useTheme } from '@/contexts/theme-context';
 
 interface ProductCardProps {
     product: Product;
@@ -32,6 +33,9 @@ export function ProductCard({
     onFavoritePress,
     style,
 }: ProductCardProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
     return (
         <TouchableOpacity
             style={[styles.container, style]}
@@ -54,7 +58,7 @@ export function ProductCard({
                     <Ionicons
                         name={product.isFavorite ? 'heart' : 'heart-outline'}
                         size={18}
-                        color={product.isFavorite ? palette.primary : palette.text}
+                        color={product.isFavorite ? colors.primary : colors.text}
                     />
                 </TouchableOpacity>
             </View>
@@ -74,7 +78,7 @@ export function ProductCard({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         // Width controlled by parent via style prop
     },
@@ -84,7 +88,7 @@ const styles = StyleSheet.create({
         aspectRatio: 3 / 4,
         borderRadius: radius.xl,
         overflow: 'hidden',
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
         marginBottom: spacing.sm,
     },
     image: {
@@ -114,20 +118,20 @@ const styles = StyleSheet.create({
         fontSize: 10,
         letterSpacing: 1,
         textTransform: 'uppercase',
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     // Name: Playfair Display, semibold
     name: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
         lineHeight: 18,
     },
     // Price: medium weight, primary color
     price: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.primary,
+        color: colors.primary,
         marginTop: 2,
     },
 });

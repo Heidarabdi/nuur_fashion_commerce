@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -13,11 +13,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Input } from '@/components/ui';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function ForgotPasswordScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
@@ -44,7 +47,7 @@ export default function ForgotPasswordScreen() {
             >
                 {/* Back Button */}
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color={palette.text} />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
 
                 {/* Header */}
@@ -60,7 +63,7 @@ export default function ForgotPasswordScreen() {
                 {sent ? (
                     <View style={styles.sentContainer}>
                         <View style={styles.iconCircle}>
-                            <Ionicons name="mail-outline" size={32} color={palette.primary} />
+                            <Ionicons name="mail-outline" size={32} color={colors.primary} />
                         </View>
                         <Button
                             variant="primary"
@@ -112,10 +115,10 @@ export default function ForgotPasswordScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         flexGrow: 1,
@@ -130,13 +133,13 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         marginBottom: spacing.sm,
     },
     subtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 20,
     },
     form: {
@@ -162,6 +165,6 @@ const styles = StyleSheet.create({
     footerLink: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
 });

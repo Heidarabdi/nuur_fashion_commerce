@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
     View,
     Text,
@@ -15,11 +15,14 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function OrderConfirmationScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     const checkScale = useSharedValue(0);
     const contentOpacity = useSharedValue(0);
@@ -43,7 +46,7 @@ export default function OrderConfirmationScreen() {
                 {/* Success Animation */}
                 <Animated.View style={[styles.iconContainer, checkAnimatedStyle]}>
                     <View style={styles.checkCircle}>
-                        <Ionicons name="checkmark" size={60} color={palette.white} />
+                        <Ionicons name="checkmark" size={60} color={colors.white} />
                     </View>
                 </Animated.View>
 
@@ -92,10 +95,10 @@ export default function OrderConfirmationScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
     },
     content: {
@@ -129,14 +132,14 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         textAlign: 'center',
         marginBottom: spacing.sm,
     },
     subtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 15,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         textAlign: 'center',
         lineHeight: 22,
         paddingHorizontal: spacing.lg,
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
 
     // Order Info
     orderInfo: {
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: 16,
         padding: spacing.lg,
         marginTop: spacing.xl,
@@ -158,18 +161,18 @@ const styles = StyleSheet.create({
     orderLabel: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     orderValue: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
     },
 
     emailText: {
         fontFamily: fontFamilies.sans,
         fontSize: 13,
-        color: palette.textMuted,
+        color: colors.textMuted,
         textAlign: 'center',
         marginTop: spacing.lg,
     },

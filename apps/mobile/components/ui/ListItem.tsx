@@ -8,7 +8,8 @@ import {
     ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { palette, radius, spacing, fontFamilies } from '@/constants/theme';
+import { radius, spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface ListItemProps extends Omit<TouchableOpacityProps, 'style'> {
     title: string;
@@ -28,10 +29,12 @@ export function ListItem({
     rightIcon,
     showArrow,
     showChevron = true,
-    iconBackgroundColor = palette.accent,
+    iconBackgroundColor,
     style,
     ...props
 }: ListItemProps) {
+    const { colors } = useTheme();
+
     const renderIcon = (icon: React.ReactNode | keyof typeof Ionicons.glyphMap | undefined, color: string) => {
         if (!icon) return null;
 
@@ -52,25 +55,29 @@ export function ListItem({
 
     return (
         <TouchableOpacity
-            style={[styles.container, style]}
+            style={[
+                styles.container,
+                { backgroundColor: colors.surface },
+                style
+            ]}
             activeOpacity={0.7}
             {...props}
         >
             {leftIcon && (
-                <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor }]}>
-                    {renderIcon(leftIcon, palette.textSecondary)}
+                <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor || colors.accent }]}>
+                    {renderIcon(leftIcon, colors.textSecondary)}
                 </View>
             )}
 
             <View style={styles.content}>
-                <Text style={styles.title}>{title}</Text>
-                {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+                {subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
             </View>
 
             {rightIcon ? (
-                renderIcon(rightIcon, palette.textMuted)
+                renderIcon(rightIcon, colors.textMuted)
             ) : showArrowIcon ? (
-                <Ionicons name="chevron-forward" size={20} color={palette.textMuted} />
+                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
             ) : null}
         </TouchableOpacity>
     );
@@ -80,7 +87,6 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: palette.surface,
         borderRadius: radius.xl,
         padding: spacing.md,
         gap: spacing.md,
@@ -99,11 +105,10 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 16,
-        color: palette.text,
     },
     subtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 13,
-        color: palette.textSecondary,
     },
 });
+

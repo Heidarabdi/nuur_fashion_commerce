@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -10,7 +10,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface NotificationItem {
     id: string;
@@ -68,19 +69,21 @@ const earlierNotifications: NotificationItem[] = [
     },
 ];
 
-const getIconForType = (type: string) => {
-    switch (type) {
-        case 'shipping': return { icon: 'car-outline', color: palette.primary };
-        case 'promo': return { icon: 'pricetag-outline', color: palette.primary };
-        case 'reward': return { icon: 'star-outline', color: palette.primary };
-        case 'return': return { icon: 'checkmark-circle-outline', color: '#22C55E' };
-        case 'collection': return { icon: 'leaf-outline', color: palette.primary };
-        default: return { icon: 'notifications-outline', color: palette.primary };
-    }
-};
-
 export default function NotificationsScreen() {
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
+    const getIconForType = (type: string) => {
+        switch (type) {
+            case 'shipping': return { icon: 'car-outline', color: colors.primary };
+            case 'promo': return { icon: 'pricetag-outline', color: colors.primary };
+            case 'reward': return { icon: 'star-outline', color: colors.primary };
+            case 'return': return { icon: 'checkmark-circle-outline', color: '#22C55E' };
+            case 'collection': return { icon: 'leaf-outline', color: colors.primary };
+            default: return { icon: 'notifications-outline', color: colors.primary };
+        }
+    };
 
     const renderNotificationItem = (item: NotificationItem) => {
         const iconConfig = getIconForType(item.type);
@@ -94,7 +97,7 @@ export default function NotificationsScreen() {
                                 source={{ uri: item.image }}
                                 style={styles.notificationImage}
                             />
-                            <View style={[styles.iconBadge, { backgroundColor: palette.background }]}>
+                            <View style={[styles.iconBadge, { backgroundColor: colors.background }]}>
                                 <Ionicons
                                     name={iconConfig.icon as any}
                                     size={12}
@@ -163,10 +166,10 @@ export default function NotificationsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 
     // Header
@@ -180,13 +183,13 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         letterSpacing: -0.5,
     },
     markAllRead: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 13,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         paddingBottom: spacing.xs,
     },
 
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 17,
-        color: palette.text,
+        color: colors.text,
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.sm,
     },
@@ -238,7 +241,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 2,
-        borderColor: palette.white,
+        borderColor: colors.white,
     },
     iconContainer: {
         width: 56,
@@ -260,7 +263,7 @@ const styles = StyleSheet.create({
     notificationTitle: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 15,
-        color: palette.text,
+        color: colors.text,
         flex: 1,
     },
     notificationTitleBold: {
@@ -270,18 +273,18 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
     },
     notificationMessage: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 20,
     },
     notificationTime: {
         fontFamily: fontFamilies.sans,
         fontSize: 12,
-        color: palette.textMuted,
+        color: colors.textMuted,
         marginTop: 2,
     },
 });

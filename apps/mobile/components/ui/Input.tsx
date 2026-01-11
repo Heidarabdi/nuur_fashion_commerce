@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     TextInput,
@@ -9,7 +9,8 @@ import {
     ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { palette, radius, spacing, fontFamilies } from '@/constants/theme';
+import { radius, spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface InputProps extends Omit<TextInputProps, 'style'> {
     label?: string;
@@ -31,6 +32,8 @@ export function Input({
     isPassword = false,
     ...props
 }: InputProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [isFocused, setIsFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -55,7 +58,7 @@ export function Input({
                         leftIcon ? styles.inputWithLeftIcon : undefined,
                         (rightIcon || isPassword) ? styles.inputWithRightIcon : undefined,
                     ]}
-                    placeholderTextColor={palette.textMuted}
+                    placeholderTextColor={colors.textMuted}
                     secureTextEntry={isPassword && !showPassword}
                     onFocus={(e) => {
                         setIsFocused(true);
@@ -77,7 +80,7 @@ export function Input({
                         <Ionicons
                             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                             size={20}
-                            color={palette.textMuted}
+                            color={colors.textMuted}
                         />
                     </TouchableOpacity>
                 )}
@@ -96,35 +99,35 @@ export function Input({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         marginBottom: spacing.md,
     },
     label: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.text,
+        color: colors.text,
         marginBottom: spacing.sm,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
     },
     inputFocused: {
-        borderColor: palette.primary,
+        borderColor: colors.primary,
     },
     inputError: {
-        borderColor: palette.error,
+        borderColor: colors.error,
     },
     input: {
         flex: 1,
         fontFamily: fontFamilies.sans,
         fontSize: 16,
-        color: palette.text,
+        color: colors.text,
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.md,
     },
@@ -143,10 +146,10 @@ const styles = StyleSheet.create({
     helperText: {
         fontFamily: fontFamilies.sans,
         fontSize: 12,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: spacing.xs,
     },
     errorText: {
-        color: palette.error,
+        color: colors.error,
     },
 });

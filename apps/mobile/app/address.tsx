@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -10,7 +10,8 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { palette, spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface Address {
     id: string;
@@ -52,6 +53,8 @@ const mockAddresses: Address[] = [
 export default function AddressScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [addresses] = useState(mockAddresses);
     const [selectedId, setSelectedId] = useState(addresses.find(a => a.isDefault)?.id);
 
@@ -67,11 +70,11 @@ export default function AddressScreen() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                 >
-                    <Ionicons name="arrow-back" size={22} color={palette.text} />
+                    <Ionicons name="arrow-back" size={22} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Shipping Addresses</Text>
                 <TouchableOpacity style={styles.addButton}>
-                    <Ionicons name="add" size={24} color={palette.primary} />
+                    <Ionicons name="add" size={24} color={colors.primary} />
                 </TouchableOpacity>
             </View>
 
@@ -98,7 +101,7 @@ export default function AddressScreen() {
                                 <Ionicons
                                     name={address.label === 'Home' ? 'home-outline' : 'business-outline'}
                                     size={18}
-                                    color={selectedId === address.id ? palette.primary : palette.text}
+                                    color={selectedId === address.id ? colors.primary : colors.text}
                                 />
                                 <Text style={[
                                     styles.addressLabel,
@@ -129,12 +132,12 @@ export default function AddressScreen() {
 
                         <View style={styles.addressActions}>
                             <TouchableOpacity style={styles.actionButton}>
-                                <Ionicons name="create-outline" size={18} color={palette.textSecondary} />
+                                <Ionicons name="create-outline" size={18} color={colors.textSecondary} />
                                 <Text style={styles.actionText}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.actionButton}>
-                                <Ionicons name="trash-outline" size={18} color={palette.error} />
-                                <Text style={[styles.actionText, { color: palette.error }]}>Delete</Text>
+                                <Ionicons name="trash-outline" size={18} color={colors.error} />
+                                <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     </TouchableOpacity>
@@ -142,7 +145,7 @@ export default function AddressScreen() {
 
                 {/* Add New Address Button */}
                 <TouchableOpacity style={styles.addNewCard}>
-                    <Ionicons name="add-circle-outline" size={24} color={palette.primary} />
+                    <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
                     <Text style={styles.addNewText}>Add New Address</Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -150,10 +153,10 @@ export default function AddressScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 
     // Header
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
         ...shadows.sm,
@@ -176,7 +179,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
     },
     addButton: {
         width: 40,
@@ -195,7 +198,7 @@ const styles = StyleSheet.create({
 
     // Address Card
     addressCard: {
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: radius.xl,
         padding: spacing.lg,
         marginBottom: spacing.md,
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
         ...shadows.sm,
     },
     addressCardSelected: {
-        borderColor: palette.primary,
+        borderColor: colors.primary,
     },
     addressHeader: {
         flexDirection: 'row',
@@ -220,13 +223,13 @@ const styles = StyleSheet.create({
     addressLabel: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 16,
-        color: palette.text,
+        color: colors.text,
     },
     addressLabelSelected: {
-        color: palette.primary,
+        color: colors.primary,
     },
     defaultBadge: {
-        backgroundColor: palette.primary + '15',
+        backgroundColor: colors.primary + '15',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: radius.sm,
@@ -234,7 +237,7 @@ const styles = StyleSheet.create({
     defaultBadgeText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 10,
-        color: palette.primary,
+        color: colors.primary,
         textTransform: 'uppercase',
     },
 
@@ -244,31 +247,31 @@ const styles = StyleSheet.create({
         height: 22,
         borderRadius: 11,
         borderWidth: 2,
-        borderColor: palette.border,
+        borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
     radioOuterSelected: {
-        borderColor: palette.primary,
+        borderColor: colors.primary,
     },
     radioInner: {
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
     },
 
     // Address Details
     addressName: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 15,
-        color: palette.text,
+        color: colors.text,
         marginBottom: 4,
     },
     addressText: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 20,
     },
 
@@ -279,7 +282,7 @@ const styles = StyleSheet.create({
         marginTop: spacing.md,
         paddingTop: spacing.md,
         borderTopWidth: 1,
-        borderTopColor: palette.border,
+        borderTopColor: colors.border,
     },
     actionButton: {
         flexDirection: 'row',
@@ -289,7 +292,7 @@ const styles = StyleSheet.create({
     actionText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
 
     // Add New
@@ -298,16 +301,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: spacing.sm,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: radius.xl,
         padding: spacing.lg,
         borderWidth: 2,
-        borderColor: palette.border,
+        borderColor: colors.border,
         borderStyle: 'dashed',
     },
     addNewText: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 16,
-        color: palette.primary,
+        color: colors.primary,
     },
 });

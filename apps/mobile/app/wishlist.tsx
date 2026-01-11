@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -14,7 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui';
 import { mockWishlist, Product } from '@/constants/mock-data';
-import { palette, spacing, fontFamilies, shadows } from '@/constants/theme';
+import { spacing, fontFamilies, shadows } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
@@ -22,6 +23,8 @@ const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
 export default function WishlistScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     const handleProductPress = (productId: string) => {
         router.push(`/product/${productId}`);
@@ -35,7 +38,7 @@ export default function WishlistScreen() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                 >
-                    <Ionicons name="arrow-back" size={22} color={palette.text} />
+                    <Ionicons name="arrow-back" size={22} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.title}>My Wishlist</Text>
                 <View style={styles.placeholder} />
@@ -71,7 +74,7 @@ export default function WishlistScreen() {
                 ) : (
                     <View style={styles.emptyState}>
                         <View style={styles.emptyIconContainer}>
-                            <Ionicons name="heart-outline" size={64} color={palette.textMuted} />
+                            <Ionicons name="heart-outline" size={64} color={colors.textMuted} />
                         </View>
                         <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
                         <Text style={styles.emptySubtitle}>
@@ -92,10 +95,10 @@ export default function WishlistScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
 
     // Header
@@ -110,7 +113,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
         ...shadows.sm,
@@ -118,7 +121,7 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
     },
     placeholder: {
         width: 40,
@@ -135,7 +138,7 @@ const styles = StyleSheet.create({
     itemCount: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginBottom: spacing.lg,
     },
 
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: spacing.xl,
@@ -168,12 +171,12 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 22,
-        color: palette.text,
+        color: colors.text,
     },
     emptySubtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: spacing.sm,
         textAlign: 'center',
         paddingHorizontal: spacing.xl,

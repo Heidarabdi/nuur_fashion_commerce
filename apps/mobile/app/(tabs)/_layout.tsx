@@ -4,29 +4,31 @@ import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { palette } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function TabLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: palette.text,
-        tabBarInactiveTintColor: palette.textMuted,
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textMuted,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarShowLabel: false,
         tabBarStyle: Platform.select({
           ios: {
             position: 'absolute',
-            backgroundColor: 'rgba(255,255,255,0.95)',
+            backgroundColor: colors.surface,
             borderTopWidth: 0,
             height: 85,
             paddingTop: 8,
           },
           default: {
-            backgroundColor: palette.surface,
-            borderTopColor: palette.borderLight,
-            height: 65,
+            backgroundColor: colors.surface,
+            borderTopColor: colors.borderLight,
+            height: 50,
             paddingTop: 8,
           },
         }),

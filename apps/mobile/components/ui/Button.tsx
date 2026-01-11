@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     TouchableOpacity,
     Text,
@@ -8,7 +8,8 @@ import {
     TextStyle,
     TouchableOpacityProps,
 } from 'react-native';
-import { palette, radius, spacing, fontFamilies } from '@/constants/theme';
+import { radius, spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -39,6 +40,8 @@ export function Button({
     rightIcon,
     ...props
 }: ButtonProps) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const isDisabled = disabled || loading;
 
     return (
@@ -58,7 +61,7 @@ export function Button({
             {loading ? (
                 <ActivityIndicator
                     size="small"
-                    color={variant === 'primary' ? palette.white : palette.primary}
+                    color={variant === 'primary' ? colors.white : colors.primary}
                 />
             ) : (
                 <>
@@ -80,7 +83,7 @@ export function Button({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     base: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -91,15 +94,15 @@ const styles = StyleSheet.create({
 
     // Variants
     primary: {
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
     },
     secondary: {
-        backgroundColor: palette.text,
+        backgroundColor: colors.text,
     },
     outline: {
         backgroundColor: 'transparent',
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
     },
     ghost: {
         backgroundColor: 'transparent',
@@ -128,16 +131,16 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     primaryText: {
-        color: palette.white,
+        color: colors.white,
     },
     secondaryText: {
-        color: palette.white,
+        color: colors.white,
     },
     outlineText: {
-        color: palette.text,
+        color: colors.text,
     },
     ghostText: {
-        color: palette.primary,
+        color: colors.primary,
     },
 
     // Text sizes

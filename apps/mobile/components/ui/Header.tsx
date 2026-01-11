@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -9,7 +9,8 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface HeaderProps {
     title?: string;
@@ -36,6 +37,8 @@ export function Header({
 }: HeaderProps) {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + spacing.sm }, style]}>
@@ -46,12 +49,12 @@ export function Header({
                         style={styles.iconButton}
                         onPress={() => router.back()}
                     >
-                        <Ionicons name="arrow-back" size={24} color={palette.text} />
+                        <Ionicons name="arrow-back" size={24} color={colors.text} />
                     </TouchableOpacity>
                 )}
                 {showMenu && (
                     <TouchableOpacity style={styles.iconButton} onPress={onMenuPress}>
-                        <Ionicons name="menu" size={24} color={palette.text} />
+                        <Ionicons name="menu" size={24} color={colors.text} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -75,7 +78,7 @@ export function Header({
                         style={styles.iconButton}
                         onPress={() => router.push('/cart')}
                     >
-                        <Ionicons name="bag-outline" size={24} color={palette.text} />
+                        <Ionicons name="bag-outline" size={24} color={colors.text} />
                         {cartCount > 0 && (
                             <View style={styles.badge}>
                                 <Text style={styles.badgeText}>
@@ -91,14 +94,14 @@ export function Header({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: spacing.lg,
         paddingBottom: spacing.sm,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     left: {
         flex: 1,
@@ -125,26 +128,26 @@ const styles = StyleSheet.create({
     logo: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 24,
-        color: palette.text,
+        color: colors.text,
         letterSpacing: 2,
     },
     logoSubtitle: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 8,
         letterSpacing: 3,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: -2,
     },
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
     },
     badge: {
         position: 'absolute',
         top: 0,
         right: 0,
-        backgroundColor: palette.primary,
+        backgroundColor: colors.primary,
         width: 16,
         height: 16,
         borderRadius: 8,
@@ -154,6 +157,6 @@ const styles = StyleSheet.create({
     badgeText: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 10,
-        color: palette.white,
+        color: colors.white,
     },
 });

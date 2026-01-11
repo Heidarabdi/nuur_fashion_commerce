@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -13,11 +13,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ExpoCheckbox from 'expo-checkbox';
 
 import { Button, Input } from '@/components/ui';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function SignupScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -84,7 +87,7 @@ export default function SignupScreen() {
                         <ExpoCheckbox
                             value={agreedToTerms}
                             onValueChange={setAgreedToTerms}
-                            color={agreedToTerms ? palette.primary : undefined}
+                            color={agreedToTerms ? colors.primary : undefined}
                             style={styles.checkbox}
                         />
                         <Text style={styles.termsText}>
@@ -118,10 +121,10 @@ export default function SignupScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         flexGrow: 1,
@@ -135,13 +138,13 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         marginBottom: spacing.sm,
     },
     subtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 20,
     },
 
@@ -161,12 +164,12 @@ const styles = StyleSheet.create({
     termsText: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         flex: 1,
     },
     termsLink: {
         fontFamily: fontFamilies.sansMedium,
-        color: palette.text,
+        color: colors.text,
         textDecorationLine: 'underline',
     },
 
@@ -180,11 +183,11 @@ const styles = StyleSheet.create({
     footerText: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     footerLink: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
-        color: palette.primary,
+        color: colors.primary,
     },
 });

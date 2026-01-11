@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -11,15 +11,17 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-
 import { mockOrders, formatDate, formatPrice, Order } from '@/constants/mock-data';
-import { palette, spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type FilterType = 'active' | 'completed' | 'returns';
 
 export default function OrdersScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [activeFilter, setActiveFilter] = useState<FilterType>('active');
 
     const filters: { key: FilterType; label: string }[] = [
@@ -45,15 +47,15 @@ export default function OrdersScreen() {
     const getStatusStyle = (status: Order['status']) => {
         switch (status) {
             case 'delivered':
-                return { bg: 'rgba(188, 108, 77, 0.1)', text: palette.primary };
+                return { bg: 'rgba(188, 108, 77, 0.1)', text: colors.primary };
             case 'processing':
-                return { bg: palette.accent, text: palette.textSecondary };
+                return { bg: colors.accent, text: colors.textSecondary };
             case 'shipped':
                 return { bg: 'rgba(59, 130, 246, 0.1)', text: '#3B82F6' };
             case 'cancelled':
-                return { bg: 'rgba(239, 68, 68, 0.1)', text: palette.error };
+                return { bg: 'rgba(239, 68, 68, 0.1)', text: colors.error };
             default:
-                return { bg: palette.accent, text: palette.textSecondary };
+                return { bg: colors.accent, text: colors.textSecondary };
         }
     };
 
@@ -73,7 +75,7 @@ export default function OrdersScreen() {
             <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
                 <Text style={styles.title}>My Orders</Text>
                 <TouchableOpacity style={styles.searchButton}>
-                    <Ionicons name="search" size={22} color={palette.text} />
+                    <Ionicons name="search" size={22} color={colors.text} />
                 </TouchableOpacity>
             </View>
 
@@ -159,7 +161,7 @@ export default function OrdersScreen() {
                                                 <Text style={styles.totalValue}>{formatPrice(order.total)}</Text>
                                             </View>
                                             <View style={styles.arrowButton}>
-                                                <Ionicons name="chevron-forward" size={18} color={palette.text} />
+                                                <Ionicons name="chevron-forward" size={18} color={colors.text} />
                                             </View>
                                         </View>
                                     </View>
@@ -171,7 +173,7 @@ export default function OrdersScreen() {
 
                 {filteredOrders.length === 0 && (
                     <View style={styles.emptyState}>
-                        <Ionicons name="bag-outline" size={64} color={palette.textMuted} />
+                        <Ionicons name="bag-outline" size={64} color={colors.textMuted} />
                         <Text style={styles.emptyTitle}>No orders found</Text>
                         <Text style={styles.emptySubtitle}>
                             You don&apos;t have any {activeFilter} orders yet.
@@ -183,10 +185,10 @@ export default function OrdersScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: 'row',
@@ -198,14 +200,14 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         letterSpacing: -0.5,
     },
     searchButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
         ...shadows.sm,
@@ -230,20 +232,20 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: radius.full,
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
         backgroundColor: 'transparent',
     },
     filterPillActive: {
-        backgroundColor: palette.text,
-        borderColor: palette.text,
+        backgroundColor: colors.text,
+        borderColor: colors.text,
     },
     filterText: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
     },
     filterTextActive: {
-        color: palette.white,
+        color: colors.white,
         fontWeight: '600',
     },
 
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
         gap: spacing.lg,
     },
     orderCard: {
-        backgroundColor: palette.surface,
+        backgroundColor: colors.surface,
         borderRadius: 32,
         padding: spacing.md,
         ...shadows.sm,
@@ -266,7 +268,7 @@ const styles = StyleSheet.create({
         height: 96,
         borderRadius: 16,
         overflow: 'hidden',
-        backgroundColor: palette.accent,
+        backgroundColor: colors.accent,
     },
     orderImage: {
         width: '100%',
@@ -285,12 +287,12 @@ const styles = StyleSheet.create({
     orderId: {
         fontFamily: fontFamilies.sansBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
     },
     orderDate: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 14,
-        color: palette.textMuted,
+        color: colors.textMuted,
         marginTop: 4,
     },
     statusBadge: {
@@ -312,13 +314,13 @@ const styles = StyleSheet.create({
         fontFamily: fontFamilies.sansMedium,
         fontSize: 10,
         letterSpacing: 1,
-        color: palette.textMuted,
+        color: colors.textMuted,
         textTransform: 'uppercase',
     },
     totalValue: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 18,
-        color: palette.text,
+        color: colors.text,
         marginTop: 2,
     },
     arrowButton: {
@@ -326,7 +328,7 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: palette.border,
+        borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -339,13 +341,13 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 20,
-        color: palette.text,
+        color: colors.text,
         marginTop: spacing.lg,
     },
     emptySubtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         marginTop: spacing.sm,
         textAlign: 'center',
     },

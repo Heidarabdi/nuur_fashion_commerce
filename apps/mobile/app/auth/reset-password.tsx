@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -13,11 +13,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Input } from '@/components/ui';
-import { palette, spacing, fontFamilies } from '@/constants/theme';
+import { spacing, fontFamilies } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function ResetPasswordScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -39,7 +42,7 @@ export default function ResetPasswordScreen() {
             <View style={[styles.container, { paddingTop: insets.top }]}>
                 <View style={styles.successContainer}>
                     <View style={styles.successIcon}>
-                        <Ionicons name="checkmark-circle" size={80} color={palette.primary} />
+                        <Ionicons name="checkmark-circle" size={80} color={colors.primary} />
                     </View>
                     <Text style={styles.successTitle}>Password Reset!</Text>
                     <Text style={styles.successSubtitle}>
@@ -76,7 +79,7 @@ export default function ResetPasswordScreen() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                 >
-                    <Ionicons name="arrow-back" size={24} color={palette.text} />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
 
                 {/* Header */}
@@ -128,10 +131,10 @@ export default function ResetPasswordScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: palette.background,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         flexGrow: 1,
@@ -148,13 +151,13 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         marginBottom: spacing.sm,
     },
     subtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 20,
     },
 
@@ -176,13 +179,13 @@ const styles = StyleSheet.create({
     successTitle: {
         fontFamily: 'Playfair_700Bold',
         fontSize: 28,
-        color: palette.text,
+        color: colors.text,
         marginBottom: spacing.sm,
     },
     successSubtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
-        color: palette.textSecondary,
+        color: colors.textSecondary,
         textAlign: 'center',
         marginBottom: spacing.xl,
     },
