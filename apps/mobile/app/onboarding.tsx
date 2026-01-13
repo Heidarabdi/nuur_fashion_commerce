@@ -79,11 +79,11 @@ export default function OnboardingScreen() {
     const handleComplete = async () => {
         try {
             await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
-            // Use push instead of replace, then the layout will handle it
-            router.push('/(tabs)');
+            // Use replace to prevent going back to onboarding
+            router.replace('/(tabs)');
         } catch (error) {
             console.error('Error completing onboarding:', error);
-            router.push('/(tabs)');
+            router.replace('/(tabs)');
         }
     };
 

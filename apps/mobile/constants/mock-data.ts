@@ -10,13 +10,14 @@
 export interface Product {
     id: string;
     name: string;
-    brand: string;
+    brand?: string;
     price: number;
     image: string;
-    category: string;
-    colors: string[];
-    sizes: string[];
-    description: string;
+    imageUrl?: string;  // API uses imageUrl
+    category?: string;
+    colors?: string[];
+    sizes?: string[];
+    description?: string;
     isFavorite?: boolean;
 }
 
@@ -320,8 +321,9 @@ export const getCartItemCount = (items: CartItem[]): number => {
     return items.reduce((sum, item) => sum + item.quantity, 0);
 };
 
-export const formatPrice = (price: number): string => {
-    return `$${price.toFixed(2)}`;
+export const formatPrice = (price: number | string | undefined | null): string => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : (price ?? 0);
+    return `$${(Number.isNaN(numPrice) ? 0 : numPrice).toFixed(2)}`;
 };
 
 export const formatDate = (dateString: string): string => {
@@ -330,4 +332,24 @@ export const formatDate = (dateString: string): string => {
         day: 'numeric',
         year: 'numeric',
     });
+};
+
+// Helper to safely get image URL with fallback
+const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400';
+
+export const getImageUrl = (
+    imageUrl?: string | null,
+    images?: string[] | null,
+    fallback: string = PLACEHOLDER_IMAGE
+): string => {
+    // Check imageUrl first
+    if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '') {
+        return imageUrl;
+    }
+    // Then check images array
+    if (images && Array.isArray(images) && images.length > 0 && images[0]) {
+        return images[0];
+    }
+    // Return fallback
+    return fallback;
 };

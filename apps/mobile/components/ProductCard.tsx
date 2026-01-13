@@ -9,8 +9,21 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, fontFamilies, shadows } from '@/constants/theme';
-import { Product, formatPrice } from '@/constants/mock-data';
+import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { useTheme } from '@/contexts/theme-context';
+import { getProductImageUrl, PlaceholderImage } from '@/utils/image';
+
+// Product type for component props
+interface Product {
+    id: string | number;
+    name: string;
+    price: number | string;
+    image?: string;
+    imageUrl?: string;
+    images?: Array<string | { url: string }>;
+    brand?: string | { name: string };
+    isFavorite?: boolean;
+}
 
 interface ProductCardProps {
     product: Product;
@@ -36,6 +49,9 @@ export function ProductCard({
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
+    // Get image URL safely
+    const imageUrl = getProductImageUrl(product);
+
     return (
         <TouchableOpacity
             style={[styles.container, style]}
@@ -44,11 +60,20 @@ export function ProductCard({
         >
             {/* Image Container */}
             <View style={styles.imageContainer}>
-                <Image
-                    source={{ uri: product.image }}
-                    style={styles.image}
-                    resizeMode="cover"
-                />
+                {imageUrl ? (
+                    <Image
+                        source={{ uri: imageUrl }}
+                        style={styles.image}
+                        resizeMode="cover"
+                    />
+                ) : (
+                    <PlaceholderImage
+                        name={product.name}
+                        width={undefined}
+                        height={undefined}
+                        style={styles.image}
+                    />
+                )}
                 {/* Heart Button - positioned top right */}
                 <TouchableOpacity
                     style={styles.favoriteButton}
@@ -66,13 +91,13 @@ export function ProductCard({
             {/* Product Details - following prototype layout */}
             <View style={styles.details}>
                 {/* Brand Name - uppercase, small, muted */}
-                <Text style={styles.brand}>{product.brand}</Text>
+                {product.brand && <Text style={styles.brand}>{typeof product.brand === 'string' ? product.brand : product.brand.name}</Text>}
                 {/* Product Name - Playfair Display, bold */}
                 <Text style={styles.name} numberOfLines={1}>
                     {product.name}
                 </Text>
                 {/* Price - primary color */}
-                <Text style={styles.price}>{formatPrice(product.price)}</Text>
+                <Text style={styles.price}>{formatCurrency(product.price)}</Text>
             </View>
         </TouchableOpacity>
     );

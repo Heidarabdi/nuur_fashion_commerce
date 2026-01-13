@@ -1,17 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
     ScrollView,
     StyleSheet,
     TextInput,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Header, Button, CartItem, Divider } from '@/components/ui';
-import { mockCartItems, getCartTotal, formatPrice } from '@/constants/mock-data';
+import { useCart, useUpdateCartItem, useRemoveFromCart } from '@nuur-fashion-commerce/api';
+import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, radius } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
@@ -20,28 +22,68 @@ export default function CartScreen() {
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
-    const [cartItems, setCartItems] = useState(mockCartItems);
-    const [promoCode, setPromoCode] = useState('');
 
-    const subtotal = getCartTotal(cartItems);
+    // API hooks
+    const { data: cart, isLoading } = useCart();
+    const updateCartItem = useUpdateCartItem();
+    const removeFromCart = useRemoveFromCart();
+
+    // Extract cart items from API response
+    const cartItems = cart?.items || [];
+
+    // Calculate totals
+    const subtotal = cartItems.reduce((sum: number, item: any) => {
+        const price = item.product?.price || item.variant?.price || 0;
+        return sum + (price * item.quantity);
+    }, 0);
     const shipping = 0; // Free shipping
     const total = subtotal + shipping;
 
     const handleQuantityChange = (itemId: string, quantity: number) => {
-        setCartItems((prev) =>
-            prev.map((item) =>
-                item.id === itemId ? { ...item, quantity } : item
-            )
-        );
+        updateCartItem.mutate({ itemId, quantity });
     };
 
     const handleRemoveItem = (itemId: string) => {
-        setCartItems((prev) => prev.filter((item) => item.id !== itemId));
+        removeFromCart.mutate(itemId);
     };
 
     const handleCheckout = () => {
         router.push('/checkout');
     };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <View style={styles.container}>
+                <Header title="Shopping Cart" showBack />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            </View>
+        );
+    }
+
+    // Empty cart
+    if (cartItems.length === 0) {
+        return (
+            <View style={styles.container}>
+                <Header title="Shopping Cart" showBack />
+                <View style={styles.emptyContainer}>
+                    <Ionicons name="bag-outline" size={64} color={colors.textMuted} />
+                    <Text style={styles.emptyTitle}>Your cart is empty</Text>
+                    <Text style={styles.emptySubtitle}>Start shopping to add items to your cart</Text>
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        onPress={() => router.push('/(tabs)/shop')}
+                        style={{ marginTop: spacing.lg }}
+                    >
+                        Browse Products
+                    </Button>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -54,10 +96,21 @@ export default function CartScreen() {
             >
                 {/* Cart Items */}
                 <View style={styles.itemsContainer}>
-                    {cartItems.map((item, index) => (
+                    {cartItems.map((item: any, index: number) => (
                         <React.Fragment key={item.id}>
                             <CartItem
-                                item={item}
+                                item={{
+                                    id: item.id,
+                                    product: {
+                                        id: item.product?.id || item.productId,
+                                        name: item.product?.name || 'Product',
+                                        price: item.product?.price || item.variant?.price || 0,
+                                        image: item.product?.imageUrl || item.product?.images?.[0] || 'https://via.placeholder.com/100',
+                                    },
+                                    quantity: item.quantity,
+                                    selectedColor: item.variant?.color || '',
+                                    selectedSize: item.variant?.size || '',
+                                }}
                                 onQuantityChange={(qty) => handleQuantityChange(item.id, qty)}
                                 onRemove={() => handleRemoveItem(item.id)}
                             />
@@ -72,8 +125,6 @@ export default function CartScreen() {
                         style={styles.promoInput}
                         placeholder="Promo code"
                         placeholderTextColor={colors.textMuted}
-                        value={promoCode}
-                        onChangeText={setPromoCode}
                     />
                     <Button variant="secondary" size="md" style={styles.promoButton}>
                         Apply
@@ -87,7 +138,7 @@ export default function CartScreen() {
                 <View style={styles.summary}>
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Subtotal</Text>
-                        <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
+                        <Text style={styles.summaryValue}>{formatCurrency(subtotal)}</Text>
                     </View>
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Shipping</Text>
@@ -95,19 +146,17 @@ export default function CartScreen() {
                     </View>
                     <View style={[styles.summaryRow, styles.totalRow]}>
                         <Text style={styles.totalLabel}>Total</Text>
-                        <Text style={styles.totalValue}>{formatPrice(total)}</Text>
+                        <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
                     </View>
                 </View>
 
-                {/* Checkout Button */}
                 <Button
                     variant="primary"
                     size="lg"
-                    fullWidth
                     onPress={handleCheckout}
-                    rightIcon={<Ionicons name="arrow-forward" size={20} color={colors.white} />}
+                    loading={updateCartItem.isPending || removeFromCart.isPending}
                 >
-                    Checkout
+                    Proceed to Checkout
                 </Button>
             </View>
         </View>
@@ -119,52 +168,67 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         flex: 1,
         backgroundColor: colors.background,
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: spacing.xl,
+    },
+    emptyTitle: {
+        fontFamily: 'Playfair_700Bold',
+        fontSize: 24,
+        color: colors.text,
+        marginTop: spacing.lg,
+    },
+    emptySubtitle: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 14,
+        color: colors.textSecondary,
+        marginTop: spacing.sm,
+        textAlign: 'center',
+    },
     scrollView: {
         flex: 1,
     },
     scrollContent: {
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.sm,
+        padding: spacing.lg,
     },
-
-    // Items
     itemsContainer: {
-        marginBottom: spacing.xl,
+        gap: spacing.md,
     },
     divider: {
-        marginVertical: spacing.lg,
+        marginVertical: spacing.md,
     },
-
-    // Promo
     promoContainer: {
         flexDirection: 'row',
-        gap: spacing.sm,
-        marginBottom: spacing.xl,
+        marginTop: spacing.xl,
+        gap: spacing.md,
     },
     promoInput: {
         flex: 1,
-        backgroundColor: colors.accent,
-        borderRadius: radius.xl,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
+        height: 48,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.md,
         fontFamily: fontFamilies.sans,
         fontSize: 14,
         color: colors.text,
     },
     promoButton: {
-        paddingHorizontal: spacing.lg,
+        minWidth: 80,
     },
-
-    // Footer
     footer: {
-        backgroundColor: colors.surface,
+        padding: spacing.lg,
         borderTopWidth: 1,
-        borderTopColor: colors.borderLight,
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.lg,
+        borderTopColor: colors.border,
+        backgroundColor: colors.background,
     },
-
-    // Summary
     summary: {
         marginBottom: spacing.lg,
     },
@@ -184,19 +248,18 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         color: colors.text,
     },
     totalRow: {
-        paddingTop: spacing.sm,
+        marginTop: spacing.sm,
+        paddingTop: spacing.md,
         borderTopWidth: 1,
         borderTopColor: colors.border,
-        borderStyle: 'dashed',
-        marginTop: spacing.xs,
     },
     totalLabel: {
         fontFamily: fontFamilies.sansSemiBold,
-        fontSize: 18,
+        fontSize: 16,
         color: colors.text,
     },
     totalValue: {
-        fontFamily: fontFamilies.sansBold,
+        fontFamily: 'Playfair_700Bold',
         fontSize: 20,
         color: colors.text,
     },

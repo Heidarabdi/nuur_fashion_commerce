@@ -44,16 +44,44 @@ const getApiUrl = (): string => {
   return PRODUCTION_API_URL;
 };
 
+// In-memory cache for React Native (synced with AsyncStorage externally)
+let reactNativeCache: Record<string, string> = {};
+
+/**
+ * Set the React Native storage cache (call this after hydrating from AsyncStorage)
+ */
+export function setReactNativeStorageCache(cache: Record<string, string>) {
+  reactNativeCache = cache;
+}
+
+/**
+ * Get or create guest ID for React Native
+ */
+export function getOrCreateGuestId(): string {
+  if (reactNativeCache['guest_id']) {
+    return reactNativeCache['guest_id'];
+  }
+  // Generate a new UUID if crypto is available
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    const newId = crypto.randomUUID();
+    reactNativeCache['guest_id'] = newId;
+    return newId;
+  }
+  // Fallback to timestamp-based ID
+  const fallbackId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  reactNativeCache['guest_id'] = fallbackId;
+  return fallbackId;
+}
+
 /**
  * Storage abstraction for guest ID
- * Works in both web (localStorage) and React Native (AsyncStorage if available)
+ * Works in both web (localStorage) and React Native (memory cache)
  */
 const storage = {
   getItem: (key: string): string | null => {
     if (isReactNative()) {
-      // In React Native, we'll skip guest ID for now
-      // Full implementation would use AsyncStorage
-      return null;
+      // Use in-memory cache for React Native
+      return reactNativeCache[key] || null;
     }
     if (typeof window !== 'undefined' && window.localStorage) {
       return localStorage.getItem(key);
@@ -62,7 +90,8 @@ const storage = {
   },
   setItem: (key: string, value: string): void => {
     if (isReactNative()) {
-      return; // Skip in React Native
+      reactNativeCache[key] = value;
+      return;
     }
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem(key, value);

@@ -1,5 +1,5 @@
 // Client exports
-export { apiClient, type ApiClient } from './client';
+export { apiClient, type ApiClient, setReactNativeStorageCache, getOrCreateGuestId } from './client';
 
 // Hooks exports
 export * from './hooks';

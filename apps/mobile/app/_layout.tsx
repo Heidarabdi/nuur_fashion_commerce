@@ -11,6 +11,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useTheme } from '@/contexts/theme-context';
 import { queryClient } from '@/lib/query-client';
 import { ONBOARDING_COMPLETE_KEY } from './onboarding';
+import { setReactNativeStorageCache } from '@nuur-fashion-commerce/api';
 
 // Google Fonts
 import {
@@ -37,13 +38,25 @@ function RootLayoutNav() {
   const segments = useSegments();
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
 
-  // Check onboarding status on mount
+  // Check onboarding status and hydrate guest ID on mount
   useEffect(() => {
-    const checkOnboarding = async () => {
+    const initialize = async () => {
+      // Check onboarding status
       const complete = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY);
       setIsOnboardingComplete(complete === 'true');
+
+      // Hydrate guest ID from AsyncStorage
+      const guestId = await AsyncStorage.getItem('guest_id');
+      if (guestId) {
+        setReactNativeStorageCache({ guest_id: guestId });
+      } else {
+        // Generate new guest ID and save to AsyncStorage
+        const newGuestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        await AsyncStorage.setItem('guest_id', newGuestId);
+        setReactNativeStorageCache({ guest_id: newGuestId });
+      }
     };
-    checkOnboarding();
+    initialize();
   }, []);
 
   // Redirect based on onboarding status

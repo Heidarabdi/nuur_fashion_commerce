@@ -7,6 +7,7 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,12 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/Button';
-import {
-  mockProducts,
-  mockCategories,
-  mockCartItems,
-  getCartItemCount,
-} from '@/constants/mock-data';
+import { useProducts, useCategories } from '@nuur-fashion-commerce/api';
 import { spacing } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
@@ -29,8 +25,12 @@ const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const cartCount = getCartItemCount(mockCartItems);
   const { colors } = useTheme();
+
+  // API hooks - replace mock data with real data
+  const { data: products, isLoading: productsLoading, error: productsError } = useProducts();
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
+
 
   // Memoize styles - only regenerate when colors change
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -43,27 +43,24 @@ export default function HomeScreen() {
     router.push('/(tabs)/shop');
   };
 
+  // Split products for different sections
+  const trendingProducts = products?.slice(0, 4) || [];
+  const newProducts = products?.slice(4, 8) || [];
+
   return (
     <View style={styles.container}>
       {/* Header - matches prototype */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/notifications')}>
-          <Ionicons name="notifications-outline" size={24} color={colors.text} />
-        </TouchableOpacity>
+        {/* Spacer for balance */}
+        <View style={styles.headerButton} />
 
         <View style={styles.logoContainer}>
           <Text style={styles.logo}>Nuur</Text>
           <Text style={styles.logoSubtitle}>FASHION</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => router.push('/(tabs)/cart')}
-        >
-          <Ionicons name="bag-outline" size={24} color={colors.text} />
-          {cartCount > 0 && (
-            <View style={styles.cartBadge} />
-          )}
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/notifications')}>
+          <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -99,25 +96,29 @@ export default function HomeScreen() {
         {/* Categories Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Shop by Category</Text>
-          <View style={styles.categoriesRow}>
-            {mockCategories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={styles.categoryItem}
-                onPress={() => handleCategoryPress(category.id)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.categoryImageContainer}>
-                  <Image
-                    source={{ uri: category.image }}
-                    style={styles.categoryImage}
-                    resizeMode="cover"
-                  />
-                </View>
-                <Text style={styles.categoryLabel}>{category.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {categoriesLoading ? (
+            <ActivityIndicator size="small" color={colors.primary} style={styles.loader} />
+          ) : (
+            <View style={styles.categoriesRow}>
+              {(categories || []).slice(0, 4).map((category: any) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={styles.categoryItem}
+                  onPress={() => handleCategoryPress(category.id)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.categoryImageContainer}>
+                    <Image
+                      source={{ uri: category.imageUrl || category.image || 'https://via.placeholder.com/64' }}
+                      style={styles.categoryImage}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  <Text style={styles.categoryLabel}>{category.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Trending Now Section */}
@@ -128,16 +129,25 @@ export default function HomeScreen() {
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.productsGrid}>
-            {mockProducts.slice(0, 4).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onPress={() => handleProductPress(product.id)}
-                style={styles.productCard}
-              />
-            ))}
-          </View>
+          {productsLoading ? (
+            <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+          ) : productsError ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="cloud-offline-outline" size={48} color={colors.textMuted} />
+              <Text style={styles.errorText}>Unable to load products</Text>
+            </View>
+          ) : (
+            <View style={styles.productsGrid}>
+              {trendingProducts.map((product: any) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onPress={() => handleProductPress(product.id)}
+                  style={styles.productCard}
+                />
+              ))}
+            </View>
+          )}
         </View>
 
         {/* New In Section */}
@@ -148,16 +158,18 @@ export default function HomeScreen() {
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.productsGrid}>
-            {mockProducts.slice(4, 8).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onPress={() => handleProductPress(product.id)}
-                style={styles.productCard}
-              />
-            ))}
-          </View>
+          {!productsLoading && !productsError && (
+            <View style={styles.productsGrid}>
+              {newProducts.map((product: any) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onPress={() => handleProductPress(product.id)}
+                  style={styles.productCard}
+                />
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -309,5 +321,19 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
   productCard: {
     width: CARD_WIDTH,
     marginBottom: spacing.sm,
+  },
+
+  // Loading & Error states
+  loader: {
+    paddingVertical: spacing.xl,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+    gap: spacing.md,
+  },
+  errorText: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });

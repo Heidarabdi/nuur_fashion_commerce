@@ -11,10 +11,21 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+
 import { Button } from '@/components/ui';
-import { mockOrders, formatDate, formatPrice, Order } from '@/constants/mock-data';
+import { useOrder } from '@nuur-fashion-commerce/api';
+import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+
+// Simple date formatter
+const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
 
 export default function OrderDetailsScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,9 +34,10 @@ export default function OrderDetailsScreen() {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
-    const order = mockOrders.find((o) => o.id === id) || mockOrders[0];
+    // Use API hook to fetch order
+    const { data: order, isLoading } = useOrder(id || '');
 
-    const getStatusStyle = (status: Order['status']) => {
+    const getStatusStyle = (status: string) => {
         switch (status) {
             case 'delivered':
                 return { bg: 'rgba(34, 197, 94, 0.1)', text: '#22C55E' };
@@ -93,7 +105,7 @@ export default function OrderDetailsScreen() {
                                 <Text style={styles.itemName}>{item.name}</Text>
                                 <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
                             </View>
-                            <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
+                            <Text style={styles.itemPrice}>{formatCurrency(item.price)}</Text>
                         </View>
                     ))}
                 </View>
@@ -104,7 +116,7 @@ export default function OrderDetailsScreen() {
                     <View style={styles.summaryCard}>
                         <View style={styles.summaryRow}>
                             <Text style={styles.summaryLabel}>Subtotal</Text>
-                            <Text style={styles.summaryValue}>{formatPrice(order.total - 10)}</Text>
+                            <Text style={styles.summaryValue}>{formatCurrency(order.total - 10)}</Text>
                         </View>
                         <View style={styles.summaryRow}>
                             <Text style={styles.summaryLabel}>Shipping</Text>
@@ -113,7 +125,7 @@ export default function OrderDetailsScreen() {
                         <View style={styles.divider} />
                         <View style={styles.summaryRow}>
                             <Text style={styles.totalLabel}>Total</Text>
-                            <Text style={styles.totalValue}>{formatPrice(order.total)}</Text>
+                            <Text style={styles.totalValue}>{formatCurrency(order.total)}</Text>
                         </View>
                     </View>
                 </View>

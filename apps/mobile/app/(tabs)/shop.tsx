@@ -9,6 +9,7 @@ import {
     Dimensions,
     Modal,
     Pressable,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ProductCard } from '@/components/ProductCard';
 import { CategoryPill } from '@/components/ui';
-import { mockProducts, mockCategories } from '@/constants/mock-data';
+import { useProducts, useCategories, useBrands } from '@nuur-fashion-commerce/api';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
@@ -29,22 +30,47 @@ export default function ShopScreen() {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
+    // API hooks
+    const { data: categoriesData } = useCategories();
+    const { data: brandsData } = useBrands();
+    const categories = categoriesData || [];
+    const brands = brandsData || [];
+
+    // Filter states
     const [searchQuery, setSearchQuery] = useState('');
     const [showCategories, setShowCategories] = useState(true);
     const [filterVisible, setFilterVisible] = useState(false);
-
-    // Filter states
-    const [selectedSort, setSelectedSort] = useState('Recommended');
+    const [selectedSort, setSelectedSort] = useState<string>('newest');
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState<string | null>('M');
     const [selectedColor, setSelectedColor] = useState<string | null>('#BC6C4D');
 
+    // Build filters for API query
+    const filters = useMemo(() => ({
+        categoryId: selectedCategory || undefined,
+        brandId: selectedBrand || undefined,
+        search: searchQuery.trim() || undefined,
+        sortBy: selectedSort as any,
+    }), [selectedCategory, selectedBrand, searchQuery, selectedSort]);
+
+    // Fetch products with filters
+    const { data: products, isLoading: productsLoading } = useProducts(filters);
+
+    // Filter products based on search
+    const allProducts = products || [];
     const filteredProducts = searchQuery.trim()
-        ? mockProducts.filter(
-            (p) =>
-                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+        ? allProducts.filter(
+            (p: any) => {
+                const searchLower = searchQuery.toLowerCase();
+                const nameMatch = p.name?.toLowerCase().includes(searchLower);
+                // Handle brand as object or string
+                const brandName = typeof p.brand === 'string' ? p.brand : (p.brand?.name || '');
+                const brandMatch = brandName.toLowerCase().includes(searchLower);
+                return nameMatch || brandMatch;
+            }
         )
-        : mockProducts;
+        : allProducts;
 
     const resultCount = filteredProducts.length;
 
@@ -57,7 +83,12 @@ export default function ShopScreen() {
         setShowCategories(text.length === 0);
     };
 
-    const sortOptions = ['Recommended', 'Newest Arrivals', 'Price: Low to High', 'Price: High to Low'];
+    const sortOptions = [
+        { label: 'Newest', value: 'newest' },
+        { label: 'Price: Low to High', value: 'price-asc' },
+        { label: 'Price: High to Low', value: 'price-desc' },
+        { label: 'Name A-Z', value: 'name-asc' },
+    ];
     const sizes = ['S', 'M', 'L', 'XL'];
     const colorOptions = ['#BC6C4D', '#E8E1D5', '#1F1F1F', '#FFFFFF', '#2A3B4C'];
 
@@ -91,22 +122,26 @@ export default function ShopScreen() {
                 {/* Categories - show when no search */}
                 {showCategories && (
                     <View style={styles.categoriesSection}>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.categoriesContent}
-                        >
-                            {mockCategories.map((category) => (
-                                <CategoryPill
-                                    key={category.id}
-                                    category={category}
-                                    onPress={() => {
-                                        setSearchQuery(category.name);
-                                        setShowCategories(false);
-                                    }}
-                                />
-                            ))}
-                        </ScrollView>
+                        {categories.length === 0 ? (
+                            <ActivityIndicator size="small" color={colors.primary} />
+                        ) : (
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.categoriesContent}
+                            >
+                                {(categories || []).map((category: any) => (
+                                    <CategoryPill
+                                        key={category.id}
+                                        label={category.name}
+                                        onPress={() => {
+                                            setSearchQuery(category.name);
+                                            setShowCategories(false);
+                                        }}
+                                    />
+                                ))}
+                            </ScrollView>
+                        )}
                     </View>
                 )}
 
@@ -120,16 +155,20 @@ export default function ShopScreen() {
                 )}
 
                 {/* Products Grid */}
-                <View style={styles.productsGrid}>
-                    {filteredProducts.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            onPress={() => handleProductPress(product.id)}
-                            style={styles.productCard}
-                        />
-                    ))}
-                </View>
+                {productsLoading ? (
+                    <ActivityIndicator size="large" color={colors.primary} style={{ paddingVertical: spacing.xxl }} />
+                ) : (
+                    <View style={styles.productsGrid}>
+                        {filteredProducts.map((product: any) => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onPress={() => handleProductPress(product.id)}
+                                style={styles.productCard}
+                            />
+                        ))}
+                    </View>
+                )}
 
                 {filteredProducts.length === 0 && (
                     <View style={styles.emptyState}>
@@ -162,7 +201,9 @@ export default function ShopScreen() {
                     {/* Header */}
                     <View style={styles.filterHeader}>
                         <TouchableOpacity onPress={() => {
-                            setSelectedSort('Recommended');
+                            setSelectedSort('newest');
+                            setSelectedCategory(null);
+                            setSelectedBrand(null);
                             setSelectedSize('M');
                             setSelectedColor('#BC6C4D');
                         }}>
@@ -184,17 +225,93 @@ export default function ShopScreen() {
                             <View style={styles.sortOptions}>
                                 {sortOptions.map((option) => (
                                     <TouchableOpacity
-                                        key={option}
+                                        key={option.value}
                                         style={styles.sortOption}
-                                        onPress={() => setSelectedSort(option)}
+                                        onPress={() => setSelectedSort(option.value)}
                                     >
                                         <Text style={[
                                             styles.sortOptionText,
-                                            selectedSort === option && styles.sortOptionTextActive
+                                            selectedSort === option.value && styles.sortOptionTextActive
                                         ]}>
-                                            {option}
+                                            {option.label}
                                         </Text>
-                                        {selectedSort === option && (
+                                        {selectedSort === option.value && (
+                                            <Ionicons name="checkmark" size={20} color={colors.primary} />
+                                        )}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Category Filter */}
+                        <View style={styles.filterSection}>
+                            <Text style={styles.filterSectionTitle}>CATEGORY</Text>
+                            <View style={styles.sortOptions}>
+                                <TouchableOpacity
+                                    style={styles.sortOption}
+                                    onPress={() => setSelectedCategory(null)}
+                                >
+                                    <Text style={[
+                                        styles.sortOptionText,
+                                        !selectedCategory && styles.sortOptionTextActive
+                                    ]}>
+                                        All Categories
+                                    </Text>
+                                    {!selectedCategory && (
+                                        <Ionicons name="checkmark" size={20} color={colors.primary} />
+                                    )}
+                                </TouchableOpacity>
+                                {categories.map((cat: any) => (
+                                    <TouchableOpacity
+                                        key={cat.id}
+                                        style={styles.sortOption}
+                                        onPress={() => setSelectedCategory(cat.id)}
+                                    >
+                                        <Text style={[
+                                            styles.sortOptionText,
+                                            selectedCategory === cat.id && styles.sortOptionTextActive
+                                        ]}>
+                                            {cat.name}
+                                        </Text>
+                                        {selectedCategory === cat.id && (
+                                            <Ionicons name="checkmark" size={20} color={colors.primary} />
+                                        )}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Brand Filter */}
+                        <View style={styles.filterSection}>
+                            <Text style={styles.filterSectionTitle}>BRAND</Text>
+                            <View style={styles.sortOptions}>
+                                <TouchableOpacity
+                                    style={styles.sortOption}
+                                    onPress={() => setSelectedBrand(null)}
+                                >
+                                    <Text style={[
+                                        styles.sortOptionText,
+                                        !selectedBrand && styles.sortOptionTextActive
+                                    ]}>
+                                        All Brands
+                                    </Text>
+                                    {!selectedBrand && (
+                                        <Ionicons name="checkmark" size={20} color={colors.primary} />
+                                    )}
+                                </TouchableOpacity>
+                                {brands.map((brand: any) => (
+                                    <TouchableOpacity
+                                        key={brand.id}
+                                        style={styles.sortOption}
+                                        onPress={() => setSelectedBrand(brand.id)}
+                                    >
+                                        <Text style={[
+                                            styles.sortOptionText,
+                                            selectedBrand === brand.id && styles.sortOptionTextActive
+                                        ]}>
+                                            {brand.name}
+                                        </Text>
+                                        {selectedBrand === brand.id && (
                                             <Ionicons name="checkmark" size={20} color={colors.primary} />
                                         )}
                                     </TouchableOpacity>

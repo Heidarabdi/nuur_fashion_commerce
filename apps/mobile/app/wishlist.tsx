@@ -6,6 +6,7 @@ import {
     StyleSheet,
     TouchableOpacity,
     Dimensions,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui';
-import { mockWishlist, Product } from '@/constants/mock-data';
+import { useWishlist, useRemoveFromWishlist, useAddToCart } from '@nuur-fashion-commerce/api';
 import { spacing, fontFamilies, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
@@ -26,9 +27,52 @@ export default function WishlistScreen() {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
+    // API hooks
+    const { data: wishlistData, isLoading } = useWishlist();
+    const removeFromWishlist = useRemoveFromWishlist();
+    const addToCart = useAddToCart();
+
+    // Extract wishlist items - API might return items or products array
+    const wishlistItems = wishlistData?.items || wishlistData || [];
+
     const handleProductPress = (productId: string) => {
         router.push(`/product/${productId}`);
     };
+
+    const handleRemoveFromWishlist = (productId: string) => {
+        removeFromWishlist.mutate(productId);
+    };
+
+    const handleMoveToCart = async (productId: string) => {
+        try {
+            await addToCart.mutateAsync({
+                productId,
+                quantity: 1,
+            });
+            // Remove from wishlist after adding to cart
+            removeFromWishlist.mutate(productId);
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+        }
+    };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <View style={styles.container}>
+                <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                        <Ionicons name="arrow-back" size={22} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={styles.title}>My Wishlist</Text>
+                    <View style={styles.placeholder} />
+                </View>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -52,23 +96,27 @@ export default function WishlistScreen() {
                 ]}
                 showsVerticalScrollIndicator={false}
             >
-                {mockWishlist.length > 0 ? (
+                {wishlistItems.length > 0 ? (
                     <>
                         {/* Item Count */}
                         <Text style={styles.itemCount}>
-                            {mockWishlist.length} {mockWishlist.length === 1 ? 'item' : 'items'}
+                            {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'}
                         </Text>
 
                         {/* Products Grid */}
                         <View style={styles.productsGrid}>
-                            {mockWishlist.map((product: Product) => (
-                                <ProductCard
-                                    key={product.id}
-                                    product={{ ...product, isFavorite: true }}
-                                    onPress={() => handleProductPress(product.id)}
-                                    style={styles.productCard}
-                                />
-                            ))}
+                            {wishlistItems.map((item: any) => {
+                                const product = item.product || item;
+                                return (
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                        onPress={() => handleProductPress(product.id)}
+                                        onFavoritePress={() => handleRemoveFromWishlist(product.id)}
+                                        style={styles.productCard}
+                                    />
+                                );
+                            })}
                         </View>
                     </>
                 ) : (
@@ -78,15 +126,15 @@ export default function WishlistScreen() {
                         </View>
                         <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
                         <Text style={styles.emptySubtitle}>
-                            Save items you love by tapping the heart icon
+                            Save your favorite items here for easy access
                         </Text>
                         <Button
                             variant="primary"
-                            size="md"
+                            size="lg"
                             onPress={() => router.push('/(tabs)/shop')}
-                            style={styles.startShoppingButton}
+                            style={styles.browseButton}
                         >
-                            Start Shopping
+                            Browse Products
                         </Button>
                     </View>
                 )}
@@ -100,14 +148,16 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         flex: 1,
         backgroundColor: colors.background,
     },
-
-    // Header
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         paddingHorizontal: spacing.lg,
-        paddingBottom: spacing.lg,
+        paddingBottom: spacing.md,
     },
     backButton: {
         width: 40,
@@ -119,30 +169,27 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         ...shadows.sm,
     },
     title: {
+        flex: 1,
         fontFamily: 'Playfair_700Bold',
         fontSize: 20,
         color: colors.text,
+        textAlign: 'center',
     },
     placeholder: {
         width: 40,
     },
-
     scrollView: {
         flex: 1,
     },
     scrollContent: {
         paddingHorizontal: spacing.lg,
     },
-
-    // Item Count
     itemCount: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
         color: colors.textSecondary,
         marginBottom: spacing.lg,
     },
-
-    // Products Grid - 2 column layout
     productsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -150,38 +197,37 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
     },
     productCard: {
         width: CARD_WIDTH,
-        marginBottom: spacing.sm,
     },
-
-    // Empty State
     emptyState: {
         flex: 1,
         alignItems: 'center',
+        justifyContent: 'center',
         paddingVertical: spacing.xxl * 2,
     },
     emptyIconContainer: {
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: colors.accent,
+        backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: spacing.xl,
     },
     emptyTitle: {
         fontFamily: 'Playfair_700Bold',
-        fontSize: 22,
+        fontSize: 24,
         color: colors.text,
+        marginBottom: spacing.sm,
     },
     emptySubtitle: {
         fontFamily: fontFamilies.sans,
         fontSize: 14,
         color: colors.textSecondary,
-        marginTop: spacing.sm,
         textAlign: 'center',
-        paddingHorizontal: spacing.xl,
+        maxWidth: 280,
+        marginBottom: spacing.xl,
     },
-    startShoppingButton: {
-        marginTop: spacing.xl,
+    browseButton: {
+        minWidth: 200,
     },
 });

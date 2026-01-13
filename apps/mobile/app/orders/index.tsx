@@ -6,14 +6,25 @@ import {
     StyleSheet,
     TouchableOpacity,
     Image,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { mockOrders, formatDate, formatPrice, Order } from '@/constants/mock-data';
+import { useOrders } from '@nuur-fashion-commerce/api';
+import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+
+// Simple date formatter
+const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
 
 type FilterType = 'active' | 'completed' | 'returns';
 
@@ -30,10 +41,14 @@ export default function OrdersScreen() {
         { key: 'returns', label: 'Returns' },
     ];
 
+    // API hook
+    const { data: ordersData, isLoading } = useOrders();
+    const orders = ordersData || [];
+
     // Filter orders based on selected filter
-    const filteredOrders = mockOrders.filter((order) => {
+    const filteredOrders = orders.filter((order: any) => {
         if (activeFilter === 'active') {
-            return order.status === 'processing' || order.status === 'shipped';
+            return order.status === 'processing' || order.status === 'shipped' || order.status === 'pending';
         }
         if (activeFilter === 'completed') {
             return order.status === 'delivered';
@@ -44,7 +59,7 @@ export default function OrdersScreen() {
         return true;
     });
 
-    const getStatusStyle = (status: Order['status']) => {
+    const getStatusStyle = (status: string) => {
         switch (status) {
             case 'delivered':
                 return { bg: 'rgba(188, 108, 77, 0.1)', text: colors.primary };
@@ -59,7 +74,7 @@ export default function OrdersScreen() {
         }
     };
 
-    const getStatusLabel = (status: Order['status']) => {
+    const getStatusLabel = (status: string) => {
         switch (status) {
             case 'delivered': return 'Delivered';
             case 'processing': return 'Processing';
@@ -68,6 +83,21 @@ export default function OrdersScreen() {
             default: return status;
         }
     };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <View style={styles.container}>
+                <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+                    <Text style={styles.title}>My Orders</Text>
+                    <View style={styles.searchButton} />
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -117,7 +147,7 @@ export default function OrdersScreen() {
 
                 {/* Orders List */}
                 <View style={styles.ordersList}>
-                    {filteredOrders.map((order) => {
+                    {filteredOrders.map((order: any) => {
                         const statusStyle = getStatusStyle(order.status);
                         // Get first item image for display
                         const firstItem = order.items[0];
@@ -158,7 +188,7 @@ export default function OrdersScreen() {
                                         <View style={styles.orderFooter}>
                                             <View>
                                                 <Text style={styles.totalLabel}>TOTAL</Text>
-                                                <Text style={styles.totalValue}>{formatPrice(order.total)}</Text>
+                                                <Text style={styles.totalValue}>{formatCurrency(order.total)}</Text>
                                             </View>
                                             <View style={styles.arrowButton}>
                                                 <Ionicons name="chevron-forward" size={18} color={colors.text} />

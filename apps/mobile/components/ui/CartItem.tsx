@@ -9,9 +9,25 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, fontFamilies } from '@/constants/theme';
-import { CartItem as CartItemType, formatPrice } from '@/constants/mock-data';
+import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { QuantityStepper } from './QuantityStepper';
 import { useTheme } from '@/contexts/theme-context';
+import { getProductImageUrl, PlaceholderImage } from '@/utils/image';
+
+// Local cart item type
+interface CartItemType {
+    id: string;
+    product: {
+        id: string;
+        name: string;
+        price: number | string;
+        image?: string | { url: string };
+        images?: { url: string }[];
+    };
+    quantity: number;
+    selectedColor?: string;
+    selectedSize?: string;
+}
 
 interface CartItemProps {
     item: CartItemType;
@@ -28,16 +44,29 @@ export function CartItem({
 }: CartItemProps) {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
+
     const { product, quantity, selectedColor, selectedSize } = item;
+
+    // Get image URL using centralized utility
+    const imageUrl = getProductImageUrl(product);
 
     return (
         <View style={[styles.container, style]}>
             <View style={styles.imageContainer}>
-                <Image
-                    source={{ uri: product.image }}
-                    style={styles.image}
-                    resizeMode="cover"
-                />
+                {imageUrl ? (
+                    <Image
+                        source={{ uri: imageUrl }}
+                        style={styles.image}
+                        resizeMode="cover"
+                    />
+                ) : (
+                    <PlaceholderImage
+                        name={product?.name || 'Product'}
+                        width={80}
+                        height={100}
+                        style={styles.image}
+                    />
+                )}
             </View>
 
             <View style={styles.details}>
@@ -59,7 +88,7 @@ export function CartItem({
                 </View>
 
                 <View style={styles.footer}>
-                    <Text style={styles.price}>{formatPrice(product.price)}</Text>
+                    <Text style={styles.price}>{formatCurrency(product.price)}</Text>
                     <QuantityStepper
                         value={quantity}
                         onChange={onQuantityChange}

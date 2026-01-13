@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     ScrollView,
     Dimensions,
+    ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,9 +20,11 @@ import Animated, {
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Button } from '@/components/ui';
-import { mockProducts, formatPrice } from '@/constants/mock-data';
+import { useProduct, useAddToCart } from '@nuur-fashion-commerce/api';
+import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { getProductImageUrl, PlaceholderImage } from '@/utils/image';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -37,13 +40,24 @@ export default function ProductDetailsScreen() {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
-    const product = mockProducts.find((p) => p.id === id) || mockProducts[0];
-    const [selectedSize, setSelectedSize] = useState('M');
-    const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-    const [isFavorite, setIsFavorite] = useState(product.isFavorite);
+    // API hooks
+    const { data: product, isLoading } = useProduct(id || '');
+    const addToCart = useAddToCart();
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-    const sizes = product.sizes;
-    const productColors = product.colors;
+    const [selectedSize, setSelectedSize] = useState('M');
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [isFavorite, setIsFavorite] = useState(false);
+
+    // Set initial color when product loads
+    React.useEffect(() => {
+        if (product?.colors?.[0] && !selectedColor) {
+            setSelectedColor(product.colors[0]);
+        }
+    }, [product, selectedColor]);
+
+    const sizes = product?.sizes || ['S', 'M', 'L', 'XL'];
+    const productColors = product?.colors || ['#BC6C4D'];
 
     // Animation values
     const translateY = useSharedValue(0);
@@ -76,15 +90,48 @@ export default function ProductDetailsScreen() {
         transform: [{ translateY: translateY.value }],
     }));
 
+    // Show loading state
+    if (isLoading) {
+        return (
+            <GestureHandlerRootView style={styles.container}>
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            </GestureHandlerRootView>
+        );
+    }
+
+    // If no product found
+    if (!product) {
+        return (
+            <GestureHandlerRootView style={styles.container}>
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <Ionicons name="alert-circle-outline" size={48} color={colors.textMuted} />
+                    <Text style={{ color: colors.textSecondary, marginTop: spacing.md }}>Product not found</Text>
+                </View>
+            </GestureHandlerRootView>
+        );
+    }
+
+    // Get image URL using centralized utility
+    const imageUrl = getProductImageUrl(product);
+
     return (
         <GestureHandlerRootView style={styles.container}>
             {/* Full Screen Product Image */}
             <View style={styles.imageContainer}>
-                <Image
-                    source={{ uri: product.image }}
-                    style={styles.productImage}
-                    resizeMode="cover"
-                />
+                {imageUrl ? (
+                    <Image
+                        source={{ uri: imageUrl }}
+                        style={styles.productImage}
+                        resizeMode="cover"
+                    />
+                ) : (
+                    <PlaceholderImage
+                        name={product.name}
+                        style={styles.productImage}
+                    />
+                )}
 
                 {/* Floating Header Buttons */}
                 <View style={[styles.floatingHeader, { top: insets.top + spacing.sm }]}>
@@ -132,7 +179,7 @@ export default function ProductDetailsScreen() {
                         <View style={styles.titleRow}>
                             <View style={styles.titleInfo}>
                                 <Text style={styles.productName}>{product.name}</Text>
-                                <Text style={styles.price}>{formatPrice(product.price)}</Text>
+                                <Text style={styles.price}>{formatCurrency(product.price)}</Text>
                             </View>
                             <View style={styles.ratingBadge}>
                                 <Ionicons name="star" size={16} color="#FFB800" />
@@ -151,7 +198,7 @@ export default function ProductDetailsScreen() {
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Description</Text>
                             <Text style={styles.description}>
-                                {product.description}
+                                {product.description || 'No description available.'}
                             </Text>
                         </View>
 
@@ -159,7 +206,7 @@ export default function ProductDetailsScreen() {
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Select Size</Text>
                             <View style={styles.optionsRow}>
-                                {sizes.map((size) => (
+                                {sizes.map((size: string) => (
                                     <TouchableOpacity
                                         key={size}
                                         style={[
@@ -185,7 +232,7 @@ export default function ProductDetailsScreen() {
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Select Color</Text>
                             <View style={styles.optionsRow}>
-                                {productColors.map((color) => (
+                                {productColors.map((color: string) => (
                                     <TouchableOpacity
                                         key={color}
                                         style={[
@@ -206,10 +253,26 @@ export default function ProductDetailsScreen() {
                             variant="primary"
                             size="lg"
                             fullWidth
-                            onPress={() => router.push('/(tabs)/cart')}
+                            disabled={isAddingToCart}
+                            onPress={async () => {
+                                if (!product) return;
+                                setIsAddingToCart(true);
+                                try {
+                                    await addToCart.mutateAsync({
+                                        productId: product.id,
+                                        quantity: 1,
+                                    });
+                                    // Navigate to cart after successful add
+                                    router.push('/(tabs)/cart');
+                                } catch (error) {
+                                    console.error('Failed to add to cart:', error);
+                                } finally {
+                                    setIsAddingToCart(false);
+                                }
+                            }}
                             style={styles.addToCartButton}
                         >
-                            Add to Cart
+                            {isAddingToCart ? 'Adding...' : 'Add to Cart'}
                         </Button>
                     </View>
                 </Animated.View>
