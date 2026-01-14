@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 import 'react-native-reanimated';
 
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -79,7 +80,7 @@ function RootLayoutNav() {
   return (
     <NavigationThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="product/[id]" />
         <Stack.Screen name="checkout" />
@@ -94,6 +95,7 @@ function RootLayoutNav() {
         <Stack.Screen name="payment" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="order-confirmation" />
+        <Stack.Screen name="onboarding" />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
@@ -125,6 +127,7 @@ export default function RootLayout() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <RootLayoutNav />
+        <Toast />
       </QueryClientProvider>
     </ThemeProvider>
   );

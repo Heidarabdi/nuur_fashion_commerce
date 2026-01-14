@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ProductCard } from '@/components/ProductCard';
+import { ProductListItem } from '@/components/ProductListItem';
 import { CategoryPill } from '@/components/ui';
 import { useProducts, useCategories, useBrands } from '@nuur-fashion-commerce/api';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
@@ -45,6 +46,9 @@ export default function ShopScreen() {
     const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState<string | null>('M');
     const [selectedColor, setSelectedColor] = useState<string | null>('#BC6C4D');
+    const [minPrice, setMinPrice] = useState<string>('');
+    const [maxPrice, setMaxPrice] = useState<string>('');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     // Build filters for API query
     const filters = useMemo(() => ({
@@ -57,20 +61,25 @@ export default function ShopScreen() {
     // Fetch products with filters
     const { data: products, isLoading: productsLoading } = useProducts(filters);
 
-    // Filter products based on search
+    // Filter products based on search and price
     const allProducts = products || [];
-    const filteredProducts = searchQuery.trim()
-        ? allProducts.filter(
-            (p: any) => {
-                const searchLower = searchQuery.toLowerCase();
-                const nameMatch = p.name?.toLowerCase().includes(searchLower);
-                // Handle brand as object or string
-                const brandName = typeof p.brand === 'string' ? p.brand : (p.brand?.name || '');
-                const brandMatch = brandName.toLowerCase().includes(searchLower);
-                return nameMatch || brandMatch;
-            }
-        )
-        : allProducts;
+    const filteredProducts = allProducts.filter((p: any) => {
+        // Search filter
+        if (searchQuery.trim()) {
+            const searchLower = searchQuery.toLowerCase();
+            const nameMatch = p.name?.toLowerCase().includes(searchLower);
+            const brandName = typeof p.brand === 'string' ? p.brand : (p.brand?.name || '');
+            const brandMatch = brandName.toLowerCase().includes(searchLower);
+            if (!nameMatch && !brandMatch) return false;
+        }
+
+        // Price filter
+        const productPrice = parseFloat(p.price) || 0;
+        if (minPrice && productPrice < parseFloat(minPrice)) return false;
+        if (maxPrice && productPrice > parseFloat(maxPrice)) return false;
+
+        return true;
+    });
 
     const resultCount = filteredProducts.length;
 
@@ -105,6 +114,9 @@ export default function ShopScreen() {
                         value={searchQuery}
                         onChangeText={handleSearch}
                     />
+                    <TouchableOpacity onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} style={{ marginRight: spacing.sm }}>
+                        <Ionicons name={viewMode === 'grid' ? 'list-outline' : 'grid-outline'} size={22} color={colors.textMuted} />
+                    </TouchableOpacity>
                     <TouchableOpacity onPress={() => setFilterVisible(true)}>
                         <Ionicons name="options-outline" size={22} color={colors.textMuted} />
                     </TouchableOpacity>
@@ -154,10 +166,10 @@ export default function ShopScreen() {
                     </View>
                 )}
 
-                {/* Products Grid */}
+                {/* Products Grid/List */}
                 {productsLoading ? (
                     <ActivityIndicator size="large" color={colors.primary} style={{ paddingVertical: spacing.xxl }} />
-                ) : (
+                ) : viewMode === 'grid' ? (
                     <View style={styles.productsGrid}>
                         {filteredProducts.map((product: any) => (
                             <ProductCard
@@ -165,6 +177,17 @@ export default function ShopScreen() {
                                 product={product}
                                 onPress={() => handleProductPress(product.id)}
                                 style={styles.productCard}
+                            />
+                        ))}
+                    </View>
+                ) : (
+                    <View style={styles.productsList}>
+                        {filteredProducts.map((product: any) => (
+                            <ProductListItem
+                                key={product.id}
+                                product={product}
+                                onPress={() => handleProductPress(product.id)}
+                                style={styles.productListItem}
                             />
                         ))}
                     </View>
@@ -206,6 +229,8 @@ export default function ShopScreen() {
                             setSelectedBrand(null);
                             setSelectedSize('M');
                             setSelectedColor('#BC6C4D');
+                            setMinPrice('');
+                            setMaxPrice('');
                         }}>
                             <Text style={styles.resetText}>Reset</Text>
                         </TouchableOpacity>
@@ -219,6 +244,36 @@ export default function ShopScreen() {
                     </View>
 
                     <ScrollView style={styles.filterContent} showsVerticalScrollIndicator={false}>
+                        {/* Price Range */}
+                        <View style={styles.filterSection}>
+                            <Text style={styles.filterSectionTitle}>PRICE RANGE</Text>
+                            <View style={styles.priceRangeRow}>
+                                <View style={styles.priceInputContainer}>
+                                    <Text style={styles.priceLabel}>Min $</Text>
+                                    <TextInput
+                                        style={styles.priceInput}
+                                        placeholder="0"
+                                        placeholderTextColor={colors.textMuted}
+                                        value={minPrice}
+                                        onChangeText={setMinPrice}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                                <Text style={styles.priceSeparator}>—</Text>
+                                <View style={styles.priceInputContainer}>
+                                    <Text style={styles.priceLabel}>Max $</Text>
+                                    <TextInput
+                                        style={styles.priceInput}
+                                        placeholder="500"
+                                        placeholderTextColor={colors.textMuted}
+                                        value={maxPrice}
+                                        onChangeText={setMaxPrice}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+                        </View>
+
                         {/* Sort By */}
                         <View style={styles.filterSection}>
                             <Text style={styles.filterSectionTitle}>SORT BY</Text>
@@ -658,5 +713,43 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         fontFamily: fontFamilies.sansSemiBold,
         fontSize: 16,
         color: colors.white,
+    },
+    priceRangeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+    },
+    priceInputContainer: {
+        flex: 1,
+    },
+    priceLabel: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 12,
+        color: colors.textSecondary,
+        marginBottom: spacing.xs,
+    },
+    priceInput: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 16,
+        color: colors.text,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        backgroundColor: colors.background,
+    },
+    priceSeparator: {
+        fontFamily: fontFamilies.sansMedium,
+        fontSize: 16,
+        color: colors.textMuted,
+        paddingTop: spacing.lg,
+    },
+    productsList: {
+        gap: spacing.md,
+        paddingHorizontal: spacing.lg,
+    },
+    productListItem: {
+        width: '100%',
     },
 });

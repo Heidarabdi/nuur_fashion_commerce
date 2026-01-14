@@ -6,6 +6,7 @@ import {
     StyleSheet,
     TouchableOpacity,
     Image,
+    ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +18,7 @@ import { useOrder } from '@nuur-fashion-commerce/api';
 import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useRequireAuth } from '@/hooks';
 
 // Simple date formatter
 const formatDate = (dateString: string): string => {
@@ -34,8 +36,20 @@ export default function OrderDetailsScreen() {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
+    // Require authentication
+    const { isLoading: authLoading, isAuthenticated } = useRequireAuth();
+
     // Use API hook to fetch order
     const { data: order, isLoading } = useOrder(id || '');
+
+    // Show loading while checking auth or fetching order
+    if (authLoading || !isAuthenticated || isLoading || !order) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     const getStatusStyle = (status: string) => {
         switch (status) {
@@ -52,7 +66,7 @@ export default function OrderDetailsScreen() {
         }
     };
 
-    const statusStyle = getStatusStyle(order.status);
+    const statusStyle = getStatusStyle(order.status || 'processing');
 
     return (
         <View style={styles.container}>

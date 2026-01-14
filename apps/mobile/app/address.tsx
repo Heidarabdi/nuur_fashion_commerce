@@ -5,6 +5,7 @@ import {
     ScrollView,
     StyleSheet,
     TouchableOpacity,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useRequireAuth } from '@/hooks';
 
 interface Address {
     id: string;
@@ -39,12 +41,12 @@ const mockAddresses: Address[] = [
     },
     {
         id: '2',
-        label: 'Office',
+        label: 'Work',
         name: 'Elena Nuur',
         street: '456 Business Center',
         city: 'New York',
         state: 'NY',
-        zip: '10022',
+        zip: '10002',
         country: 'United States',
         isDefault: false,
     },
@@ -57,6 +59,18 @@ export default function AddressScreen() {
     const styles = useMemo(() => createStyles(colors), [colors]);
     const [addresses] = useState(mockAddresses);
     const [selectedId, setSelectedId] = useState(addresses.find(a => a.isDefault)?.id);
+
+    // Require authentication
+    const { isLoading: authLoading, isAuthenticated } = useRequireAuth();
+
+    // Show loading while checking auth
+    if (authLoading || !isAuthenticated) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingTop: insets.top }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     const handleSelect = (id: string) => {
         setSelectedId(id);

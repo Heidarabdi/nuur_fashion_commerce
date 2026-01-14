@@ -7,6 +7,7 @@ import { useCart, useCreateOrder } from '@nuur-fashion-commerce/api';
 import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { useTheme } from '@/contexts/theme-context';
 import { spacing, fontFamilies, radius } from '@/constants/theme';
+import { useRequireAuth } from '@/hooks';
 
 const SHIPPING_COST = 15;
 
@@ -14,6 +15,9 @@ export default function CheckoutScreen() {
     const router = useRouter();
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
+
+    // Require authentication
+    const { isLoading: authLoading, isAuthenticated } = useRequireAuth();
 
     // API hooks
     const { data: cartData, isLoading: isCartLoading } = useCart();
@@ -34,6 +38,15 @@ export default function CheckoutScreen() {
         return sum + (price * item.quantity);
     }, 0);
     const total = subtotal + SHIPPING_COST;
+
+    // Show loading while checking auth
+    if (authLoading || !isAuthenticated) {
+        return (
+            <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </SafeAreaView>
+        );
+    }
 
     const handlePlaceOrder = async () => {
         if (!address || !city || !zip || !cardNumber) {

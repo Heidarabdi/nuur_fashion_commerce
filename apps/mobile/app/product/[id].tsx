@@ -8,7 +8,9 @@ import {
     ScrollView,
     Dimensions,
     ActivityIndicator,
+    Share,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,18 +21,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { Button } from '@/components/ui';
-import { useProduct, useAddToCart } from '@nuur-fashion-commerce/api';
+import { Button, ReviewsSection } from '@/components/ui';
+import { useProduct, useAddToCart, useProductReviews, useWishlist, useToggleWishlist } from '@nuur-fashion-commerce/api';
 import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { getProductImageUrl, PlaceholderImage } from '@/utils/image';
+import { useSession } from '@/lib/auth-client';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Bottom sheet snap points
 const COLLAPSED_HEIGHT = 200; // Shows title, price, rating, and button
-const EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.70; // Full details with variants
+const EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.80; // Full details with variants - extended for reviews
 const MAX_TRANSLATE_Y = -EXPANDED_HEIGHT + COLLAPSED_HEIGHT;
 
 export default function ProductDetailsScreen() {
@@ -42,12 +44,55 @@ export default function ProductDetailsScreen() {
 
     // API hooks
     const { data: product, isLoading } = useProduct(id || '');
+    const { data: reviewsData } = useProductReviews(id || '');
     const addToCart = useAddToCart();
     const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+    // Auth hook
+    const session = useSession();
+    const isLoggedIn = !!session.data?.user;
+
+    // Wishlist hooks
+    const { data: wishlistData } = useWishlist();
+    const toggleWishlist = useToggleWishlist();
+    const isWishlisted = wishlistData?.some((item: any) => item.productId === id) || false;
+
+    // Handle wishlist toggle with auth check
+    const handleWishlistToggle = () => {
+        if (!isLoggedIn) {
+            Toast.show({
+                type: 'info',
+                text1: 'Sign In Required',
+                text2: 'Please sign in to add items to your wishlist',
+                position: 'top',
+                onPress: () => {
+                    Toast.hide();
+                    router.push('/auth/login');
+                },
+            });
+            return;
+        }
+
+        toggleWishlist.mutate(
+            { productId: id as string, isCurrentlyWishlisted: isWishlisted },
+            {
+                onSuccess: () => {
+                    Toast.show({
+                        type: 'success',
+                        text1: isWishlisted ? 'Removed from Wishlist' : 'Added to Wishlist',
+                        text2: isWishlisted
+                            ? `${product?.name || 'Item'} removed`
+                            : `${product?.name || 'Item'} added!`,
+                        position: 'top',
+                        visibilityTime: 2000,
+                    });
+                },
+            }
+        );
+    };
+
     const [selectedSize, setSelectedSize] = useState('M');
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
-    const [isFavorite, setIsFavorite] = useState(false);
 
     // Set initial color when product loads
     React.useEffect(() => {
@@ -56,8 +101,21 @@ export default function ProductDetailsScreen() {
         }
     }, [product, selectedColor]);
 
-    const sizes = product?.sizes || ['S', 'M', 'L', 'XL'];
-    const productColors = product?.colors || ['#BC6C4D'];
+    // Get sizes and colors from variants or use defaults
+    const variants = product?.variants || [];
+    const sizes = variants.length > 0
+        ? [...new Set(variants.map((v: any) => v.size).filter(Boolean))]
+        : (product?.sizes || ['S', 'M', 'L', 'XL']);
+    // Get colors from variants - these can be color names like "white", "black", etc.
+    const productColors = variants.length > 0
+        ? [...new Set(variants.map((v: any) => v.color).filter(Boolean))] as string[]
+        : [];
+
+    // Calculate average rating from reviews
+    const reviews = reviewsData || [];
+    const averageRating = reviews.length > 0
+        ? (reviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+        : '0';
 
     // Animation values
     const translateY = useSharedValue(0);
@@ -89,6 +147,18 @@ export default function ProductDetailsScreen() {
     const sheetStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: translateY.value }],
     }));
+
+    // Handle share button
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                title: product?.name || 'Check out this product',
+                message: `Check out ${product?.name || 'this product'} on Nuur Fashion!\n\n${product?.description || ''}\n\nPrice: ${formatCurrency(Number(product?.price || 0))}`,
+            });
+        } catch {
+            // User cancelled or error
+        }
+    };
 
     // Show loading state
     if (isLoading) {
@@ -143,92 +213,97 @@ export default function ProductDetailsScreen() {
                     </TouchableOpacity>
 
                     <View style={styles.headerRight}>
-                        <TouchableOpacity style={styles.headerButton}>
+                        <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
                             <Ionicons name="share-outline" size={22} color={colors.text} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.headerButton}
-                            onPress={() => setIsFavorite(!isFavorite)}
+                            onPress={handleWishlistToggle}
                         >
                             <Ionicons
-                                name={isFavorite ? 'heart' : 'heart-outline'}
+                                name={isWishlisted ? 'heart' : 'heart-outline'}
                                 size={22}
-                                color={isFavorite ? colors.primary : colors.text}
+                                color={isWishlisted ? colors.primary : colors.text}
                             />
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
 
-            {/* Bottom Sheet with Gesture */}
-            <GestureDetector gesture={gesture}>
-                <Animated.View
-                    style={[
-                        styles.bottomSheet,
-                        { height: EXPANDED_HEIGHT, paddingBottom: insets.bottom },
-                        sheetStyle
-                    ]}
+            {/* Bottom Sheet */}
+            <Animated.View
+                style={[
+                    styles.bottomSheet,
+                    { height: EXPANDED_HEIGHT, paddingBottom: insets.bottom },
+                    sheetStyle
+                ]}
+            >
+                {/* Drag Handle - Gesture only on this area */}
+                <GestureDetector gesture={gesture}>
+                    <View>
+                        <View style={styles.dragHandleContainer}>
+                            <View style={styles.dragHandle} />
+                        </View>
+
+                        {/* Title, Price, Rating - Always visible */}
+                        <View style={styles.headerContent}>
+                            <View style={styles.titleRow}>
+                                <View style={styles.titleInfo}>
+                                    <Text style={styles.productName}>{product.name}</Text>
+                                    <Text style={styles.price}>{formatCurrency(product.price)}</Text>
+                                </View>
+                                <View style={styles.ratingBadge}>
+                                    <Ionicons name="star" size={16} color="#FFB800" />
+                                    <Text style={styles.ratingText}>{averageRating}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                </GestureDetector>
+
+                {/* Expandable Content: Variants - shown when swiped up */}
+                <ScrollView
+                    style={styles.expandedContent}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    nestedScrollEnabled={true}
                 >
-                    {/* Drag Handle */}
-                    <View style={styles.dragHandleContainer}>
-                        <View style={styles.dragHandle} />
+                    {/* Description */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Description</Text>
+                        <Text style={styles.description}>
+                            {product.description || 'No description available.'}
+                        </Text>
                     </View>
 
-                    {/* Title, Price, Rating - Always visible */}
-                    <View style={styles.headerContent}>
-                        <View style={styles.titleRow}>
-                            <View style={styles.titleInfo}>
-                                <Text style={styles.productName}>{product.name}</Text>
-                                <Text style={styles.price}>{formatCurrency(product.price)}</Text>
-                            </View>
-                            <View style={styles.ratingBadge}>
-                                <Ionicons name="star" size={16} color="#FFB800" />
-                                <Text style={styles.ratingText}>4.8</Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Expandable Content: Variants - shown when swiped up */}
-                    <ScrollView
-                        style={styles.expandedContent}
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        {/* Description */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Description</Text>
-                            <Text style={styles.description}>
-                                {product.description || 'No description available.'}
-                            </Text>
-                        </View>
-
-                        {/* Size Selection */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Select Size</Text>
-                            <View style={styles.optionsRow}>
-                                {sizes.map((size: string) => (
-                                    <TouchableOpacity
-                                        key={size}
+                    {/* Size Selection */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Select Size</Text>
+                        <View style={styles.optionsRow}>
+                            {sizes.map((size: string) => (
+                                <TouchableOpacity
+                                    key={size}
+                                    style={[
+                                        styles.sizeButton,
+                                        selectedSize === size && styles.sizeButtonSelected,
+                                    ]}
+                                    onPress={() => setSelectedSize(size)}
+                                >
+                                    <Text
                                         style={[
-                                            styles.sizeButton,
-                                            selectedSize === size && styles.sizeButtonSelected,
+                                            styles.sizeText,
+                                            selectedSize === size && styles.sizeTextSelected,
                                         ]}
-                                        onPress={() => setSelectedSize(size)}
                                     >
-                                        <Text
-                                            style={[
-                                                styles.sizeText,
-                                                selectedSize === size && styles.sizeTextSelected,
-                                            ]}
-                                        >
-                                            {size}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
+                                        {size}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
+                    </View>
 
-                        {/* Color Selection */}
+                    {/* Color Selection - Only show if product has color variants */}
+                    {productColors.length > 0 && (
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Select Color</Text>
                             <View style={styles.optionsRow}>
@@ -236,47 +311,56 @@ export default function ProductDetailsScreen() {
                                     <TouchableOpacity
                                         key={color}
                                         style={[
-                                            styles.colorButton,
-                                            { backgroundColor: color },
-                                            selectedColor === color && styles.colorButtonSelected,
+                                            styles.sizeButton,
+                                            selectedColor === color && styles.sizeButtonSelected,
                                         ]}
                                         onPress={() => setSelectedColor(color)}
-                                    />
+                                    >
+                                        <Text style={[
+                                            styles.sizeText,
+                                            selectedColor === color && styles.sizeTextSelected,
+                                        ]}>
+                                            {color}
+                                        </Text>
+                                    </TouchableOpacity>
                                 ))}
                             </View>
                         </View>
-                    </ScrollView>
+                    )}
 
-                    {/* Add to Cart Button - Fixed at bottom of drawer */}
-                    <View style={styles.addToCartContainer}>
-                        <Button
-                            variant="primary"
-                            size="lg"
-                            fullWidth
-                            disabled={isAddingToCart}
-                            onPress={async () => {
-                                if (!product) return;
-                                setIsAddingToCart(true);
-                                try {
-                                    await addToCart.mutateAsync({
-                                        productId: product.id,
-                                        quantity: 1,
-                                    });
-                                    // Navigate to cart after successful add
-                                    router.push('/(tabs)/cart');
-                                } catch (error) {
-                                    console.error('Failed to add to cart:', error);
-                                } finally {
-                                    setIsAddingToCart(false);
-                                }
-                            }}
-                            style={styles.addToCartButton}
-                        >
-                            {isAddingToCart ? 'Adding...' : 'Add to Cart'}
-                        </Button>
-                    </View>
-                </Animated.View>
-            </GestureDetector>
+                    {/* Reviews Section */}
+                    <ReviewsSection productId={id as string} />
+                </ScrollView>
+
+                {/* Add to Cart Button - Fixed at bottom of drawer */}
+                <View style={styles.addToCartContainer}>
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        fullWidth
+                        disabled={isAddingToCart}
+                        onPress={async () => {
+                            if (!product) return;
+                            setIsAddingToCart(true);
+                            try {
+                                await addToCart.mutateAsync({
+                                    productId: product.id,
+                                    quantity: 1,
+                                });
+                                // Navigate to cart after successful add
+                                router.push('/(tabs)/cart');
+                            } catch (error) {
+                                console.error('Failed to add to cart:', error);
+                            } finally {
+                                setIsAddingToCart(false);
+                            }
+                        }}
+                        style={styles.addToCartButton}
+                    >
+                        {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+                    </Button>
+                </View>
+            </Animated.View>
         </GestureHandlerRootView>
     );
 }
@@ -442,23 +526,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
     },
     sizeTextSelected: {
         color: colors.white,
-    },
-
-    // Colors
-    colorButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: 'transparent',
-    },
-    colorButtonSelected: {
-        borderColor: colors.primary,
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
     },
 
     // Add to Cart - at bottom of drawer

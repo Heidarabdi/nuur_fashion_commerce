@@ -14,12 +14,25 @@ import { Avatar, ListItem } from '@/components/ui';
 import { mockUser } from '@/constants/mock-data';
 import { spacing, fontFamilies } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useRequireAuth } from '@/hooks';
+import { ActivityIndicator } from 'react-native';
 
 export default function ProfileScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { isDark, toggleTheme, colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
+
+    // Require authentication
+    const { isLoading: authLoading, isAuthenticated } = useRequireAuth();
+
+    if (authLoading || !isAuthenticated) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     const menuItems = [
         { icon: 'bag-outline' as const, title: 'My Orders', route: '/orders' },

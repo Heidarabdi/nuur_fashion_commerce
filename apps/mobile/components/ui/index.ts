@@ -11,3 +11,6 @@ export { CartItem } from './CartItem';
 export { QuantityStepper } from './QuantityStepper';
 export { Header } from './Header';
 export { CategoryPill } from './CategoryPill';
+export { StarRating } from './StarRating';
+export { ReviewsSection } from './ReviewsSection';
+

@@ -17,39 +17,33 @@ import { getProductImageUrl, PlaceholderImage } from '@/utils/image';
 import { useWishlist, useToggleWishlist } from '@nuur-fashion-commerce/api';
 import { useSession } from '@/lib/auth-client';
 
-// Product type for component props
 interface Product {
     id: string | number;
     name: string;
     price: number | string;
     image?: string;
     imageUrl?: string;
-    images?: Array<string | { url: string }>;
+    images?: (string | { url: string })[];
     brand?: string | { name: string };
-    isFavorite?: boolean;
+    description?: string;
 }
 
-interface ProductCardProps {
+interface ProductListItemProps {
     product: Product;
     onPress?: () => void;
-    onFavoritePress?: () => void; // Optional - if provided, use it instead of internal handler
     style?: ViewStyle;
 }
 
 /**
- * ProductCard - matches the prototype design:
- * - 3:4 aspect ratio image with rounded corners
- * - Heart button top-right with wishlist API integration
- * - Brand name in uppercase small text
- * - Product name in Playfair Display font
- * - Price in primary color
+ * ProductListItem - Horizontal list item for list view
+ * - Image on left, details on right
+ * - Compact layout for browsing more products
  */
-export function ProductCard({
+export function ProductListItem({
     product,
     onPress,
-    onFavoritePress,
     style,
-}: ProductCardProps) {
+}: ProductListItemProps) {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
     const router = useRouter();
@@ -66,12 +60,6 @@ export function ProductCard({
 
     // Handle wishlist toggle with auth check
     const handleWishlistToggle = () => {
-        // If parent provides handler, use that instead
-        if (onFavoritePress) {
-            onFavoritePress();
-            return;
-        }
-
         if (!isLoggedIn) {
             Toast.show({
                 type: 'info',
@@ -107,16 +95,13 @@ export function ProductCard({
     // Get image URL safely
     const imageUrl = getProductImageUrl(product);
 
-    // Determine heart state - use API data if no parent handler, otherwise use product.isFavorite
-    const showFilled = onFavoritePress ? product.isFavorite : isWishlisted;
-
     return (
         <TouchableOpacity
             style={[styles.container, style]}
             onPress={onPress}
             activeOpacity={0.9}
         >
-            {/* Image Container */}
+            {/* Image */}
             <View style={styles.imageContainer}>
                 {imageUrl ? (
                     <Image
@@ -127,75 +112,76 @@ export function ProductCard({
                 ) : (
                     <PlaceholderImage
                         name={product.name}
-                        width={undefined}
-                        height={undefined}
+                        width={100}
+                        height={100}
                         style={styles.image}
                     />
                 )}
-                {/* Heart Button - positioned top right */}
-                <TouchableOpacity
-                    style={styles.favoriteButton}
-                    onPress={handleWishlistToggle}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    <Ionicons
-                        name={showFilled ? 'heart' : 'heart-outline'}
-                        size={18}
-                        color={showFilled ? colors.primary : colors.text}
-                    />
-                </TouchableOpacity>
             </View>
 
-            {/* Product Details - following prototype layout */}
+            {/* Details */}
             <View style={styles.details}>
-                {/* Brand Name - uppercase, small, muted */}
-                {product.brand && <Text style={styles.brand}>{typeof product.brand === 'string' ? product.brand : product.brand.name}</Text>}
-                {/* Product Name - Playfair Display, bold */}
-                <Text style={styles.name} numberOfLines={1}>
+                {/* Brand */}
+                {product.brand && (
+                    <Text style={styles.brand}>
+                        {typeof product.brand === 'string' ? product.brand : product.brand.name}
+                    </Text>
+                )}
+                {/* Name */}
+                <Text style={styles.name} numberOfLines={2}>
                     {product.name}
                 </Text>
-                {/* Price - primary color */}
+                {/* Description snippet */}
+                {product.description && (
+                    <Text style={styles.description} numberOfLines={1}>
+                        {product.description}
+                    </Text>
+                )}
+                {/* Price */}
                 <Text style={styles.price}>{formatCurrency(product.price)}</Text>
             </View>
+
+            {/* Heart Button */}
+            <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={handleWishlistToggle}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+                <Ionicons
+                    name={isWishlisted ? 'heart' : 'heart-outline'}
+                    size={20}
+                    color={isWishlisted ? colors.primary : colors.textSecondary}
+                />
+            </TouchableOpacity>
         </TouchableOpacity>
     );
 }
 
 const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
     container: {
-        // Width controlled by parent via style prop
+        flexDirection: 'row',
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        padding: spacing.sm,
+        ...shadows.sm,
     },
-    // Image: 3:4 aspect ratio with rounded corners
     imageContainer: {
-        position: 'relative',
-        aspectRatio: 3 / 4,
-        borderRadius: radius.xl,
+        width: 100,
+        height: 100,
+        borderRadius: radius.md,
         overflow: 'hidden',
         backgroundColor: colors.accent,
-        marginBottom: spacing.sm,
     },
     image: {
         width: '100%',
         height: '100%',
     },
-    // Heart button: top-right, rounded, translucent background
-    favoriteButton: {
-        position: 'absolute',
-        top: spacing.sm,
-        right: spacing.sm,
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...shadows.sm,
-    },
-    // Details container with proper gap
     details: {
-        gap: 4,
+        flex: 1,
+        paddingHorizontal: spacing.md,
+        justifyContent: 'center',
+        gap: 2,
     },
-    // Brand: uppercase, very small, tracking
     brand: {
         fontFamily: fontFamilies.sansMedium,
         fontSize: 10,
@@ -203,18 +189,30 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         textTransform: 'uppercase',
         color: colors.textSecondary,
     },
-    // Name: Playfair Display, semibold
     name: {
-        fontFamily: 'Playfair_700Bold',
+        fontFamily: fontFamilies.display,
         fontSize: 14,
         color: colors.text,
         lineHeight: 18,
     },
-    // Price: medium weight, primary color
+    description: {
+        fontFamily: fontFamilies.sans,
+        fontSize: 12,
+        color: colors.textMuted,
+        marginTop: 2,
+    },
     price: {
-        fontFamily: fontFamilies.sansMedium,
+        fontFamily: fontFamilies.sansSemiBold,
         fontSize: 14,
         color: colors.primary,
-        marginTop: 2,
+        marginTop: spacing.xs,
+    },
+    favoriteButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
     },
 });

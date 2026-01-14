@@ -16,6 +16,7 @@ import { useOrders } from '@nuur-fashion-commerce/api';
 import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useRequireAuth } from '@/hooks';
 
 // Simple date formatter
 const formatDate = (dateString: string): string => {
@@ -35,6 +36,9 @@ export default function OrdersScreen() {
     const styles = useMemo(() => createStyles(colors), [colors]);
     const [activeFilter, setActiveFilter] = useState<FilterType>('active');
 
+    // Require authentication
+    const { isLoading: authLoading, isAuthenticated } = useRequireAuth();
+
     const filters: { key: FilterType; label: string }[] = [
         { key: 'active', label: 'Active' },
         { key: 'completed', label: 'Completed' },
@@ -44,6 +48,15 @@ export default function OrdersScreen() {
     // API hook
     const { data: ordersData, isLoading } = useOrders();
     const orders = ordersData || [];
+
+    // Show loading while checking auth
+    if (authLoading || !isAuthenticated) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingTop: insets.top }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     // Filter orders based on selected filter
     const filteredOrders = orders.filter((order: any) => {
