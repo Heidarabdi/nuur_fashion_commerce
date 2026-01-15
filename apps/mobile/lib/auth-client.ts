@@ -2,11 +2,10 @@ import { createAuthClient } from "better-auth/react";
 import { expoClient } from "@better-auth/expo/client";
 import * as SecureStore from "expo-secure-store";
 
-// Production API URL (same as web app)
-const PRODUCTION_API_URL = 'https://nuur-fashion-api.hono-waitlist-template-cloudflare.workers.dev';
+import { API_URL } from "@/constants/api";
 
 export const authClient = createAuthClient({
-    baseURL: PRODUCTION_API_URL + "/api/auth",
+    baseURL: API_URL + "/api/auth",
     plugins: [
         expoClient({
             storage: SecureStore,

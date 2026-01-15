@@ -88,7 +88,7 @@ export default function SettingsScreen() {
                             title="Change Password"
                             leftIcon={<Ionicons name="lock-closed-outline" size={22} color={colors.text} />}
                             showArrow
-                            onPress={() => router.push('/auth/reset-password' as any)}
+                            onPress={() => router.push('/auth/change-password' as any)}
                         />
                         <View style={styles.divider} />
                         <ListItem

@@ -19,6 +19,7 @@ import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useRequireAuth } from '@/hooks';
+import { getProductImageUrl, PlaceholderImage } from '@/utils/image';
 
 // Simple date formatter
 const formatDate = (dateString: string): string => {
@@ -109,19 +110,31 @@ export default function OrderDetailsScreen() {
                 {/* Items Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Items ({order.items.length})</Text>
-                    {order.items.map((item) => (
-                        <View key={item.id} style={styles.itemCard}>
-                            <Image
-                                source={{ uri: item.image }}
-                                style={styles.itemImage}
-                            />
-                            <View style={styles.itemDetails}>
-                                <Text style={styles.itemName}>{item.name}</Text>
-                                <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                    {order.items.map((item: { id: string; name: string; quantity: number; price: number; image?: string; product?: { images?: { url: string }[] } }) => {
+                        const imageUrl = getProductImageUrl(item.product) || item.image;
+                        return (
+                            <View key={item.id} style={styles.itemCard}>
+                                {imageUrl ? (
+                                    <Image
+                                        source={{ uri: imageUrl }}
+                                        style={styles.itemImage}
+                                    />
+                                ) : (
+                                    <PlaceholderImage
+                                        name={item.name}
+                                        width={64}
+                                        height={64}
+                                        style={styles.itemImage}
+                                    />
+                                )}
+                                <View style={styles.itemDetails}>
+                                    <Text style={styles.itemName}>{item.name}</Text>
+                                    <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                                </View>
+                                <Text style={styles.itemPrice}>{formatCurrency(item.price)}</Text>
                             </View>
-                            <Text style={styles.itemPrice}>{formatCurrency(item.price)}</Text>
-                        </View>
-                    ))}
+                        );
+                    })}
                 </View>
 
                 {/* Order Summary */}

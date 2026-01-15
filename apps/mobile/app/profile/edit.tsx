@@ -14,9 +14,11 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import * as ImagePicker from 'expo-image-picker';
 
 import { Button, Input } from '@/components/ui';
 import { spacing, fontFamilies, shadows } from '@/constants/theme';
+import { API_URL } from '@/constants/api';
 import { useTheme } from '@/contexts/theme-context';
 import { authClient } from '@/lib/auth-client';
 
@@ -31,14 +33,75 @@ export default function EditProfileScreen() {
     const user = session?.user;
 
     const [name, setName] = useState('');
+    const [avatarUri, setAvatarUri] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
     // Initialize form with user data
     useEffect(() => {
         if (user) {
             setName(user.name || '');
+            setAvatarUri(user.image || null);
         }
     }, [user]);
+
+    const pickImage = async () => {
+        // Request permission
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            Toast.show({ type: 'error', text1: 'Permission required', text2: 'Please allow access to photos' });
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets[0]) {
+            const asset = result.assets[0];
+            setUploadingAvatar(true);
+            try {
+                // Upload the image
+                const formData = new FormData();
+                formData.append('file', {
+                    uri: asset.uri,
+                    type: 'image/jpeg',
+                    name: 'avatar.jpg',
+                } as any);
+
+                const response = await fetch(`${API_URL}/api/upload/avatar`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to upload avatar');
+                }
+
+                const data = await response.json();
+                setAvatarUri(data.url);
+
+                // Update user profile with new image
+                await authClient.updateUser({ image: data.url });
+                Toast.show({ type: 'success', text1: 'Avatar updated!' });
+            } catch (error) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Upload failed',
+                    text2: (error as Error).message
+                });
+            } finally {
+                setUploadingAvatar(false);
+            }
+        }
+    };
 
     const handleSave = async () => {
         if (!name.trim()) {
@@ -101,9 +164,9 @@ export default function EditProfileScreen() {
                     {/* Avatar Section */}
                     <View style={styles.avatarSection}>
                         <View style={styles.avatarContainer}>
-                            {user.image ? (
+                            {avatarUri ? (
                                 <Image
-                                    source={{ uri: user.image }}
+                                    source={{ uri: avatarUri }}
                                     style={styles.avatar}
                                 />
                             ) : (
@@ -113,12 +176,22 @@ export default function EditProfileScreen() {
                                     </Text>
                                 </View>
                             )}
-                            <TouchableOpacity style={styles.cameraButton}>
-                                <Ionicons name="camera" size={16} color={colors.white} />
+                            <TouchableOpacity
+                                style={styles.cameraButton}
+                                onPress={pickImage}
+                                disabled={uploadingAvatar}
+                            >
+                                {uploadingAvatar ? (
+                                    <ActivityIndicator size="small" color={colors.white} />
+                                ) : (
+                                    <Ionicons name="camera" size={16} color={colors.white} />
+                                )}
                             </TouchableOpacity>
                         </View>
-                        <TouchableOpacity>
-                            <Text style={styles.changePhotoText}>Change Photo</Text>
+                        <TouchableOpacity onPress={pickImage} disabled={uploadingAvatar}>
+                            <Text style={styles.changePhotoText}>
+                                {uploadingAvatar ? 'Uploading...' : 'Change Photo'}
+                            </Text>
                         </TouchableOpacity>
                     </View>
 
