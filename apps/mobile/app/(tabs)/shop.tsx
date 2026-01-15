@@ -23,7 +23,8 @@ import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 const { width, height } = Dimensions.get('window');
-const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
+// 2-column grid: (screenWidth - leftPadding - rightPadding - gapBetween) / 2
+const CARD_WIDTH = (width - spacing.sm * 2 - spacing.sm) / 2;
 
 export default function ShopScreen() {
     const router = useRouter();
@@ -44,8 +45,6 @@ export default function ShopScreen() {
     const [selectedSort, setSelectedSort] = useState<string>('newest');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-    const [selectedSize, setSelectedSize] = useState<string | null>('M');
-    const [selectedColor, setSelectedColor] = useState<string | null>('#BC6C4D');
     const [minPrice, setMinPrice] = useState<string>('');
     const [maxPrice, setMaxPrice] = useState<string>('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -98,8 +97,6 @@ export default function ShopScreen() {
         { label: 'Price: High to Low', value: 'price-desc' },
         { label: 'Name A-Z', value: 'name-asc' },
     ];
-    const sizes = ['S', 'M', 'L', 'XL'];
-    const colorOptions = ['#BC6C4D', '#E8E1D5', '#1F1F1F', '#FFFFFF', '#2A3B4C'];
 
     return (
         <View style={styles.container}>
@@ -227,8 +224,6 @@ export default function ShopScreen() {
                             setSelectedSort('newest');
                             setSelectedCategory(null);
                             setSelectedBrand(null);
-                            setSelectedSize('M');
-                            setSelectedColor('#BC6C4D');
                             setMinPrice('');
                             setMaxPrice('');
                         }}>
@@ -373,49 +368,6 @@ export default function ShopScreen() {
                                 ))}
                             </View>
                         </View>
-
-                        {/* Size */}
-                        <View style={styles.filterSection}>
-                            <Text style={styles.filterSectionTitle}>SIZE</Text>
-                            <View style={styles.sizeOptions}>
-                                {sizes.map((size) => (
-                                    <TouchableOpacity
-                                        key={size}
-                                        style={[
-                                            styles.sizeButton,
-                                            selectedSize === size && styles.sizeButtonActive
-                                        ]}
-                                        onPress={() => setSelectedSize(size)}
-                                    >
-                                        <Text style={[
-                                            styles.sizeButtonText,
-                                            selectedSize === size && styles.sizeButtonTextActive
-                                        ]}>
-                                            {size}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        {/* Color */}
-                        <View style={styles.filterSection}>
-                            <Text style={styles.filterSectionTitle}>COLOR</Text>
-                            <View style={styles.colorOptions}>
-                                {colorOptions.map((color) => (
-                                    <TouchableOpacity
-                                        key={color}
-                                        style={[
-                                            styles.colorButton,
-                                            { backgroundColor: color },
-                                            color === '#FFFFFF' && styles.colorButtonWhite,
-                                            selectedColor === color && styles.colorButtonActive
-                                        ]}
-                                        onPress={() => setSelectedColor(color)}
-                                    />
-                                ))}
-                            </View>
-                        </View>
                     </ScrollView>
 
                     {/* Apply Button */}
@@ -469,7 +421,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         flex: 1,
     },
     scrollContent: {
-        paddingHorizontal: spacing.md,
+        paddingHorizontal: spacing.sm,
     },
 
     // Categories
@@ -500,7 +452,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
     productsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: spacing.md,
+        gap: spacing.sm,
         paddingTop: spacing.md,
     },
     productCard: {
@@ -746,8 +698,8 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         paddingTop: spacing.lg,
     },
     productsList: {
-        gap: spacing.md,
-        paddingHorizontal: spacing.lg,
+        gap: spacing.sm,
+        paddingTop: spacing.md,
     },
     productListItem: {
         width: '100%',

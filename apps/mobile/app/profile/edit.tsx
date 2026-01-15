@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,15 +8,17 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { Button, Input } from '@/components/ui';
-import { mockUser } from '@/constants/mock-data';
 import { spacing, fontFamilies, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { authClient } from '@/lib/auth-client';
 
 export default function EditProfileScreen() {
     const router = useRouter();
@@ -24,18 +26,51 @@ export default function EditProfileScreen() {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
-    const [name, setName] = useState(mockUser.name);
-    const [email, setEmail] = useState(mockUser.email);
-    const [phone, setPhone] = useState('+1 (555) 000-0000');
+    // Get real user from session
+    const { data: session, isPending } = authClient.useSession();
+    const user = session?.user;
+
+    const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSave = () => {
+    // Initialize form with user data
+    useEffect(() => {
+        if (user) {
+            setName(user.name || '');
+        }
+    }, [user]);
+
+    const handleSave = async () => {
+        if (!name.trim()) {
+            Toast.show({ type: 'error', text1: 'Name is required' });
+            return;
+        }
+
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await authClient.updateUser({
+                name: name.trim(),
+            });
+            Toast.show({ type: 'success', text1: 'Profile updated!' });
             router.back();
-        }, 1000);
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Update failed',
+                text2: (error as Error).message
+            });
+        } finally {
+            setLoading(false);
+        }
     };
+
+    if (isPending || !user) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -66,10 +101,18 @@ export default function EditProfileScreen() {
                     {/* Avatar Section */}
                     <View style={styles.avatarSection}>
                         <View style={styles.avatarContainer}>
-                            <Image
-                                source={{ uri: mockUser.avatar }}
-                                style={styles.avatar}
-                            />
+                            {user.image ? (
+                                <Image
+                                    source={{ uri: user.image }}
+                                    style={styles.avatar}
+                                />
+                            ) : (
+                                <View style={[styles.avatar, { backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' }]}>
+                                    <Text style={{ color: colors.white, fontSize: 48, fontWeight: 'bold' }}>
+                                        {(user.name || 'U').charAt(0).toUpperCase()}
+                                    </Text>
+                                </View>
+                            )}
                             <TouchableOpacity style={styles.cameraButton}>
                                 <Ionicons name="camera" size={16} color={colors.white} />
                             </TouchableOpacity>
@@ -89,24 +132,18 @@ export default function EditProfileScreen() {
                             rightIcon={<Ionicons name="person-outline" size={20} color={colors.textMuted} />}
                         />
 
-                        <Input
-                            label="Email Address"
-                            placeholder="Enter your email"
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            value={email}
-                            onChangeText={setEmail}
-                            rightIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
-                        />
-
-                        <Input
-                            label="Phone Number"
-                            placeholder="Enter your phone"
-                            keyboardType="phone-pad"
-                            value={phone}
-                            onChangeText={setPhone}
-                            rightIcon={<Ionicons name="call-outline" size={20} color={colors.textMuted} />}
-                        />
+                        {/* Email is read-only - requires separate change flow */}
+                        <View style={{ marginTop: spacing.md }}>
+                            <Text style={{ fontFamily: fontFamilies.sansMedium, fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                                Email Address
+                            </Text>
+                            <View style={{ backgroundColor: colors.surface, padding: 16, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={{ flex: 1, fontFamily: fontFamilies.sans, fontSize: 16, color: colors.textMuted }}>
+                                    {user.email}
+                                </Text>
+                                <Ionicons name="mail-outline" size={20} color={colors.textMuted} />
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

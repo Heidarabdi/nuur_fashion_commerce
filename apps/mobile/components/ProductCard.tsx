@@ -24,7 +24,7 @@ interface Product {
     price: number | string;
     image?: string;
     imageUrl?: string;
-    images?: Array<string | { url: string }>;
+    images?: (string | { url: string })[];
     brand?: string | { name: string };
     isFavorite?: boolean;
 }
@@ -62,7 +62,12 @@ export function ProductCard({
     const { data: wishlistData } = useWishlist();
     const toggleWishlist = useToggleWishlist();
     const productId = String(product.id);
-    const isWishlisted = wishlistData?.some((item: any) => item.productId === productId) || false;
+    // Handle both array and object with items property
+    // Only check wishlist if user is logged in
+    const wishlistItems = isLoggedIn && wishlistData
+        ? (Array.isArray(wishlistData) ? wishlistData : wishlistData?.items || [])
+        : [];
+    const isWishlisted = wishlistItems.some((item: any) => item.productId === productId);
 
     // Handle wishlist toggle with auth check
     const handleWishlistToggle = () => {
@@ -141,7 +146,7 @@ export function ProductCard({
                     <Ionicons
                         name={showFilled ? 'heart' : 'heart-outline'}
                         size={18}
-                        color={showFilled ? colors.primary : colors.text}
+                        color={showFilled ? colors.primary : '#374151'}
                     />
                 </TouchableOpacity>
             </View>

@@ -8,16 +8,20 @@ import {
     ScrollView,
     TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { Button, Input } from '@/components/ui';
 import { spacing, fontFamilies } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { authClient } from '@/lib/auth-client';
 
 export default function ResetPasswordScreen() {
     const router = useRouter();
+    const params = useLocalSearchParams<{ token?: string }>();
+    const token = params.token;
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
@@ -25,17 +29,92 @@ export default function ResetPasswordScreen() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+
+    const validateForm = () => {
+        const newErrors: { password?: string; confirmPassword?: string } = {};
+
+        if (!password) {
+            newErrors.password = 'Password is required';
+        } else if (password.length < 8) {
+            newErrors.password = 'Password must be at least 8 characters';
+        }
+
+        if (!confirmPassword) {
+            newErrors.confirmPassword = 'Please confirm your password';
+        } else if (password !== confirmPassword) {
+            newErrors.confirmPassword = "Passwords don't match";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleResetPassword = async () => {
-        if (password !== confirmPassword) {
+        if (!validateForm()) return;
+
+        if (!token) {
+            Toast.show({
+                type: 'error',
+                text1: 'Invalid reset link',
+                text2: 'Please request a new password reset.',
+            });
             return;
         }
+
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const { error } = await authClient.resetPassword({
+                newPassword: password,
+                token,
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Failed to reset password');
+            }
+
             setSuccess(true);
-        }, 1500);
+            Toast.show({
+                type: 'success',
+                text1: 'Password reset successful!',
+                text2: 'You can now sign in with your new password.',
+            });
+        } catch (err) {
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to reset password',
+                text2: (err as Error).message,
+            });
+        } finally {
+            setLoading(false);
+        }
     };
+
+    // Show invalid link state if no token
+    if (!token) {
+        return (
+            <View style={[styles.container, { paddingTop: insets.top }]}>
+                <View style={styles.successContainer}>
+                    <View style={[styles.successIcon, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}>
+                        <Ionicons name="alert-circle-outline" size={80} color="#EF4444" />
+                    </View>
+                    <Text style={styles.successTitle}>Invalid Reset Link</Text>
+                    <Text style={styles.successSubtitle}>
+                        This password reset link is invalid or has expired. Please request a new one.
+                    </Text>
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        fullWidth
+                        onPress={() => router.replace('/auth/forgot-password' as any)}
+                        style={styles.successButton}
+                    >
+                        Request New Link
+                    </Button>
+                </View>
+            </View>
+        );
+    }
 
     if (success) {
         return (
@@ -97,7 +176,11 @@ export default function ResetPasswordScreen() {
                         placeholder="Enter new password"
                         isPassword
                         value={password}
-                        onChangeText={setPassword}
+                        onChangeText={(text) => {
+                            setPassword(text);
+                            if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+                        }}
+                        error={errors.password}
                         hint="Must be at least 8 characters"
                     />
 
@@ -106,12 +189,11 @@ export default function ResetPasswordScreen() {
                         placeholder="Confirm new password"
                         isPassword
                         value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        error={
-                            confirmPassword && password !== confirmPassword
-                                ? 'Passwords do not match'
-                                : undefined
-                        }
+                        onChangeText={(text) => {
+                            setConfirmPassword(text);
+                            if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                        }}
+                        error={errors.confirmPassword}
                     />
                 </View>
 
@@ -121,7 +203,7 @@ export default function ResetPasswordScreen() {
                     size="lg"
                     fullWidth
                     loading={loading}
-                    disabled={!password || !confirmPassword || password !== confirmPassword}
+                    disabled={!password || !confirmPassword}
                     onPress={handleResetPassword}
                 >
                     Reset Password

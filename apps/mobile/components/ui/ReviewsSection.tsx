@@ -57,7 +57,11 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
 
     const handleSubmitReview = async () => {
         if (rating < 1) {
-            Alert.alert('Rating Required', 'Please select a star rating');
+            Toast.show({
+                type: 'info',
+                text1: 'Rating Required',
+                text2: 'Please select a star rating',
+            });
             return;
         }
 

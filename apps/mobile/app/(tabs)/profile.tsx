@@ -5,17 +5,17 @@ import {
     ScrollView,
     StyleSheet,
     TouchableOpacity,
+    ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar, ListItem } from '@/components/ui';
-import { mockUser } from '@/constants/mock-data';
 import { spacing, fontFamilies } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useRequireAuth } from '@/hooks';
-import { ActivityIndicator } from 'react-native';
+import { authClient } from '@/lib/auth-client';
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -25,8 +25,10 @@ export default function ProfileScreen() {
 
     // Require authentication
     const { isLoading: authLoading, isAuthenticated } = useRequireAuth();
+    const { data: session } = authClient.useSession();
+    const user = session?.user;
 
-    if (authLoading || !isAuthenticated) {
+    if (authLoading || !isAuthenticated || !user) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -55,30 +57,28 @@ export default function ProfileScreen() {
                 {/* Profile Header */}
                 <View style={styles.header}>
                     <Avatar
-                        source={mockUser.avatar}
-                        name={mockUser.name}
+                        source={user.image || undefined}
+                        name={user.name || 'User'}
                         size={96}
                         showEditBadge
                         onEditPress={() => router.push('/profile/edit' as any)}
                     />
-                    <Text style={styles.name}>{mockUser.name}</Text>
-                    <Text style={styles.email}>{mockUser.email}</Text>
+                    <Text style={styles.name}>{user.name || 'User'}</Text>
+                    <Text style={styles.email}>{user.email}</Text>
                 </View>
 
                 {/* Stats */}
                 <View style={styles.statsRow}>
                     <View style={styles.stat}>
-                        <Text style={styles.statValue}>{mockUser.ordersCount}</Text>
+                        <Text style={styles.statValue}>-</Text>
                         <Text style={styles.statLabel}>ORDERS</Text>
                     </View>
                     <View style={[styles.stat, styles.statBorder]}>
-                        <Text style={styles.statValue}>{mockUser.wishlistCount}</Text>
+                        <Text style={styles.statValue}>-</Text>
                         <Text style={styles.statLabel}>WISHLIST</Text>
                     </View>
                     <View style={styles.stat}>
-                        <Text style={styles.statValue}>
-                            {mockUser.points >= 1000 ? `${(mockUser.points / 1000).toFixed(1)}k` : mockUser.points}
-                        </Text>
+                        <Text style={styles.statValue}>-</Text>
                         <Text style={styles.statLabel}>POINTS</Text>
                     </View>
                 </View>

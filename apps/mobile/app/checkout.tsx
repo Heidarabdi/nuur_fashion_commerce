@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Platform, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Platform, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,12 +51,20 @@ export default function CheckoutScreen() {
 
     const handlePlaceOrder = async () => {
         if (!address || !city || !zip || !cardNumber) {
-            Alert.alert('Error', 'Please fill in all details');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please fill in all details',
+            });
             return;
         }
 
         if (cartItems.length === 0) {
-            Alert.alert('Error', 'Your cart is empty');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Your cart is empty',
+            });
             return;
         }
 
@@ -72,12 +81,24 @@ export default function CheckoutScreen() {
                 lastName: 'User',
             });
 
-            Alert.alert('Success', 'Order placed successfully!', [
-                { text: 'OK', onPress: () => router.push('/order-confirmation') }
-            ]);
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Order placed successfully!',
+                onPress: () => {
+                    Toast.hide();
+                    router.push('/order-confirmation');
+                },
+            });
+            // Navigate after a short delay
+            setTimeout(() => router.push('/order-confirmation'), 1500);
         } catch (error) {
             console.error('Failed to place order:', error);
-            Alert.alert('Error', 'Failed to place order. Please try again.');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to place order. Please try again.',
+            });
         } finally {
             setIsPlacingOrder(false);
         }

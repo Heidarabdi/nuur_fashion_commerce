@@ -11,10 +11,12 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { Button, Input } from '@/components/ui';
 import { spacing, fontFamilies } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { authClient } from '@/lib/auth-client';
 
 export default function ForgotPasswordScreen() {
     const router = useRouter();
@@ -24,13 +26,50 @@ export default function ForgotPasswordScreen() {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
+    const [error, setError] = useState<string | undefined>();
+
+    const validateEmail = () => {
+        if (!email.trim()) {
+            setError('Email is required');
+            return false;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError('Please enter a valid email');
+            return false;
+        }
+        setError(undefined);
+        return true;
+    };
 
     const handleSubmit = async () => {
+        if (!validateEmail()) return;
+
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const { error: apiError } = await authClient.requestPasswordReset({
+                email: email.trim(),
+                redirectTo: '/auth/reset-password',
+            });
+
+            if (apiError) {
+                throw new Error(apiError.message || 'Failed to send reset email');
+            }
+
             setSent(true);
-        }, 1500);
+            Toast.show({
+                type: 'success',
+                text1: 'Reset email sent!',
+                text2: 'Check your inbox for a password reset link.',
+            });
+        } catch (err) {
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to send reset email',
+                text2: (err as Error).message,
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -85,7 +124,11 @@ export default function ForgotPasswordScreen() {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={(text) => {
+                                    setEmail(text);
+                                    if (error) setError(undefined);
+                                }}
+                                error={error}
                             />
                         </View>
 

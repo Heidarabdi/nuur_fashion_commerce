@@ -55,7 +55,12 @@ export default function ProductDetailsScreen() {
     // Wishlist hooks
     const { data: wishlistData } = useWishlist();
     const toggleWishlist = useToggleWishlist();
-    const isWishlisted = wishlistData?.some((item: any) => item.productId === id) || false;
+    // Handle both array and object with items property
+    // Only check wishlist if user is logged in
+    const wishlistItems = isLoggedIn && wishlistData
+        ? (Array.isArray(wishlistData) ? wishlistData : wishlistData?.items || [])
+        : [];
+    const isWishlisted = wishlistItems.some((item: any) => item.productId === id);
 
     // Handle wishlist toggle with auth check
     const handleWishlistToggle = () => {
@@ -209,12 +214,12 @@ export default function ProductDetailsScreen() {
                         style={styles.headerButton}
                         onPress={() => router.back()}
                     >
-                        <Ionicons name="arrow-back" size={22} color={colors.text} />
+                        <Ionicons name="arrow-back" size={22} color="#374151" />
                     </TouchableOpacity>
 
                     <View style={styles.headerRight}>
                         <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-                            <Ionicons name="share-outline" size={22} color={colors.text} />
+                            <Ionicons name="share-outline" size={22} color="#374151" />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.headerButton}
@@ -223,7 +228,7 @@ export default function ProductDetailsScreen() {
                             <Ionicons
                                 name={isWishlisted ? 'heart' : 'heart-outline'}
                                 size={22}
-                                color={isWishlisted ? colors.primary : colors.text}
+                                color={isWishlisted ? colors.primary : '#374151'}
                             />
                         </TouchableOpacity>
                     </View>

@@ -11,10 +11,12 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { Button, Input } from '@/components/ui';
 import { spacing, fontFamilies } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { authClient } from '@/lib/auth-client';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -24,14 +26,57 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+    const validateForm = () => {
+        const newErrors: { email?: string; password?: string } = {};
+
+        // Email validation
+        if (!email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            newErrors.email = 'Please enter a valid email';
+        }
+
+        // Password validation
+        if (!password) {
+            newErrors.password = 'Password is required';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleLogin = async () => {
+        if (!validateForm()) return;
+
         setLoading(true);
-        // Simulate login
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const { error } = await authClient.signIn.email({
+                email: email.trim(),
+                password,
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Failed to login');
+            }
+
+            Toast.show({
+                type: 'success',
+                text1: 'Welcome back!',
+                text2: 'You have been signed in successfully.',
+            });
+
             router.replace('/(tabs)');
-        }, 1500);
+        } catch (err) {
+            Toast.show({
+                type: 'error',
+                text1: 'Sign in failed',
+                text2: (err as Error).message,
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -42,10 +87,18 @@ export default function LoginScreen() {
             <ScrollView
                 contentContainerStyle={[
                     styles.scrollContent,
-                    { paddingTop: insets.top + spacing.xxl, paddingBottom: insets.bottom + spacing.xl },
+                    { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.xl },
                 ]}
                 keyboardShouldPersistTaps="handled"
             >
+                {/* Close Button - allows guest to go back without signing in */}
+                <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => router.replace('/(tabs)')}
+                >
+                    <Ionicons name="close" size={24} color={colors.text} />
+                </TouchableOpacity>
+
                 {/* Logo */}
                 <View style={styles.logoContainer}>
                     <Text style={styles.logo}>Nuur</Text>
@@ -65,7 +118,11 @@ export default function LoginScreen() {
                         keyboardType="email-address"
                         autoCapitalize="none"
                         value={email}
-                        onChangeText={setEmail}
+                        onChangeText={(text) => {
+                            setEmail(text);
+                            if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                        }}
+                        error={errors.email}
                     />
 
                     <Input
@@ -73,7 +130,11 @@ export default function LoginScreen() {
                         placeholder="Password"
                         isPassword
                         value={password}
-                        onChangeText={setPassword}
+                        onChangeText={(text) => {
+                            setPassword(text);
+                            if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+                        }}
+                        error={errors.password}
                     />
 
                     <TouchableOpacity
@@ -116,6 +177,10 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
     scrollContent: {
         flexGrow: 1,
         paddingHorizontal: spacing.lg,
+    },
+    closeButton: {
+        alignSelf: 'flex-start',
+        marginBottom: spacing.md,
     },
 
     // Logo

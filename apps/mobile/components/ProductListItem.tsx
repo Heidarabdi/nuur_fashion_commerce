@@ -56,7 +56,12 @@ export function ProductListItem({
     const { data: wishlistData } = useWishlist();
     const toggleWishlist = useToggleWishlist();
     const productId = String(product.id);
-    const isWishlisted = wishlistData?.some((item: any) => item.productId === productId) || false;
+    // Handle both array and object with items property
+    // Only check wishlist if user is logged in
+    const wishlistItems = isLoggedIn && wishlistData
+        ? (Array.isArray(wishlistData) ? wishlistData : wishlistData?.items || [])
+        : [];
+    const isWishlisted = wishlistItems.some((item: any) => item.productId === productId);
 
     // Handle wishlist toggle with auth check
     const handleWishlistToggle = () => {

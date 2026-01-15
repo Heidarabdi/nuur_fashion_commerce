@@ -10,10 +10,13 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { ListItem } from '@/components/ui';
 import { spacing, fontFamilies, shadows, radius } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { authClient } from '@/lib/auth-client';
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -21,6 +24,7 @@ export default function SettingsScreen() {
     const { colors, isDark, toggleTheme } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
     const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+    const queryClient = useQueryClient();
 
     return (
         <View style={styles.container}>
@@ -91,14 +95,14 @@ export default function SettingsScreen() {
                             title="Shipping Addresses"
                             leftIcon={<Ionicons name="location-outline" size={22} color={colors.text} />}
                             showArrow
-                            onPress={() => { }}
+                            onPress={() => router.push('/address' as any)}
                         />
                         <View style={styles.divider} />
                         <ListItem
                             title="Payment Methods"
                             leftIcon={<Ionicons name="card-outline" size={22} color={colors.text} />}
                             showArrow
-                            onPress={() => { }}
+                            onPress={() => router.push('/payment' as any)}
                         />
                     </View>
                 </View>
@@ -131,7 +135,21 @@ export default function SettingsScreen() {
                 </View>
 
                 {/* Logout */}
-                <TouchableOpacity style={styles.logoutButton} onPress={() => router.replace('/auth/login')}>
+                <TouchableOpacity
+                    style={styles.logoutButton}
+                    onPress={async () => {
+                        try {
+                            // Sign out via Better Auth (expoClient plugin handles storage cleanup)
+                            await authClient.signOut();
+                            // Clear all cached queries
+                            queryClient.clear();
+                            Toast.show({ type: 'success', text1: 'Logged out', text2: 'See you soon!' });
+                        } catch (error) {
+                            console.log('Logout error:', error);
+                        }
+                        router.replace('/auth/login');
+                    }}
+                >
                     <Ionicons name="log-out-outline" size={22} color={colors.error} />
                     <Text style={styles.logoutText}>Log Out</Text>
                 </TouchableOpacity>

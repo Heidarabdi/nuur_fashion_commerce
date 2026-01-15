@@ -17,6 +17,7 @@ import { formatCurrency } from '@nuur-fashion-commerce/shared';
 import { spacing, fontFamilies, radius, shadows } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useRequireAuth } from '@/hooks';
+import { getProductImageUrl, PlaceholderImage } from '@/utils/image';
 
 // Simple date formatter
 const formatDate = (dateString: string): string => {
@@ -162,8 +163,10 @@ export default function OrdersScreen() {
                 <View style={styles.ordersList}>
                     {filteredOrders.map((order: any) => {
                         const statusStyle = getStatusStyle(order.status);
-                        // Get first item image for display
+                        // Get first item for display
                         const firstItem = order.items[0];
+                        const product = firstItem?.product;
+                        const imageUrl = getProductImageUrl(product);
 
                         return (
                             <TouchableOpacity
@@ -175,19 +178,23 @@ export default function OrdersScreen() {
                                 <View style={styles.orderContent}>
                                     {/* Product Image */}
                                     <View style={styles.orderImageContainer}>
-                                        <Image
-                                            source={{ uri: firstItem?.image || 'https://via.placeholder.com/100' }}
-                                            style={styles.orderImage}
-                                            resizeMode="cover"
-                                        />
+                                        {imageUrl ? (
+                                            <Image
+                                                source={{ uri: imageUrl }}
+                                                style={styles.orderImage}
+                                                resizeMode="cover"
+                                            />
+                                        ) : (
+                                            <PlaceholderImage name={product?.name || 'Order'} />
+                                        )}
                                     </View>
 
                                     {/* Order Details */}
                                     <View style={styles.orderDetails}>
                                         {/* Header Row: Order ID + Status */}
                                         <View style={styles.orderHeader}>
-                                            <View>
-                                                <Text style={styles.orderId}>Order #{order.id}</Text>
+                                            <View style={styles.orderIdContainer}>
+                                                <Text style={styles.orderId} numberOfLines={1}>Order #{order.id.slice(0, 8)}</Text>
                                                 <Text style={styles.orderDate}>{formatDate(order.date)}</Text>
                                             </View>
                                             <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
@@ -326,17 +333,22 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
+        gap: spacing.sm,
+    },
+    orderIdContainer: {
+        flex: 1,
+        minWidth: 0,
     },
     orderId: {
         fontFamily: fontFamilies.sansBold,
-        fontSize: 18,
+        fontSize: 15,
         color: colors.text,
     },
     orderDate: {
         fontFamily: fontFamilies.sansMedium,
-        fontSize: 14,
+        fontSize: 12,
         color: colors.textMuted,
-        marginTop: 4,
+        marginTop: 2,
     },
     statusBadge: {
         paddingHorizontal: 12,
